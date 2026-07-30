@@ -569,6 +569,319 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             assert 'HTTP error 500' in result['msg']
 
 
+class TestValidationSingleAttribute:
+    """Tests for single attribute validation (Phase 2)."""
+
+    @pytest.fixture
+    def enum_attrs(self):
+        return [
+            {
+                'name': 'ProcVirtualization',
+                'type': 'Enumeration',
+                'valid_values': ['Enabled', 'Disabled'],
+                'read_only': False
+            },
+            {
+                'name': 'BootMode',
+                'type': 'Enumeration',
+                'valid_values': ['Uefi', 'Bios'],
+                'read_only': False
+            }
+        ]
+
+    @pytest.fixture
+    def int_attrs(self):
+        return [
+            {
+                'name': 'ProcCores',
+                'type': 'Integer',
+                'lower_bound': 1,
+                'upper_bound': 64,
+                'read_only': False
+            }
+        ]
+
+    @pytest.fixture
+    def str_attrs(self):
+        return [
+            {
+                'name': 'AssetTag',
+                'type': 'String',
+                'min_length': 0,
+                'max_length': 63,
+                'regex': '^[A-Za-z0-9 ]*$',
+                'value_expression': None,
+                'read_only': False
+            }
+        ]
+
+    def test_valid_enum_value(self, enum_attrs):
+        """AC-003: valid enumeration returns status=valid."""
+        result = idrac_bios_registry_info.validate_attribute(
+            'ProcVirtualization', 'Enabled', enum_attrs)
+        assert result['status'] == 'valid'
+        assert result['reason'] == 'Value is valid'
+        assert result['suggestions'] == []
+
+    def test_invalid_enum_with_suggestions(self, enum_attrs):
+        """AC-003: invalid enum value returns suggestions."""
+        result = idrac_bios_registry_info.validate_attribute(
+            'ProcVirtualization', 'enable', enum_attrs)
+        assert result['status'] == 'invalid'
+        assert 'not a valid enumeration value' in result['reason']
+        assert 'Enabled' in result['suggestions']
+
+    def test_nonexistent_attr_with_fuzzy_suggestions(self, enum_attrs):
+        """FR-6.2: non-existent attr returns close-match suggestions."""
+        result = idrac_bios_registry_info.validate_attribute(
+            'ProcVirtualizaton', 'Enabled', enum_attrs)
+        assert result['status'] == 'invalid'
+        assert 'not found' in result['reason']
+        assert len(result['suggestions']) > 0
+        assert 'ProcVirtualization' in result['suggestions']
+
+    def test_integer_within_bounds(self, int_attrs):
+        """FR-2.2: integer within LowerBound/UpperBound is valid."""
+        result = idrac_bios_registry_info.validate_attribute(
+            'ProcCores', 32, int_attrs)
+        assert result['status'] == 'valid'
+
+    def test_integer_below_lower_bound(self, int_attrs):
+        """FR-2.2: integer below LowerBound returns invalid."""
+        result = idrac_bios_registry_info.validate_attribute(
+            'ProcCores', 0, int_attrs)
+        assert result['status'] == 'invalid'
+        assert 'below minimum' in result['reason']
+
+    def test_integer_above_upper_bound(self, int_attrs):
+        """FR-2.2: integer above UpperBound returns invalid."""
+        result = idrac_bios_registry_info.validate_attribute(
+            'ProcCores', 100, int_attrs)
+        assert result['status'] == 'invalid'
+        assert 'exceeds maximum' in result['reason']
+
+    def test_integer_non_numeric_value(self, int_attrs):
+        """FR-7.1: non-numeric value for integer attr returns invalid."""
+        result = idrac_bios_registry_info.validate_attribute(
+            'ProcCores', 'abc', int_attrs)
+        assert result['status'] == 'invalid'
+        assert 'not a valid integer' in result['reason']
+
+    def test_string_valid(self, str_attrs):
+        """FR-2: string within constraints is valid."""
+        result = idrac_bios_registry_info.validate_attribute(
+            'AssetTag', 'Server01', str_attrs)
+        assert result['status'] == 'valid'
+
+    def test_string_exceeds_max_length(self, str_attrs):
+        """FR-2: string exceeding MaxLength returns invalid."""
+        result = idrac_bios_registry_info.validate_attribute(
+            'AssetTag', 'A' * 64, str_attrs)
+        assert result['status'] == 'invalid'
+        assert 'exceeds maximum' in result['reason']
+
+    def test_string_regex_mismatch(self, str_attrs):
+        """FR-2: string not matching Regex returns invalid."""
+        result = idrac_bios_registry_info.validate_attribute(
+            'AssetTag', '!@#$%', str_attrs)
+        assert result['status'] == 'invalid'
+        assert 'does not match required pattern' in result['reason']
+
+    def test_read_only_attribute_rejected(self):
+        """FR-7.1: read-only attribute validation returns invalid."""
+        attrs = [{
+            'name': 'SystemModelName',
+            'type': 'String',
+            'min_length': 0,
+            'max_length': 40,
+            'regex': None,
+            'value_expression': None,
+            'read_only': True
+        }]
+        result = idrac_bios_registry_info.validate_attribute(
+            'SystemModelName', 'Test', attrs)
+        assert result['status'] == 'invalid'
+        assert 'read-only' in result['reason']
+
+
+class TestSuggestionGeneration:
+    """Tests for suggestion logic (Phase 3)."""
+
+    def test_enum_suggestion_list(self):
+        """FR-6.1: invalid enum returns valid values as suggestions."""
+        attrs = [{
+            'name': 'BootMode',
+            'type': 'Enumeration',
+            'valid_values': ['Uefi', 'Bios', 'DualMode'],
+            'read_only': False
+        }]
+        result = idrac_bios_registry_info.validate_attribute(
+            'BootMode', 'uefi', attrs)
+        assert result['status'] == 'invalid'
+        assert 'Uefi' in result['suggestions']
+
+    def test_fuzzy_attr_name_matching(self):
+        """FR-6.2: misspelled attr name returns close matches."""
+        attrs = [
+            {'name': 'ProcVirtualization', 'type': 'Enumeration',
+             'valid_values': ['Enabled'], 'read_only': False},
+            {'name': 'ProcCores', 'type': 'Integer',
+             'lower_bound': 1, 'upper_bound': 64, 'read_only': False},
+            {'name': 'BootMode', 'type': 'Enumeration',
+             'valid_values': ['Uefi'], 'read_only': False},
+        ]
+        result = idrac_bios_registry_info.validate_attribute(
+            'ProcVirtualizaton', 'Enabled', attrs)
+        assert result['status'] == 'invalid'
+        assert 'ProcVirtualization' in result['suggestions']
+
+
+class TestBatchValidation:
+    """Tests for batch validation (Phase 4)."""
+
+    def test_batch_all_valid(self):
+        """AC-008: batch with all valid attributes."""
+        attrs = [
+            {'name': 'ProcVirtualization', 'type': 'Enumeration',
+             'valid_values': ['Enabled', 'Disabled'], 'read_only': False},
+            {'name': 'BootMode', 'type': 'Enumeration',
+             'valid_values': ['Uefi', 'Bios'], 'read_only': False},
+        ]
+        result = idrac_bios_registry_info.validate_attributes(
+            {'ProcVirtualization': 'Enabled', 'BootMode': 'Uefi'}, attrs)
+        assert result['valid'] is True
+        assert result['valid_count'] == 2
+        assert result['invalid_count'] == 0
+
+    def test_batch_mixed_valid_invalid(self):
+        """AC-008: batch with mixed results."""
+        attrs = [
+            {'name': 'ProcVirtualization', 'type': 'Enumeration',
+             'valid_values': ['Enabled', 'Disabled'], 'read_only': False},
+            {'name': 'BootMode', 'type': 'Enumeration',
+             'valid_values': ['Uefi', 'Bios'], 'read_only': False},
+        ]
+        result = idrac_bios_registry_info.validate_attributes(
+            {'ProcVirtualization': 'Enabled', 'BootMode': 'Legacy'}, attrs)
+        assert result['valid'] is False
+        assert result['valid_count'] == 1
+        assert result['invalid_count'] == 1
+        assert len(result['validation_results']) == 2
+
+    def test_batch_empty_attributes(self):
+        """AC-008: empty attributes dict returns valid with zero counts."""
+        result = idrac_bios_registry_info.validate_attributes({}, [])
+        assert result['valid'] is True
+        assert result['valid_count'] == 0
+        assert result['invalid_count'] == 0
+
+
+class TestValidationIntegration(FakeAnsibleModule):
+    """Tests for combined query + validation flow (Phase 5)."""
+    module = idrac_bios_registry_info
+
+    @pytest.fixture
+    def idrac_mock(self):
+        idrac_obj = MagicMock()
+        idrac_obj.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        return idrac_obj
+
+    @pytest.fixture
+    def idrac_connection_mock(self, mocker, idrac_mock):
+        with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
+            mock_class.return_value.__enter__.return_value = idrac_mock
+            mock_class.return_value.__exit__.return_value = False
+            mock_class.check_minimum_firmware_requirement = \
+                iDRACRedfishAPI.check_minimum_firmware_requirement
+            mock_class.compare_firmware_version = \
+                iDRACRedfishAPI.compare_firmware_version
+            yield mock_class
+
+    @pytest.fixture
+    def registry_response(self):
+        mock_resp = MagicMock()
+        mock_resp.json_data = {
+            'RegistryVersion': '1.0.0',
+            'Language': 'en',
+            'OwningEntity': 'Dell',
+            'RegistryEntries': {
+                'Attributes': [
+                    {
+                        'AttributeName': 'ProcVirtualization',
+                        'DisplayName': 'Virtualization Technology',
+                        'Type': 'Enumeration',
+                        'CurrentValue': 'Enabled',
+                        'DefaultValue': 'Enabled',
+                        'Value': [
+                            {'ValueName': 'Enabled'},
+                            {'ValueName': 'Disabled'}
+                        ],
+                        'HelpText': 'Enable or disable.',
+                        'MenuPath': './ProcSettingsRef',
+                        'ReadOnly': False,
+                        'Immutable': False,
+                        'WriteOnly': False,
+                        'GrayOut': False,
+                        'Hidden': False,
+                        'DisplayOrder': 1,
+                        'Oem': {
+                            'Dell': {
+                                'GroupDisplayName': 'Processor',
+                                'GroupName': 'ProcSettings'
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+        return mock_resp
+
+    def test_query_with_validate_true(
+            self, idrac_default_args,
+            idrac_connection_mock, idrac_mock,
+            registry_response, mocker):
+        """Phase 5: query + validate=true returns validation fields."""
+        idrac_mock.invoke_request.return_value = registry_response
+        mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
+        idrac_default_args['validate'] = True
+        idrac_default_args['attributes'] = {
+            'ProcVirtualization': 'Enabled'
+        }
+        result = self._run_module(idrac_default_args)
+        assert result['changed'] is False
+        assert result['valid'] is True
+        assert result['valid_count'] == 1
+        assert result['invalid_count'] == 0
+        assert len(result['validation_results']) == 1
+        assert result['validation_results'][0]['status'] == 'valid'
+
+    def test_query_only_ignores_validation(
+            self, idrac_default_args,
+            idrac_connection_mock, idrac_mock,
+            registry_response, mocker):
+        """Phase 5: query-only mode (validate=false) returns None fields."""
+        idrac_mock.invoke_request.return_value = registry_response
+        mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
+        result = self._run_module(idrac_default_args)
+        assert result['changed'] is False
+        assert result['validation_results'] is None
+        assert result['valid'] is None
+
+    def test_validation_changed_false(
+            self, idrac_default_args,
+            idrac_connection_mock, idrac_mock,
+            registry_response, mocker):
+        """NFR-2: validation operations exit with changed=False."""
+        idrac_mock.invoke_request.return_value = registry_response
+        mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
+        idrac_default_args['validate'] = True
+        idrac_default_args['attributes'] = {
+            'ProcVirtualization': 'BadValue'
+        }
+        result = self._run_module(idrac_default_args)
+        assert result['changed'] is False
+
+
 @pytest.fixture
 def idrac_default_args():
     """Default module arguments for testing."""
