@@ -77,3 +77,4 @@ build_ignore:
   - .gitignore
   - catalog-info.yaml
   - .pytest_cache
+  - .ansible
