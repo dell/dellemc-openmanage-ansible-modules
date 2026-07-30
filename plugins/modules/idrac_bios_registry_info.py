@@ -213,6 +213,7 @@ error_info:
   }
 '''
 
+import difflib
 import fnmatch
 import re
 from ansible.module_utils.basic import AnsibleModule
@@ -317,12 +318,21 @@ def _validation_result(attr, status, reason, suggestions=None):
     }
 
 
+def _fuzzy_attr_suggestions(attr, bios_attributes, n=3, cutoff=0.6):
+    """Return close-match attribute names using difflib."""
+    all_names = [a['name'] for a in bios_attributes]
+    return difflib.get_close_matches(attr, all_names, n=n, cutoff=cutoff)
+
+
 def validate_attribute(attr, value, bios_attributes):
     """Validate a single attribute value against the registry."""
     attr_def = next((a for a in bios_attributes if a['name'] == attr), None)
     if not attr_def:
-        return _validation_result(attr, 'invalid',
-                                  f"Attribute '{attr}' not found in BIOS registry")
+        suggestions = _fuzzy_attr_suggestions(attr, bios_attributes)
+        return _validation_result(
+            attr, 'invalid',
+            f"Attribute '{attr}' not found in BIOS registry",
+            suggestions)
 
     if attr_def['read_only']:
         return _validation_result(attr, 'invalid',
