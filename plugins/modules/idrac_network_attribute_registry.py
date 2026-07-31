@@ -224,7 +224,9 @@ formatted_output:
 """
 
 import json
+import re
 import time
+import yaml
 from fnmatch import fnmatch
 from difflib import get_close_matches
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -232,6 +234,7 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
     iDRACRedfishAPI, IdracAnsibleModule
 )
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
 
 REGISTRY_URI = "/redfish/v1/Registries/NetworkAttributeRegistry"
 MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
@@ -239,6 +242,7 @@ IDRAC_ATTRIBUTES_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttri
 
 MIN_FW_IDRAC9 = "7.30.30.50"
 MIN_FW_IDRAC10 = "1.30.30.50"
+ODATA_ID = "(.*?)@odata"
 
 SUCCESS_QUERY_MSG = "Successfully retrieved network attribute registry."
 SUCCESS_VALIDATE_MSG = "Attribute validation completed."
@@ -281,7 +285,6 @@ def _invoke_with_retry(idrac, uri, method, module=None, max_retries=MAX_RETRIES)
 
 def get_idrac_firmware_info(idrac):
     """Query iDRAC Manager endpoint to get generation, firmware version, and model."""
-    import re
     response = idrac.invoke_request(MANAGER_URI, 'GET')
     generation = 0
     firmware_version = None
@@ -448,7 +451,6 @@ def format_output(attributes, output_format):
     if output_format == "json":
         return attributes
     elif output_format == "yaml":
-        import yaml
         return yaml.dump(attributes, default_flow_style=False, sort_keys=False)
     elif output_format == "table":
         if not attributes:
@@ -498,15 +500,13 @@ def main():
         module = IdracAnsibleModule(
             argument_spec=specs,
             supports_check_mode=True,
+            required_if=[["query_type", "validate", ("validate_attributes",)]],
         )
 
         query_type = module.params.get("query_type")
         attribute_pattern = module.params.get("attribute_pattern")
         validate_attrs = module.params.get("validate_attributes")
         output_format = module.params.get("output_format")
-
-        if query_type == "validate" and not validate_attrs:
-            module.fail_json(msg=VALIDATE_REQUIRES_ATTRS_MSG)
 
         idrac_ip = module.params.get("idrac_ip")
         module.log("Starting network attribute registry query on iDRAC {0}, "
@@ -580,7 +580,8 @@ def main():
                 )
 
     except HTTPError as err:
-        module.exit_json(msg=str(err), failed=True)
+        filter_err = remove_key(json.load(err), regex_pattern=ODATA_ID)
+        module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:

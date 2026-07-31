@@ -438,7 +438,7 @@ class TestIdracNetworkAttributeRegistry(FakeAnsibleModule):
     # --- Error handling tests ---
 
     def test_http_error_handling(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
-        """Test that HTTPError is handled gracefully."""
+        """Test that HTTPError is handled gracefully with error_info extraction."""
         mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.get_idrac_firmware_info',
             side_effect=HTTPError(
@@ -448,6 +448,8 @@ class TestIdracNetworkAttributeRegistry(FakeAnsibleModule):
         )
         result = self._run_module(idrac_default_args)
         assert result['failed'] is True
+        assert 'error_info' in result
+        assert result['error_info']['error'] == 'unauthorized'
 
     def test_url_error_handling(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
         """Test that URLError is handled gracefully."""

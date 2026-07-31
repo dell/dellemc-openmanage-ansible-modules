@@ -1,0 +1,5 @@
+minor_changes:
+  - idrac_network_attribute_registry - New module to query and validate iDRAC network attribute registry
+    with support for all/redfish/oem query types, wildcard pattern filtering, batch attribute validation,
+    and multi-generation detection across PowerEdge 16G-17G servers
+    (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/25620).
