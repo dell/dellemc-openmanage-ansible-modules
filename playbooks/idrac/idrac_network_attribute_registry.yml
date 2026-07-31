@@ -1,0 +1,198 @@
+---
+# Dell OpenManage Ansible Modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+#
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+#
+# Example playbook: idrac_network_attribute_registry
+# Queries and validates iDRAC network attribute registry.
+
+- name: iDRAC Network Attribute Registry Operations
+  hosts: idrac
+  gather_facts: false
+  vars:
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') | default('192.168.0.1', true) }}"
+    idrac_user: "{{ lookup('env', 'IDRAC_USER') | default('admin', true) }}"
+    idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+
+  tasks:
+    # --- AC1: Query all network attributes ---
+    - name: Query all network attributes
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        query_type: "all"
+      register: all_attributes
+      tags: [query_all]
+
+    - name: Display all attributes summary
+      ansible.builtin.debug:
+        msg:
+          - "Total attributes: {{ all_attributes.attribute_count }}"
+          - "Firmware: {{ all_attributes.firmware_version }}"
+          - "Model: {{ all_attributes.idrac_model }}"
+      tags: [query_all]
+
+    # --- AC1 (Redfish scope): Query Redfish-only attributes ---
+    - name: Query Redfish-only network attributes
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        query_type: "redfish"
+      register: redfish_attributes
+      tags: [query_redfish]
+
+    - name: Display Redfish attributes
+      ansible.builtin.debug:
+        msg: "Redfish attributes: {{ redfish_attributes.attribute_count }}"
+      tags: [query_redfish]
+
+    # --- AC2: Query Dell OEM attributes ---
+    - name: Query Dell OEM network attributes
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        query_type: "oem"
+      register: oem_attributes
+      tags: [query_oem]
+
+    - name: Display OEM attributes
+      ansible.builtin.debug:
+        msg: "OEM attributes: {{ oem_attributes.attribute_count }}"
+      tags: [query_oem]
+
+    # --- AC3: Validate attributes ---
+    - name: Validate valid attribute values
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        query_type: "validate"
+        validate_attributes:
+          VLanMode: "Enabled"
+      register: valid_result
+      tags: [validate_valid]
+
+    - name: Display valid attribute result
+      ansible.builtin.debug:
+        var: valid_result.validation_results
+      tags: [validate_valid]
+
+    - name: Validate with intentionally misspelled name
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        query_type: "validate"
+        validate_attributes:
+          VLanMod: "Enabled"
+      register: invalid_name_result
+      tags: [validate_invalid_name]
+
+    - name: Display invalid name result (with suggestions)
+      ansible.builtin.debug:
+        var: invalid_name_result.validation_results
+      tags: [validate_invalid_name]
+
+    - name: Validate with invalid value
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        query_type: "validate"
+        validate_attributes:
+          VLanMode: "InvalidValue"
+      register: invalid_value_result
+      tags: [validate_invalid_value]
+
+    - name: Display invalid value result (with valid values)
+      ansible.builtin.debug:
+        var: invalid_value_result.validation_results
+      tags: [validate_invalid_value]
+
+    # --- AC4: Wildcard pattern filtering ---
+    - name: Filter VLAN-related attributes using wildcard
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        attribute_pattern: "VLAN*"
+      register: vlan_attributes
+      tags: [query_filter]
+
+    - name: Display filtered VLAN attributes
+      ansible.builtin.debug:
+        msg: "VLAN attributes found: {{ vlan_attributes.attribute_count }}"
+      tags: [query_filter]
+
+    # --- AC5: Multi-generation query ---
+    - name: Query attributes (generation-specific, dynamic discovery)
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        query_type: "all"
+      register: gen_result
+      tags: [multi_gen]
+
+    - name: Display generation info
+      ansible.builtin.debug:
+        msg:
+          - "Model: {{ gen_result.idrac_model }}"
+          - "Firmware: {{ gen_result.firmware_version }}"
+          - "Attributes: {{ gen_result.attribute_count }}"
+      tags: [multi_gen]
+
+    # --- Output format examples ---
+    - name: Query with YAML output format
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        output_format: "yaml"
+      register: yaml_result
+      tags: [output_yaml]
+
+    - name: Display YAML output
+      ansible.builtin.debug:
+        msg: "{{ yaml_result.formatted_output }}"
+      tags: [output_yaml]
+
+    - name: Query with table output format
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        output_format: "table"
+      register: table_result
+      tags: [output_table]
+
+    - name: Display table output
+      ansible.builtin.debug:
+        msg: "{{ table_result.formatted_output }}"
+      tags: [output_table]
+
+    # --- Session token example ---
+    - name: Query using X-Auth token (session reuse)
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "{{ idrac_ip }}"
+        x_auth_token: "{{ auth_token | default(omit) }}"
+        query_type: "all"
+        validate_certs: "{{ validate_certs }}"
+      register: token_result
+      when: auth_token is defined
+      tags: [token_auth]

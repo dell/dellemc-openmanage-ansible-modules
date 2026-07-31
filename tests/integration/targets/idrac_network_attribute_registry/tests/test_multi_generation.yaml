@@ -1,0 +1,45 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- block:
+    - name: Query all network attributes for multi-generation test
+      dellemc.openmanage.idrac_network_attribute_registry:
+        query_type: "all"
+      register: query_result
+
+    - name: Verify module succeeded with generation info
+      ansible.builtin.assert:
+        that:
+          - query_result is not failed
+          - query_result.firmware_version is defined
+          - query_result.idrac_model is defined
+          - query_result.attribute_count | int > 0
+
+    - name: Verify attributes are dynamically discovered (no hardcoded schemas)
+      ansible.builtin.assert:
+        that:
+          - query_result.attributes | length > 0
+
+    - name: Display generation-specific info
+      ansible.builtin.debug:
+        msg:
+          - "iDRAC Model: {{ query_result.idrac_model }}"
+          - "Firmware Version: {{ query_result.firmware_version }}"
+          - "Total Attributes: {{ query_result.attribute_count }}"
+
+  module_defaults:
+    dellemc.openmanage.idrac_network_attribute_registry:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

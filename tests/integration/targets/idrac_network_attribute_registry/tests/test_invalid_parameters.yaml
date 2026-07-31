@@ -1,0 +1,44 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- block:
+    - name: Test validate without validate_attributes fails
+      dellemc.openmanage.idrac_network_attribute_registry:
+        query_type: "validate"
+      register: validate_fail_result
+      ignore_errors: true
+
+    - name: Verify validation without attributes fails
+      ansible.builtin.assert:
+        that:
+          - validate_fail_result is failed
+          - "'validate_attributes' in validate_fail_result.msg"
+
+    - name: Test check mode returns without changes
+      dellemc.openmanage.idrac_network_attribute_registry:
+        query_type: "all"
+      register: check_result
+      check_mode: true
+
+    - name: Verify check mode result
+      ansible.builtin.assert:
+        that:
+          - check_result is not failed
+          - check_result.changed is false
+
+  module_defaults:
+    dellemc.openmanage.idrac_network_attribute_registry:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

@@ -1,0 +1,46 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- block:
+    - name: Query Redfish-only network attributes
+      dellemc.openmanage.idrac_network_attribute_registry:
+        query_type: "redfish"
+      register: redfish_result
+
+    - name: Verify module succeeded
+      ansible.builtin.assert:
+        that:
+          - redfish_result is not failed
+          - redfish_result is succeeded
+          - redfish_result.attributes is defined
+
+    - name: Verify OEM attributes are excluded
+      ansible.builtin.assert:
+        that:
+          - item.oem_vendor is none or item.oem_vendor is not defined
+      loop: "{{ redfish_result.attributes }}"
+      loop_control:
+        label: "{{ item.name }}"
+      when: redfish_result.attribute_count | int > 0
+
+    - name: Display Redfish query summary
+      ansible.builtin.debug:
+        msg:
+          - "Redfish Attribute Count: {{ redfish_result.attribute_count }}"
+
+  module_defaults:
+    dellemc.openmanage.idrac_network_attribute_registry:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

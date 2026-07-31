@@ -1,0 +1,73 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- block:
+    - name: Filter VLAN-related attributes using wildcard
+      dellemc.openmanage.idrac_network_attribute_registry:
+        query_type: "all"
+        attribute_pattern: "VLAN*"
+      register: vlan_result
+
+    - name: Verify VLAN filter succeeded
+      ansible.builtin.assert:
+        that:
+          - vlan_result is not failed
+          - vlan_result is succeeded
+
+    - name: Verify only VLAN attributes are returned
+      ansible.builtin.assert:
+        that:
+          - "'VLAN' in item.name or 'VLan' in item.name"
+      loop: "{{ vlan_result.attributes }}"
+      loop_control:
+        label: "{{ item.name }}"
+      when: vlan_result.attribute_count | int > 0
+
+    - name: Filter Link-related attributes using wildcard
+      dellemc.openmanage.idrac_network_attribute_registry:
+        query_type: "all"
+        attribute_pattern: "Link*"
+      register: link_result
+
+    - name: Verify Link filter succeeded
+      ansible.builtin.assert:
+        that:
+          - link_result is not failed
+          - link_result is succeeded
+
+    - name: Filter with non-matching pattern
+      dellemc.openmanage.idrac_network_attribute_registry:
+        query_type: "all"
+        attribute_pattern: "NonExistentPattern*"
+      register: empty_result
+
+    - name: Verify non-matching pattern returns empty
+      ansible.builtin.assert:
+        that:
+          - empty_result is not failed
+          - empty_result.attribute_count | int == 0
+          - empty_result.attributes | length == 0
+
+    - name: Display filter results
+      ansible.builtin.debug:
+        msg:
+          - "VLAN attributes found: {{ vlan_result.attribute_count }}"
+          - "Link attributes found: {{ link_result.attribute_count }}"
+          - "NonExistent attributes found: {{ empty_result.attribute_count }}"
+
+  module_defaults:
+    dellemc.openmanage.idrac_network_attribute_registry:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

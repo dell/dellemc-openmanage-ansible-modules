@@ -1,0 +1,72 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- block:
+    - name: Query all network attributes
+      dellemc.openmanage.idrac_network_attribute_registry:
+        query_type: "all"
+      register: query_result
+
+    - name: Verify module succeeded
+      ansible.builtin.assert:
+        that:
+          - query_result is not failed
+          - query_result is succeeded
+
+    - name: Verify required output fields
+      ansible.builtin.assert:
+        that:
+          - query_result.attributes is defined
+          - query_result.attributes is iterable
+          - query_result.attribute_count is defined
+          - query_result.attribute_count is number
+          - query_result.firmware_version is defined
+          - query_result.idrac_model is defined
+
+    - name: Verify non-empty results
+      ansible.builtin.assert:
+        that:
+          - query_result.attribute_count | int > 0
+          - query_result.attributes | length == query_result.attribute_count | int
+
+    - name: Verify attribute schema fields
+      ansible.builtin.assert:
+        that:
+          - item.name is defined
+          - item.data_type is defined
+          - item.description is defined
+          - item.read_only is defined
+          - item.valid_values is defined
+      loop: "{{ query_result.attributes[:5] }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Verify changed flag is false (read-only operation)
+      ansible.builtin.assert:
+        that:
+          - query_result.changed is defined
+          - query_result.changed is false
+
+    - name: Display query summary
+      ansible.builtin.debug:
+        msg:
+          - "Attribute Count: {{ query_result.attribute_count }}"
+          - "Firmware Version: {{ query_result.firmware_version }}"
+          - "iDRAC Model: {{ query_result.idrac_model }}"
+
+  module_defaults:
+    dellemc.openmanage.idrac_network_attribute_registry:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
