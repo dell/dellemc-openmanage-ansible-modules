@@ -16,7 +16,7 @@ import json
 import pytest
 import time
 from io import StringIO
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
 from ansible.module_utils._text import to_text
 from urllib.error import HTTPError, URLError
