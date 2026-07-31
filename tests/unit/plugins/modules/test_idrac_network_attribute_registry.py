@@ -14,8 +14,9 @@ __metaclass__ = type
 
 import json
 import pytest
+import time
 from io import StringIO
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, call
 
 from ansible.module_utils._text import to_text
 from urllib.error import HTTPError, URLError
@@ -125,6 +126,13 @@ REGISTRY_LIST_RESP = {
 
 class TestIdracNetworkAttributeRegistry(FakeAnsibleModule):
     module = idrac_network_attribute_registry
+
+    @pytest.fixture(autouse=True)
+    def clear_cache(self):
+        """Clear the module-level cache before each test."""
+        idrac_network_attribute_registry._registry_cache.clear()
+        yield
+        idrac_network_attribute_registry._registry_cache.clear()
 
     @pytest.fixture
     def idrac_default_args(self):
@@ -706,3 +714,326 @@ class TestOutputFormats:
     def test_table_format_empty(self):
         result = idrac_network_attribute_registry.format_output([], "table")
         assert result == "No attributes found."
+
+
+class TestSessionReuse(FakeAnsibleModule):
+    """Test X-Auth token session reuse (Phase 1 / FR-2)."""
+    module = idrac_network_attribute_registry
+
+    @pytest.fixture
+    def idrac_mock(self):
+        return MagicMock()
+
+    @pytest.fixture
+    def idrac_connection_mock(self, mocker, idrac_mock):
+        conn_mock = mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.iDRACRedfishAPI',
+            return_value=idrac_mock
+        )
+        conn_mock.return_value.__enter__.return_value = idrac_mock
+        return conn_mock
+
+    def test_x_auth_token_bypasses_password_auth(self, idrac_connection_mock, idrac_mock, mocker):
+        """Test that x_auth_token skips username/password authentication."""
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.get_idrac_firmware_info',
+            return_value=(16, "7.30.30.50", "iDRAC 9")
+        )
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
+            return_value=SAMPLE_REGISTRY_DATA
+        )
+        args = {
+            "idrac_ip": "192.168.0.1",
+            "x_auth_token": "test_token_abc123",
+            "idrac_port": 443,
+            "validate_certs": False,
+            "ca_path": None,
+            "timeout": 30,
+        }
+        result = self._run_module(args)
+        assert result['changed'] is False
+        assert result['msg'] == "Successfully retrieved network attribute registry."
+
+    def test_fallback_to_password_auth_without_token(self, idrac_connection_mock, idrac_mock, mocker):
+        """Test that missing x_auth_token falls back to username/password auth."""
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.get_idrac_firmware_info',
+            return_value=(16, "7.30.30.50", "iDRAC 9")
+        )
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
+            return_value=SAMPLE_REGISTRY_DATA
+        )
+        args = {
+            "idrac_ip": "192.168.0.1",
+            "idrac_user": "admin",
+            "idrac_password": "password",
+            "idrac_port": 443,
+            "validate_certs": False,
+            "ca_path": None,
+            "timeout": 30,
+        }
+        result = self._run_module(args)
+        assert result['changed'] is False
+        assert result['attribute_count'] == 6
+
+    def test_x_auth_token_passed_to_idrac_api(self, idrac_connection_mock, idrac_mock, mocker):
+        """Test that x_auth_token is passed through to iDRACRedfishAPI."""
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.get_idrac_firmware_info',
+            return_value=(16, "7.30.30.50", "iDRAC 9")
+        )
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
+            return_value=SAMPLE_REGISTRY_DATA
+        )
+        args = {
+            "idrac_ip": "192.168.0.1",
+            "x_auth_token": "session_token_xyz",
+            "idrac_port": 443,
+            "validate_certs": False,
+            "ca_path": None,
+            "timeout": 30,
+        }
+        self._run_module(args)
+        call_args = idrac_connection_mock.call_args
+        params = call_args[0][0] if call_args[0] else call_args[1].get('module_params', {})
+        assert params.get('x_auth_token') == 'session_token_xyz'
+
+
+class TestRegistryCache(FakeAnsibleModule):
+    """Test within-playbook registry caching (Phase 2 / FR-3)."""
+    module = idrac_network_attribute_registry
+
+    @pytest.fixture(autouse=True)
+    def clear_cache(self):
+        """Clear the module-level cache before each test."""
+        idrac_network_attribute_registry._registry_cache.clear()
+        yield
+        idrac_network_attribute_registry._registry_cache.clear()
+
+    @pytest.fixture
+    def idrac_mock(self):
+        return MagicMock()
+
+    @pytest.fixture
+    def idrac_connection_mock(self, mocker, idrac_mock):
+        conn_mock = mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.iDRACRedfishAPI',
+            return_value=idrac_mock
+        )
+        conn_mock.return_value.__enter__.return_value = idrac_mock
+        return conn_mock
+
+    def test_cache_stores_data_after_first_query(self):
+        """Test that cache stores registry data after first fetch."""
+        cache_key = "192.168.0.1:443"
+        assert cache_key not in idrac_network_attribute_registry._registry_cache
+        idrac_network_attribute_registry.store_in_cache(cache_key, SAMPLE_REGISTRY_DATA)
+        assert cache_key in idrac_network_attribute_registry._registry_cache
+        assert idrac_network_attribute_registry.get_from_cache(cache_key) == SAMPLE_REGISTRY_DATA
+
+    def test_cache_returns_none_on_miss(self):
+        """Test cache returns None when key is not found."""
+        result = idrac_network_attribute_registry.get_from_cache("nonexistent:443")
+        assert result is None
+
+    def test_cache_key_generation(self):
+        """Test cache key is generated from idrac_ip and port."""
+        key = idrac_network_attribute_registry.get_cache_key("10.0.0.1", 443)
+        assert key == "10.0.0.1:443"
+
+    def test_cache_is_keyed_per_target(self):
+        """Test that different targets use different cache keys."""
+        key1 = idrac_network_attribute_registry.get_cache_key("192.168.0.1", 443)
+        key2 = idrac_network_attribute_registry.get_cache_key("192.168.0.2", 443)
+        assert key1 != key2
+        idrac_network_attribute_registry.store_in_cache(key1, {"data": "target1"})
+        idrac_network_attribute_registry.store_in_cache(key2, {"data": "target2"})
+        assert idrac_network_attribute_registry.get_from_cache(key1)["data"] == "target1"
+        assert idrac_network_attribute_registry.get_from_cache(key2)["data"] == "target2"
+
+    def test_force_refresh_bypasses_cache(self, idrac_connection_mock, idrac_mock, mocker):
+        """Test force_refresh=True bypasses the cache."""
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.get_idrac_firmware_info',
+            return_value=(16, "7.30.30.50", "iDRAC 9")
+        )
+        fetch_mock = mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
+            return_value=SAMPLE_REGISTRY_DATA
+        )
+        cache_key = "192.168.0.1:443"
+        idrac_network_attribute_registry.store_in_cache(cache_key, SAMPLE_REGISTRY_DATA)
+        args = {
+            "idrac_ip": "192.168.0.1",
+            "idrac_user": "admin",
+            "idrac_password": "password",
+            "idrac_port": 443,
+            "validate_certs": False,
+            "ca_path": None,
+            "timeout": 30,
+            "force_refresh": True,
+        }
+        result = self._run_module(args)
+        assert result['changed'] is False
+        fetch_mock.assert_called_once()
+
+    def test_cached_query_skips_api_call(self, idrac_connection_mock, idrac_mock, mocker):
+        """Test that a cached query does not call the Redfish API."""
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.get_idrac_firmware_info',
+            return_value=(16, "7.30.30.50", "iDRAC 9")
+        )
+        fetch_mock = mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
+            return_value=SAMPLE_REGISTRY_DATA
+        )
+        cache_key = "192.168.0.1:443"
+        idrac_network_attribute_registry.store_in_cache(cache_key, SAMPLE_REGISTRY_DATA)
+        args = {
+            "idrac_ip": "192.168.0.1",
+            "idrac_user": "admin",
+            "idrac_password": "password",
+            "idrac_port": 443,
+            "validate_certs": False,
+            "ca_path": None,
+            "timeout": 30,
+            "force_refresh": False,
+        }
+        result = self._run_module(args)
+        assert result['changed'] is False
+        assert result['attribute_count'] == 6
+        fetch_mock.assert_not_called()
+
+    def test_cache_hit_logged(self, idrac_connection_mock, idrac_mock, mocker):
+        """Test that cache hits are logged."""
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.get_idrac_firmware_info',
+            return_value=(16, "7.30.30.50", "iDRAC 9")
+        )
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
+            return_value=SAMPLE_REGISTRY_DATA
+        )
+        cache_key = "192.168.0.1:443"
+        idrac_network_attribute_registry.store_in_cache(cache_key, SAMPLE_REGISTRY_DATA)
+        args = {
+            "idrac_ip": "192.168.0.1",
+            "idrac_user": "admin",
+            "idrac_password": "password",
+            "idrac_port": 443,
+            "validate_certs": False,
+            "ca_path": None,
+            "timeout": 30,
+        }
+        result = self._run_module(args)
+        assert result['changed'] is False
+
+
+class TestMultiTargetErrorAggregation(FakeAnsibleModule):
+    """Test per-target error status for multi-target usage (Phase 3 / FR-1)."""
+    module = idrac_network_attribute_registry
+
+    @pytest.fixture
+    def idrac_mock(self):
+        return MagicMock()
+
+    @pytest.fixture
+    def idrac_connection_mock(self, mocker, idrac_mock):
+        conn_mock = mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.iDRACRedfishAPI',
+            return_value=idrac_mock
+        )
+        conn_mock.return_value.__enter__.return_value = idrac_mock
+        return conn_mock
+
+    def test_successful_target_returns_attributes(self, idrac_connection_mock, idrac_mock, mocker):
+        """Test successful target returns failed=False and attributes list."""
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.get_idrac_firmware_info',
+            return_value=(16, "7.30.30.50", "iDRAC 9")
+        )
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
+            return_value=SAMPLE_REGISTRY_DATA
+        )
+        args = {
+            "idrac_ip": "192.168.0.1",
+            "idrac_user": "admin",
+            "idrac_password": "password",
+            "idrac_port": 443,
+            "validate_certs": False,
+            "ca_path": None,
+            "timeout": 30,
+        }
+        result = self._run_module(args)
+        assert result.get('failed', False) is False
+        assert 'attributes' in result
+        assert result['attribute_count'] == 6
+
+    def test_unreachable_target_returns_error(self, idrac_connection_mock, idrac_mock, mocker):
+        """Test unreachable target returns unreachable=True with error message."""
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.get_idrac_firmware_info',
+            side_effect=URLError("Connection timed out")
+        )
+        args = {
+            "idrac_ip": "192.168.0.99",
+            "idrac_user": "admin",
+            "idrac_password": "password",
+            "idrac_port": 443,
+            "validate_certs": False,
+            "ca_path": None,
+            "timeout": 30,
+        }
+        result = self._run_module(args)
+        assert result.get('unreachable') is True
+        assert "timed out" in result['msg'].lower()
+
+    def test_http_error_target_returns_failed(self, idrac_connection_mock, idrac_mock, mocker):
+        """Test HTTP error target returns failed=True with error_info."""
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.get_idrac_firmware_info',
+            side_effect=HTTPError(
+                'https://test', 403, 'Forbidden', {},
+                StringIO('{"error": "access denied"}')
+            )
+        )
+        args = {
+            "idrac_ip": "192.168.0.50",
+            "idrac_user": "admin",
+            "idrac_password": "password",
+            "idrac_port": 443,
+            "validate_certs": False,
+            "ca_path": None,
+            "timeout": 30,
+        }
+        result = self._run_module(args)
+        assert result['failed'] is True
+        assert 'error_info' in result
+
+    def test_changed_always_false_for_readonly(self, idrac_connection_mock, idrac_mock, mocker):
+        """Test that changed=False for all read-only operations."""
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.get_idrac_firmware_info',
+            return_value=(16, "7.30.30.50", "iDRAC 9")
+        )
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
+            return_value=SAMPLE_REGISTRY_DATA
+        )
+        for qt in ["all", "redfish", "oem"]:
+            args = {
+                "idrac_ip": "192.168.0.1",
+                "idrac_user": "admin",
+                "idrac_password": "password",
+                "idrac_port": 443,
+                "validate_certs": False,
+                "ca_path": None,
+                "timeout": 30,
+                "query_type": qt,
+            }
+            result = self._run_module(args)
+            assert result['changed'] is False

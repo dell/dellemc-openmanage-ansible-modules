@@ -70,6 +70,15 @@ options:
       - C(table) returns a human-readable table string.
     default: json
     choices: [json, yaml, table]
+  force_refresh:
+    type: bool
+    description:
+      - Force refresh of registry data from iDRAC, bypassing the within-playbook cache.
+      - When C(false), the module caches registry data per iDRAC target for the duration
+        of the playbook run. Subsequent queries to the same target return cached data.
+      - When C(true), the module always queries the iDRAC Redfish API directly and
+        updates the cache with the fresh data.
+    default: false
 requirements:
   - "python >= 3.9.6"
 author:
@@ -80,6 +89,8 @@ notes:
   - This module supports C(check_mode).
   - This module is read-only and does not make any configuration changes.
   - Minimum firmware required - iDRAC9 7.30.30.50 or iDRAC10 1.30.30.50.
+  - Registry data is cached per iDRAC target within a playbook run. Use I(force_refresh) to bypass.
+  - When used with C(x_auth_token), authentication overhead is reduced by reusing an existing session.
 """
 
 EXAMPLES = """
@@ -141,6 +152,42 @@ EXAMPLES = """
     idrac_ip: "192.168.0.1"
     x_auth_token: "{{ auth_token }}"
     query_type: "all"
+
+- name: Establish session and query with token reuse
+  block:
+    - name: Create iDRAC session
+      dellemc.openmanage.idrac_session:
+        hostname: "192.168.0.1"
+        username: "user_name"
+        password: "user_password"
+        state: "present"
+      register: session_result
+
+    - name: Query registry using session token
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "192.168.0.1"
+        x_auth_token: "{{ session_result.session_data.x_auth_token }}"
+        query_type: "all"
+
+- name: Force refresh to bypass cache
+  dellemc.openmanage.idrac_network_attribute_registry:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    force_refresh: true
+
+- name: Multi-target query using loop
+  dellemc.openmanage.idrac_network_attribute_registry:
+    idrac_ip: "{{ item }}"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    query_type: "all"
+  loop:
+    - "192.168.0.1"
+    - "192.168.0.2"
+    - "192.168.0.3"
+  register: multi_target_results
+  ignore_errors: true
 """
 
 RETURN = """
@@ -256,6 +303,24 @@ VALIDATE_REQUIRES_ATTRS_MSG = "The 'validate_attributes' parameter is required w
 RETRY_TRANSIENT_MSG = "Transient error on attempt {attempt}/{max_retries}: {error}. Retrying in {delay}s..."
 MAX_RETRIES = 3
 RETRY_BASE_DELAY = 1
+
+# In-memory cache for registry data (per-process, within a playbook run)
+_registry_cache = {}
+
+
+def get_cache_key(idrac_ip, port):
+    """Generate cache key based on iDRAC IP and port."""
+    return "{0}:{1}".format(idrac_ip, port)
+
+
+def get_from_cache(cache_key):
+    """Retrieve data from cache if available."""
+    return _registry_cache.get(cache_key)
+
+
+def store_in_cache(cache_key, data):
+    """Store data in cache."""
+    _registry_cache[cache_key] = data
 
 
 def _invoke_with_retry(idrac, uri, method, module=None, max_retries=MAX_RETRIES):
@@ -495,6 +560,10 @@ def main():
                 "default": "json",
                 "choices": ["json", "yaml", "table"],
             },
+            "force_refresh": {
+                "type": "bool",
+                "default": False,
+            },
         }
 
         module = IdracAnsibleModule(
@@ -507,8 +576,12 @@ def main():
         attribute_pattern = module.params.get("attribute_pattern")
         validate_attrs = module.params.get("validate_attributes")
         output_format = module.params.get("output_format")
+        force_refresh = module.params.get("force_refresh", False)
 
         idrac_ip = module.params.get("idrac_ip")
+        idrac_port = module.params.get("idrac_port", 443)
+        cache_key = get_cache_key(idrac_ip, idrac_port)
+
         module.log("Starting network attribute registry query on iDRAC {0}, "
                    "query_type={1}, attribute_pattern={2}, output_format={3}".format(
                        idrac_ip, query_type, attribute_pattern, output_format))
@@ -540,9 +613,19 @@ def main():
                     idrac_model=hw_model,
                 )
 
-            registry_data = fetch_registry_attributes(idrac, module=module)
-            if not registry_data:
-                module.fail_json(msg=NO_REGISTRY_MSG)
+            cached_data = None
+            if not force_refresh:
+                cached_data = get_from_cache(cache_key)
+
+            if cached_data:
+                module.log("Cache hit for {0}".format(cache_key))
+                registry_data = cached_data
+            else:
+                module.log("Cache miss for {0}, fetching from iDRAC".format(cache_key))
+                registry_data = fetch_registry_attributes(idrac, module=module)
+                if not registry_data:
+                    module.fail_json(msg=NO_REGISTRY_MSG)
+                store_in_cache(cache_key, registry_data)
 
             all_attributes = parse_registry_attributes(registry_data)
             query_duration = round(time.time() - start_time, 2)
