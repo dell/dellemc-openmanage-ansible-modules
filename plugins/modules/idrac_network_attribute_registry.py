@@ -268,6 +268,14 @@ formatted_output:
   returned: when I(query_type) is C(all), C(redfish), or C(oem)
   type: raw
   sample: "| Name | Type | Read Only | Description |\\n|------|------|-----------|-------------|"
+error_info:
+  description:
+    - Error details from the iDRAC Redfish API when an HTTP error occurs.
+    - Contains the structured error response body with OData keys removed.
+    - Useful for programmatic error handling in multi-target loop playbooks.
+  returned: on HTTP error
+  type: dict
+  sample: {"error": {"@Message.ExtendedInfo": [{"Message": "Access denied"}]}}
 """
 
 import json
