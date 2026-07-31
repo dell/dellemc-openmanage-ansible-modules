@@ -18,104 +18,106 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
-- name: Check iDRAC firmware version supports ACME/SCEP
-  ansible.builtin.include_tasks: _check_firmware_version_supported.yml
-
-- name: Create temporary directory for test certificates
-  ansible.builtin.tempfile:
+- name: Ensure directory exists
+  ansible.builtin.file:
+    path: "{{ base_path_for_import_certificate }}"
     state: directory
-    prefix: acme_scep_test_
-  register: temp_cert_dir
 
-- name: Generate test CA certificate for ACME
-  ansible.builtin.copy:
-    dest: "{{ temp_cert_dir.path }}/acme_ca_cert.pem"
-    content: |
-      -----BEGIN CERTIFICATE-----
-      MIIDXTCCAkWgAwIBAgIJAJC1HiIAZAiUMA0GCSqGSIb3Qa2NvbTELMAkGA1UEBhMC
-      VVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMRQwEgYDVQQK
-      EwtBQ01FIENBIEluYzEQMA4GA1UECxMHVGVzdGluZzEUMBIGA1UEAxMLQUNNRSBD
-      QSBUZXN0MB4XDTE5MDEwMTAwMDAwMFoXDTI5MTIzMTIzNTk1OVowYTELMAkGA1UE
-      BhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMRQwEgYD
-      VQQKEwtBQ01FIENBIEluYzEQMA4GA1UECxMHVGVzdGluZzEUMBIGA1UEAxMLQUNN
-      RSBDQSBUZXN0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0Z3VS5JJ
-      -----END CERTIFICATE-----
-    mode: '0644'
+- name: Download ACME CA certificate
+  ansible.builtin.set_fact:
+    curl_cmd: "curl -v --ntlm -u %s:%s -o %s %s"
+    curl_acme_url: "{{ https_share_ip }}/{{ https_certificate_path }}{{ acme_ca_certificate_name }}"
 
-- name: Generate test CA certificate for SCEP
-  ansible.builtin.copy:
-    dest: "{{ temp_cert_dir.path }}/scep_ca_cert.pem"
-    content: |
-      -----BEGIN CERTIFICATE-----
-      MIIDXTCCAkWgAwIBAgIJAJC1HiIAZAiUMA0GCSqGSIb3Qa2NvbTELMAkGA1UEBhMC
-      VVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMRQwEgYDVQQK
-      EwtTQ0VQIENBIEluYzEQMA4GA1UECxMHVGVzdGluZzEUMBIGA1UEAxMLU0NFUCBD
-      QSBUZXN0MB4XDTE5MDEwMTAwMDAwMFoXDTI5MTIzMTIzNTk1OVowYTELMAkGA1UE
-      BhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMRQwEgYD
-      VQQKEwtTQ0VQIENBIEluYzEQMA4GA1UECxMHVGVzdGluZzEUMBIGA1UEAxMLU0NF
-      UCBDQSBUZXN0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0Z3VS5JJ
-      -----END CERTIFICATE-----
-    mode: '0644'
+- name: Downloading ACME CA certificate file
+  register: acme_dnld_curl_cmd_out
+  no_log: false
+  changed_when: acme_dnld_curl_cmd_out.rc == 0
+  failed_when: acme_dnld_curl_cmd_out.rc != 0
+  ansible.builtin.command: >
+      {{ curl_cmd | format(https_share_username, https_share_password,
+       base_path_for_import_certificate + acme_ca_certificate_name, curl_acme_url) }}
+  check_mode: false
+
+- name: Download SCEP CA certificate
+  ansible.builtin.set_fact:
+    curl_scep_url: "{{ https_share_ip }}/{{ https_certificate_path }}{{ scep_ca_certificate_name }}"
+
+- name: Downloading SCEP CA certificate file
+  register: scep_dnld_curl_cmd_out
+  no_log: false
+  changed_when: scep_dnld_curl_cmd_out.rc == 0
+  failed_when: scep_dnld_curl_cmd_out.rc != 0
+  ansible.builtin.command: >
+      {{ curl_cmd | format(https_share_username, https_share_password,
+       base_path_for_import_certificate + scep_ca_certificate_name, curl_scep_url) }}
+  check_mode: false
 
 - block:
-    # AC-001: Import ACME CA certificate
-    - name: Import ACME CA certificate - Check mode
+    # AC-001: Import ACME CA certificate - Check mode
+    - name: Import ACME CA certificate - Check mode - Changes expected
       dellemc.openmanage.idrac_certificates:
         command: import
         certificate_type: "ACME_CA_CERT"
-        certificate_path: "{{ temp_cert_dir.path }}/acme_ca_cert.pem"
+        certificate_path: "{{ base_path_for_import_certificate }}{{ acme_ca_certificate_name }}"
         reset: false
       register: import_acme_check
       check_mode: true
 
-    - name: Verify ACME import check mode
+    - name: Verify status of task - import ACME CA certificate - check mode
       ansible.builtin.assert:
         that:
           - import_acme_check.changed
           - import_acme_check.msg == 'Changes found to be applied.'
 
+    # AC-001: Import ACME CA certificate - Normal mode
     - name: Import ACME CA certificate - Normal mode
       dellemc.openmanage.idrac_certificates:
         command: import
         certificate_type: "ACME_CA_CERT"
-        certificate_path: "{{ temp_cert_dir.path }}/acme_ca_cert.pem"
+        certificate_path: "{{ base_path_for_import_certificate }}{{ acme_ca_certificate_name }}"
         reset: false
       register: import_acme_result
 
-    - name: Verify ACME import success
+    - ansible.builtin.set_fact:
+        import_successful_msg: "Successfully performed the 'import' certificate operation."
+
+    - name: Verify status of task - import ACME CA certificate - normal mode
       ansible.builtin.assert:
         that:
           - import_acme_result.changed
-          - "'Successfully performed' in import_acme_result.msg"
+          - import_successful_msg in import_acme_result.msg
 
-    # AC-001: Import SCEP CA certificate
+    # AC-001: Import SCEP CA certificate - Normal mode
     - name: Import SCEP CA certificate - Normal mode
       dellemc.openmanage.idrac_certificates:
         command: import
         certificate_type: "SCEP_CA_CERT"
-        certificate_path: "{{ temp_cert_dir.path }}/scep_ca_cert.pem"
+        certificate_path: "{{ base_path_for_import_certificate }}{{ scep_ca_certificate_name }}"
         reset: false
       register: import_scep_result
 
-    - name: Verify SCEP import success
+    - name: Verify status of task - import SCEP CA certificate - normal mode
       ansible.builtin.assert:
         that:
           - import_scep_result.changed
-          - "'Successfully performed' in import_scep_result.msg"
+          - import_successful_msg in import_scep_result.msg
 
     # AC-003: Export ACME CA certificate
     - name: Export ACME CA certificate
       dellemc.openmanage.idrac_certificates:
         command: export
         certificate_type: "ACME_CA_CERT"
-        certificate_path: "{{ temp_cert_dir.path }}"
+        certificate_path: "{{ export_certificate_path }}"
       register: export_acme_result
 
-    - name: Verify ACME export success
+    - ansible.builtin.set_fact:
+        export_successful_msg: "Successfully performed the 'export' certificate operation."
+
+    - name: Verify status of task - export ACME CA certificate
       ansible.builtin.assert:
         that:
           - not export_acme_result.changed
-          - "'Successfully performed' in export_acme_result.msg"
+          - export_successful_msg in export_acme_result.msg
           - export_acme_result.certificate_path is defined
 
     # AC-003: Export SCEP CA certificate
@@ -123,24 +125,24 @@
       dellemc.openmanage.idrac_certificates:
         command: export
         certificate_type: "SCEP_CA_CERT"
-        certificate_path: "{{ temp_cert_dir.path }}"
+        certificate_path: "{{ export_certificate_path }}"
       register: export_scep_result
 
-    - name: Verify SCEP export success
+    - name: Verify status of task - export SCEP CA certificate
       ansible.builtin.assert:
         that:
           - not export_scep_result.changed
-          - "'Successfully performed' in export_scep_result.msg"
+          - export_successful_msg in export_scep_result.msg
 
     # AC-002: Delete ACME CA certificate - Check mode
-    - name: Delete ACME CA certificate - Check mode
+    - name: Delete ACME CA certificate - Check mode - Changes expected
       dellemc.openmanage.idrac_certificates:
         command: delete
         certificate_type: "ACME_CA_CERT"
       register: delete_acme_check
       check_mode: true
 
-    - name: Verify ACME delete check mode
+    - name: Verify status of task - delete ACME CA certificate - check mode
       ansible.builtin.assert:
         that:
           - delete_acme_check.changed
@@ -153,11 +155,14 @@
         certificate_type: "ACME_CA_CERT"
       register: delete_acme_result
 
-    - name: Verify ACME delete success
+    - ansible.builtin.set_fact:
+        delete_successful_msg: "Successfully performed the 'delete' certificate operation."
+
+    - name: Verify status of task - delete ACME CA certificate - normal mode
       ansible.builtin.assert:
         that:
           - delete_acme_result.changed
-          - "'Successfully performed' in delete_acme_result.msg"
+          - delete_successful_msg in delete_acme_result.msg
 
     # AC-002: Delete ACME CA certificate - Idempotency (already deleted)
     - name: Delete ACME CA certificate - Idempotency
@@ -166,40 +171,40 @@
         certificate_type: "ACME_CA_CERT"
       register: delete_acme_idempotent
 
-    - name: Verify ACME delete idempotency
+    - name: Verify status of task - delete ACME CA certificate - idempotency
       ansible.builtin.assert:
         that:
           - not delete_acme_idempotent.changed
           - delete_acme_idempotent.msg == 'No changes found to be applied.'
 
-    # AC-002: Delete SCEP CA certificate
-    - name: Delete SCEP CA certificate
+    # AC-002: Delete SCEP CA certificate - Normal mode
+    - name: Delete SCEP CA certificate - Normal mode
       dellemc.openmanage.idrac_certificates:
         command: delete
         certificate_type: "SCEP_CA_CERT"
       register: delete_scep_result
 
-    - name: Verify SCEP delete success
+    - name: Verify status of task - delete SCEP CA certificate - normal mode
       ansible.builtin.assert:
         that:
           - delete_scep_result.changed
-          - "'Successfully performed' in delete_scep_result.msg"
+          - delete_successful_msg in delete_scep_result.msg
 
     # AC-005: Import with diff mode
     - name: Import ACME CA certificate with diff mode
       dellemc.openmanage.idrac_certificates:
         command: import
         certificate_type: "ACME_CA_CERT"
-        certificate_path: "{{ temp_cert_dir.path }}/acme_ca_cert.pem"
+        certificate_path: "{{ base_path_for_import_certificate }}{{ acme_ca_certificate_name }}"
         reset: false
       register: import_acme_diff
       diff: true
 
-    - name: Verify diff mode output
+    - name: Verify status of task - import ACME CA certificate - diff mode
       ansible.builtin.assert:
         that:
           - import_acme_diff.changed
-          - "'Successfully performed' in import_acme_diff.msg"
+          - import_successful_msg in import_acme_diff.msg
 
   always:
     # Cleanup - delete any remaining test certificates
@@ -215,10 +220,7 @@
         certificate_type: "SCEP_CA_CERT"
       ignore_errors: true
 
-    - name: Remove temporary directory
-      ansible.builtin.file:
-        path: "{{ temp_cert_dir.path }}"
-        state: absent
+    - ansible.builtin.include_tasks: _cleanup.yml
 
   module_defaults:
     dellemc.openmanage.idrac_certificates:

@@ -1,7 +1,8 @@
 ---
 certificate_type: {"Server": "HTTPS", "CA": "CA",
                    "ClientTrustCertificate": "CLIENT_TRUST_CERTIFICATE",
-                   "CSC": "CSC"}
+                   "CSC": "CSC", "ACME_CA_CERT": "ACME_CA_CERT",
+                   "SCEP_CA_CERT": "SCEP_CA_CERT"}
 export_certificate_path: "{{ base_path_directory_to_export_certificate }}"
 certificate_names: {"CA": "ca_cert.cer",
                     "CLIENT_TRUST_CERTIFICATE":
@@ -14,3 +15,6 @@ custom_certificate: "{{ custom_certificate_name }}"
 custom_certificate_without_passphrase: "{{
   custom_certificate_name_without_passphrase }}"
 passphrase: "{{ pass }}"
+# ACME/SCEP CA certificate names - set in inventory.networking
+acme_ca_certificate_name: "{{ acme_ca_cert_name | default('acme_ca_cert.pem') }}"
+scep_ca_certificate_name: "{{ scep_ca_cert_name | default('scep_ca_cert.pem') }}"
