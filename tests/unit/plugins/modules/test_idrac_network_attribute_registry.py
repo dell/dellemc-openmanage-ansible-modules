@@ -468,6 +468,97 @@ class TestIdracNetworkAttributeRegistry(FakeAnsibleModule):
         assert result['failed'] is True
 
 
+class TestRetryLogic:
+    """Test retry logic with exponential backoff."""
+
+    def test_invoke_with_retry_success_first_attempt(self):
+        """Test successful request on first attempt."""
+        idrac = MagicMock()
+        resp = MagicMock()
+        resp.status_code = 200
+        resp.json_data = {"test": "data"}
+        idrac.invoke_request.return_value = resp
+        result = idrac_network_attribute_registry._invoke_with_retry(idrac, "/test", "GET")
+        assert result.status_code == 200
+        assert idrac.invoke_request.call_count == 1
+
+    @patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_network_attribute_registry.time.sleep')
+    def test_invoke_with_retry_success_after_failure(self, mock_sleep):
+        """Test successful request after transient failure."""
+        idrac = MagicMock()
+        resp = MagicMock()
+        resp.status_code = 200
+        idrac.invoke_request.side_effect = [
+            URLError('Connection refused'),
+            resp,
+        ]
+        result = idrac_network_attribute_registry._invoke_with_retry(idrac, "/test", "GET", max_retries=3)
+        assert result.status_code == 200
+        assert idrac.invoke_request.call_count == 2
+        mock_sleep.assert_called_once_with(1)
+
+    @patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_network_attribute_registry.time.sleep')
+    def test_invoke_with_retry_exhausts_retries(self, mock_sleep):
+        """Test that all retries are exhausted before raising."""
+        idrac = MagicMock()
+        idrac.invoke_request.side_effect = URLError('Connection refused')
+        with pytest.raises(URLError):
+            idrac_network_attribute_registry._invoke_with_retry(idrac, "/test", "GET", max_retries=3)
+        assert idrac.invoke_request.call_count == 3
+        assert mock_sleep.call_count == 2
+
+    @patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_network_attribute_registry.time.sleep')
+    def test_invoke_with_retry_exponential_backoff(self, mock_sleep):
+        """Test that retry uses exponential backoff delays."""
+        idrac = MagicMock()
+        idrac.invoke_request.side_effect = URLError('timeout')
+        with pytest.raises(URLError):
+            idrac_network_attribute_registry._invoke_with_retry(idrac, "/test", "GET", max_retries=3)
+        calls = mock_sleep.call_args_list
+        assert calls[0][0][0] == 1
+        assert calls[1][0][0] == 2
+
+    @patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_network_attribute_registry.time.sleep')
+    def test_invoke_with_retry_logs_retries(self, mock_sleep):
+        """Test that retries are logged when module is provided."""
+        idrac = MagicMock()
+        module = MagicMock()
+        resp = MagicMock()
+        resp.status_code = 200
+        idrac.invoke_request.side_effect = [
+            URLError('Connection refused'),
+            resp,
+        ]
+        idrac_network_attribute_registry._invoke_with_retry(idrac, "/test", "GET", module=module, max_retries=3)
+        module.log.assert_called_once()
+        log_msg = module.log.call_args[0][0]
+        assert "Transient error" in log_msg
+        assert "attempt 1/3" in log_msg
+
+    def test_invoke_with_retry_does_not_retry_http_error(self):
+        """Test that HTTPError is NOT retried (only transient errors are retried)."""
+        idrac = MagicMock()
+        idrac.invoke_request.side_effect = HTTPError(
+            'https://test', 404, 'Not Found', {},
+            StringIO('{"error": "not found"}')
+        )
+        with pytest.raises(HTTPError):
+            idrac_network_attribute_registry._invoke_with_retry(idrac, "/test", "GET", max_retries=3)
+        assert idrac.invoke_request.call_count == 1
+
+
+class TestCredentialSecurity:
+    """Test that credentials are never exposed in logs."""
+
+    def test_password_not_in_log_messages(self):
+        """Verify password is not included in any log message constants."""
+        for msg_name in ['SUCCESS_QUERY_MSG', 'SUCCESS_VALIDATE_MSG', 'FIRMWARE_TOO_OLD_MSG',
+                         'NO_REGISTRY_MSG', 'VALIDATE_REQUIRES_ATTRS_MSG', 'RETRY_TRANSIENT_MSG']:
+            msg = getattr(idrac_network_attribute_registry, msg_name)
+            assert 'password' not in msg.lower()
+            assert 'token' not in msg.lower()
+
+
 class TestFilterFunctions:
     """Test filter helper functions independently."""
 

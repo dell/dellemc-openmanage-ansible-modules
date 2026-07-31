@@ -224,6 +224,7 @@ formatted_output:
 """
 
 import json
+import time
 from fnmatch import fnmatch
 from difflib import get_close_matches
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -248,6 +249,34 @@ FIRMWARE_TOO_OLD_MSG = (
 )
 NO_REGISTRY_MSG = "No network attribute registry data found on the target."
 VALIDATE_REQUIRES_ATTRS_MSG = "The 'validate_attributes' parameter is required when query_type is 'validate'."
+RETRY_TRANSIENT_MSG = "Transient error on attempt {attempt}/{max_retries}: {error}. Retrying in {delay}s..."
+MAX_RETRIES = 3
+RETRY_BASE_DELAY = 1
+
+
+def _invoke_with_retry(idrac, uri, method, module=None, max_retries=MAX_RETRIES):
+    """Invoke a Redfish request with exponential backoff retry for transient failures.
+
+    Only transient errors (URLError excluding HTTPError, ConnectionError, OSError)
+    are retried. HTTPError (4xx/5xx) is raised immediately.
+    """
+    last_error = None
+    for attempt in range(1, max_retries + 1):
+        try:
+            return idrac.invoke_request(uri, method)
+        except HTTPError:
+            raise
+        except (URLError, ConnectionError, OSError) as err:
+            last_error = err
+            if attempt < max_retries:
+                delay = RETRY_BASE_DELAY * (2 ** (attempt - 1))
+                if module:
+                    module.log(RETRY_TRANSIENT_MSG.format(
+                        attempt=attempt, max_retries=max_retries,
+                        error=str(err), delay=delay
+                    ))
+                time.sleep(delay)
+    raise last_error
 
 
 def get_idrac_firmware_info(idrac):
@@ -291,9 +320,9 @@ def check_firmware_version(firmware_version, hw_model):
     return len(fw_parts) >= len(min_parts), min_version
 
 
-def fetch_registry_attributes(idrac):
-    """Fetch raw attribute registry data from iDRAC Redfish endpoint."""
-    response = idrac.invoke_request(REGISTRY_URI, 'GET')
+def fetch_registry_attributes(idrac, module=None):
+    """Fetch raw attribute registry data from iDRAC Redfish endpoint with retry."""
+    response = _invoke_with_retry(idrac, REGISTRY_URI, 'GET', module=module)
     if response.status_code != 200:
         return None
 
@@ -304,7 +333,9 @@ def fetch_registry_attributes(idrac):
         location = members[0] if isinstance(members[0], dict) else {}
         registry_uri = location.get("@odata.id")
         if registry_uri:
-            detail_resp = idrac.invoke_request(registry_uri, 'GET')
+            if module:
+                module.log("Fetching registry detail from: {0}".format(registry_uri))
+            detail_resp = _invoke_with_retry(idrac, registry_uri, 'GET', module=module)
             if detail_resp.status_code == 200:
                 return detail_resp.json_data
     elif isinstance(members, dict):
@@ -477,8 +508,16 @@ def main():
         if query_type == "validate" and not validate_attrs:
             module.fail_json(msg=VALIDATE_REQUIRES_ATTRS_MSG)
 
+        idrac_ip = module.params.get("idrac_ip")
+        module.log("Starting network attribute registry query on iDRAC {0}, "
+                   "query_type={1}, attribute_pattern={2}, output_format={3}".format(
+                       idrac_ip, query_type, attribute_pattern, output_format))
+
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
+            start_time = time.time()
             generation, firmware_version, hw_model = get_idrac_firmware_info(idrac)
+            module.log("iDRAC {0}: generation={1}, firmware={2}, model={3}".format(
+                idrac_ip, generation, firmware_version, hw_model))
 
             if not firmware_version:
                 module.fail_json(msg="Unable to determine iDRAC firmware version.")
@@ -501,13 +540,17 @@ def main():
                     idrac_model=hw_model,
                 )
 
-            registry_data = fetch_registry_attributes(idrac)
+            registry_data = fetch_registry_attributes(idrac, module=module)
             if not registry_data:
                 module.fail_json(msg=NO_REGISTRY_MSG)
 
             all_attributes = parse_registry_attributes(registry_data)
+            query_duration = round(time.time() - start_time, 2)
+            module.log("Registry query completed in {0}s, {1} attributes parsed".format(
+                query_duration, len(all_attributes)))
 
             if query_type == "validate":
+                module.log("Validating {0} attribute(s)".format(len(validate_attrs)))
                 validation_results = validate_attributes_against_registry(all_attributes, validate_attrs)
                 module.exit_json(
                     msg=SUCCESS_VALIDATE_MSG,
@@ -521,6 +564,9 @@ def main():
                 filtered = filter_by_query_type(all_attributes, query_type)
                 filtered = filter_by_pattern(filtered, attribute_pattern)
                 formatted = format_output(filtered, output_format)
+                module.log("Query completed: {0} attributes returned (query_type={1}, "
+                           "pattern={2}, duration={3}s)".format(
+                               len(filtered), query_type, attribute_pattern, query_duration))
 
                 module.exit_json(
                     msg=SUCCESS_QUERY_MSG,
