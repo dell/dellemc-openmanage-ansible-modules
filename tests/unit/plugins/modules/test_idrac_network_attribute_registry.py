@@ -327,6 +327,98 @@ class TestIdracNetworkAttributeRegistry(FakeAnsibleModule):
         result = idrac_network_attribute_registry.parse_registry_attributes(malformed)
         assert result == []
 
+    # --- OEM and Redfish query type module-level tests (AC2) ---
+
+    def test_query_oem_returns_only_oem(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
+        """Test query_type=oem returns only Dell OEM attributes through module."""
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.get_idrac_firmware_info',
+            return_value=(16, "7.30.30.50", "iDRAC 9")
+        )
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
+            return_value=SAMPLE_REGISTRY_DATA
+        )
+        idrac_default_args.update({"query_type": "oem"})
+        result = self._run_module(idrac_default_args)
+        assert result['changed'] is False
+        for attr in result['attributes']:
+            assert attr['oem_vendor'] == 'Dell'
+        assert result['attribute_count'] == 3
+
+    def test_query_redfish_excludes_oem(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
+        """Test query_type=redfish returns only standard Redfish attributes through module."""
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.get_idrac_firmware_info',
+            return_value=(16, "7.30.30.50", "iDRAC 9")
+        )
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
+            return_value=SAMPLE_REGISTRY_DATA
+        )
+        idrac_default_args.update({"query_type": "redfish"})
+        result = self._run_module(idrac_default_args)
+        assert result['changed'] is False
+        for attr in result['attributes']:
+            assert attr['oem_vendor'] is None
+
+    # --- Wildcard pattern module-level tests (AC4) ---
+
+    def test_wildcard_pattern_through_module(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
+        """Test attribute_pattern filtering through module."""
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.get_idrac_firmware_info',
+            return_value=(16, "7.30.30.50", "iDRAC 9")
+        )
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
+            return_value=SAMPLE_REGISTRY_DATA
+        )
+        idrac_default_args.update({"attribute_pattern": "VLan*"})
+        result = self._run_module(idrac_default_args)
+        assert result['attribute_count'] == 3
+        for attr in result['attributes']:
+            assert attr['name'].startswith("VLan")
+
+    def test_wildcard_pattern_no_match_through_module(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
+        """Test attribute_pattern with no matches returns empty list."""
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.get_idrac_firmware_info',
+            return_value=(16, "7.30.30.50", "iDRAC 9")
+        )
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
+            return_value=SAMPLE_REGISTRY_DATA
+        )
+        idrac_default_args.update({"attribute_pattern": "NonExistent*"})
+        result = self._run_module(idrac_default_args)
+        assert result['attribute_count'] == 0
+        assert result['attributes'] == []
+
+    # --- Validate query type module-level test (AC3) ---
+
+    def test_validate_through_module(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
+        """Test query_type=validate returns validation results through module."""
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.get_idrac_firmware_info',
+            return_value=(16, "7.30.30.50", "iDRAC 9")
+        )
+        mocker.patch(
+            MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
+            return_value=SAMPLE_REGISTRY_DATA
+        )
+        idrac_default_args.update({
+            "query_type": "validate",
+            "validate_attributes": {"VLanMode": "Enabled", "VLanMod": "Enabled"},
+        })
+        result = self._run_module(idrac_default_args)
+        assert result['changed'] is False
+        assert result['msg'] == "Attribute validation completed."
+        assert len(result['validation_results']) == 2
+        statuses = {r['attribute_name']: r['status'] for r in result['validation_results']}
+        assert statuses['VLanMode'] == 'pass'
+        assert statuses['VLanMod'] == 'fail'
+
     # --- Check mode test ---
 
     def test_check_mode(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
