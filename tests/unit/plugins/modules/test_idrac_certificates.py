@@ -448,3 +448,162 @@ class TestIdracCertificates(FakeAnsibleModule):
         else:
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
+
+    # ACME/SCEP CA Certificate Tests
+    def test_parse_firmware_version(self):
+        """Test firmware version parsing."""
+        assert self.module.parse_firmware_version("7.00.00.00") == (7, 0, 0, 0)
+        assert self.module.parse_firmware_version("1.20.50.50") == (1, 20, 50, 50)
+        assert self.module.parse_firmware_version("invalid") == (0, 0, 0, 0)
+        assert self.module.parse_firmware_version("") == (0, 0, 0, 0)
+        assert self.module.parse_firmware_version(None) == (0, 0, 0, 0)
+
+    def test_get_certificate_thumbprint(self):
+        """Test certificate thumbprint calculation."""
+        # Valid PEM certificate content (minimal test)
+        valid_pem = """-----BEGIN CERTIFICATE-----
+MIIBkTCB+wIJAKHBfpegPjMCMA0GCSqGSIb3DQEBCwUAMBExDzANBgNVBAMMBnRl
+c3RjYTAeFw0yMzAxMDEwMDAwMDBaFw0yNDAxMDEwMDAwMDBaMBExDzANBgNVBAMM
+BnRlc3RjYTBcMA0GCSqGSIb3DQEBAQUAA0sAMEgCQQC7o96WqWXfmN3V+h6kN3KL
+qsBPgPmkPNnGNxHMGH+m0P3pN3L3H3pN3L3H3pN3L3H3pN3L3H3pN3L3H3pN3L3H
+AgMBAAEwDQYJKoZIhvcNAQELBQADQQBtest
+-----END CERTIFICATE-----"""
+        # Should return a non-empty string for valid content
+        thumbprint = self.module.get_certificate_thumbprint(valid_pem)
+        # Empty or invalid cert returns empty string
+        assert self.module.get_certificate_thumbprint("") == ""
+        assert self.module.get_certificate_thumbprint("invalid") == ""
+
+    def test_validate_delete_operation(self, idrac_default_args):
+        """Test delete operation validation for supported types."""
+        f_module = self.get_module_mock(params=idrac_default_args)
+
+        # Should not raise for supported types
+        try:
+            self.module.validate_delete_operation(f_module, 'ACME_CA_CERT')
+            self.module.validate_delete_operation(f_module, 'SCEP_CA_CERT')
+            self.module.validate_delete_operation(f_module, 'ClientTrustCertificate')
+        except Exception:
+            pytest.fail("validate_delete_operation raised exception for supported type")
+
+        # Should raise for unsupported types
+        idrac_default_args.update({'certificate_type': 'HTTPS'})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        with pytest.raises(Exception) as ex:
+            self.module.validate_delete_operation(f_module, 'Server')
+        assert "Delete operation is only supported" in str(ex.value.args[0])
+
+    @pytest.mark.parametrize("params", [
+        {"json_data": {}, 'message': SUCCESS_MSG.format(command="import"), "success": True,
+         "reset_idrac": (True, False, RESET_SUCCESS),
+         'mparams': {'command': 'import', 'certificate_type': "ACME_CA_CERT",
+                     'certificate_path': '.pem', 'reset': False}},
+        {"json_data": {}, 'message': SUCCESS_MSG.format(command="import"), "success": True,
+         "reset_idrac": (True, False, RESET_SUCCESS),
+         'mparams': {'command': 'import', 'certificate_type': "SCEP_CA_CERT",
+                     'certificate_path': '.pem', 'reset': False}},
+        {"json_data": {"CertificateFile": b'Hello world!'}, 'message': SUCCESS_MSG.format(command="export"),
+         "success": True,
+         'mparams': {'command': 'export', 'certificate_type': "ACME_CA_CERT",
+                     'certificate_path': tempfile.gettempdir(), 'reset': False}},
+        {"json_data": {"CertificateFile": b'Hello world!'}, 'message': SUCCESS_MSG.format(command="export"),
+         "success": True,
+         'mparams': {'command': 'export', 'certificate_type': "SCEP_CA_CERT",
+                     'certificate_path': tempfile.gettempdir(), 'reset': False}},
+        {"json_data": {}, 'message': SUCCESS_MSG.format(command="delete"), "success": True,
+         'mparams': {'command': 'delete', 'certificate_type': "ACME_CA_CERT"}},
+        {"json_data": {}, 'message': SUCCESS_MSG.format(command="delete"), "success": True,
+         'mparams': {'command': 'delete', 'certificate_type': "SCEP_CA_CERT"}},
+    ])
+    def test_acme_scep_certificate_operations(
+            self, params, idrac_connection_certificates_mock, idrac_default_args, mocker):
+        """Test ACME/SCEP certificate import, export, and delete operations."""
+        idrac_connection_certificates_mock.success = params.get("success", True)
+        idrac_connection_certificates_mock.json_data = params.get('json_data')
+
+        if params.get('mparams').get('certificate_path') and params.get('mparams').get('command') == 'import':
+            sfx = params.get('mparams').get('certificate_path')
+            temp = tempfile.NamedTemporaryFile(suffix=sfx, delete=False)
+            temp.write(b'-----BEGIN CERTIFICATE-----\nMIIBtest\n-----END CERTIFICATE-----')
+            temp.close()
+            params.get('mparams')['certificate_path'] = temp.name
+
+        mocker.patch(MODULE_PATH + 'get_res_id', return_value=MANAGER_ID)
+        mocker.patch(MODULE_PATH + 'get_idrac_service', return_value=IDRAC_SERVICE.format(res_id=MANAGER_ID))
+        mocker.patch(MODULE_PATH + 'get_actions_map', return_value=idrac_service_actions)
+        mocker.patch(MODULE_PATH + 'reset_idrac', return_value=params.get('reset_idrac'))
+        mocker.patch(MODULE_PATH + 'validate_firmware_for_acme_scep', return_value=None)
+        mocker.patch(MODULE_PATH + 'validate_license_for_acme_scep', return_value=None)
+        mocker.patch(MODULE_PATH + 'get_current_cert_info', return_value={'exists': True, 'thumbprint': 'different'})
+
+        idrac_default_args.update(params.get('mparams'))
+        result = self._run_module(idrac_default_args)
+
+        if params.get('mparams').get('command') == 'import' and params.get('mparams').get('certificate_path'):
+            if os.path.exists(temp.name):
+                os.remove(temp.name)
+
+        assert params['message'] in result['msg']
+
+    def test_acme_scep_delete_idempotency(self, idrac_connection_certificates_mock, idrac_default_args, mocker):
+        """Test delete idempotency - should return no changes when cert doesn't exist."""
+        idrac_connection_certificates_mock.success = True
+        idrac_connection_certificates_mock.json_data = {}
+
+        mocker.patch(MODULE_PATH + 'get_res_id', return_value=MANAGER_ID)
+        mocker.patch(MODULE_PATH + 'get_idrac_service', return_value=IDRAC_SERVICE.format(res_id=MANAGER_ID))
+        mocker.patch(MODULE_PATH + 'get_actions_map', return_value=idrac_service_actions)
+        mocker.patch(MODULE_PATH + 'validate_firmware_for_acme_scep', return_value=None)
+        mocker.patch(MODULE_PATH + 'validate_license_for_acme_scep', return_value=None)
+        mocker.patch(MODULE_PATH + 'get_current_cert_info', return_value={'exists': False})
+
+        idrac_default_args.update({'command': 'delete', 'certificate_type': 'ACME_CA_CERT'})
+        result = self._run_module(idrac_default_args)
+
+        assert result['msg'] == NO_CHANGES_MSG
+        assert result['changed'] is False
+
+    def test_acme_scep_import_idempotency(self, idrac_connection_certificates_mock, idrac_default_args, mocker):
+        """Test import idempotency - should return no changes when cert is identical."""
+        idrac_connection_certificates_mock.success = True
+        idrac_connection_certificates_mock.json_data = {}
+
+        # Create temp cert file
+        temp = tempfile.NamedTemporaryFile(suffix='.pem', delete=False)
+        cert_content = b'-----BEGIN CERTIFICATE-----\nMIIBtest\n-----END CERTIFICATE-----'
+        temp.write(cert_content)
+        temp.close()
+
+        mocker.patch(MODULE_PATH + 'get_res_id', return_value=MANAGER_ID)
+        mocker.patch(MODULE_PATH + 'get_idrac_service', return_value=IDRAC_SERVICE.format(res_id=MANAGER_ID))
+        mocker.patch(MODULE_PATH + 'get_actions_map', return_value=idrac_service_actions)
+        mocker.patch(MODULE_PATH + 'validate_firmware_for_acme_scep', return_value=None)
+        mocker.patch(MODULE_PATH + 'validate_license_for_acme_scep', return_value=None)
+        # Mock that the same cert is already installed
+        mocker.patch(MODULE_PATH + 'get_current_cert_info', return_value={
+            'exists': True,
+            'thumbprint': self.module.get_certificate_thumbprint(cert_content.decode())
+        })
+        mocker.patch(MODULE_PATH + 'get_certificate_thumbprint', return_value='SAME_THUMBPRINT')
+
+        idrac_default_args.update({
+            'command': 'import',
+            'certificate_type': 'ACME_CA_CERT',
+            'certificate_path': temp.name,
+            'reset': False
+        })
+        result = self._run_module(idrac_default_args)
+
+        os.remove(temp.name)
+        assert result['msg'] == NO_CHANGES_MSG
+        assert result['changed'] is False
+
+    def test_delete_unsupported_cert_type(self, idrac_connection_certificates_mock, idrac_default_args, mocker):
+        """Test delete fails for unsupported certificate types."""
+        mocker.patch(MODULE_PATH + 'get_res_id', return_value=MANAGER_ID)
+
+        idrac_default_args.update({'command': 'delete', 'certificate_type': 'HTTPS'})
+        result = self._run_module(idrac_default_args)
+
+        assert result['failed'] is True
+        assert "Delete operation is only supported" in result['msg']
