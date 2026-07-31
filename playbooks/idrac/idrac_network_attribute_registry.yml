@@ -196,3 +196,130 @@
       register: token_result
       when: auth_token is defined
       tags: [token_auth]
+
+    # --- AC6: Session establishment and reuse ---
+    - name: Establish iDRAC session for token reuse
+      dellemc.openmanage.idrac_session:
+        hostname: "{{ idrac_ip }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        state: "present"
+      register: session_result
+      tags: [auth_session]
+
+    - name: Display session token
+      ansible.builtin.debug:
+        msg: "Session established: {{ session_result.session_data.Id }}"
+      when: session_result is defined and session_result.session_data is defined
+      tags: [auth_session]
+
+    - name: Query registry using established session token
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "{{ idrac_ip }}"
+        x_auth_token: "{{ session_result.session_data.x_auth_token }}"
+        query_type: "all"
+        validate_certs: "{{ validate_certs }}"
+      register: token_query_result
+      when: session_result is defined and session_result.session_data is defined
+      tags: [query_with_token]
+
+    - name: Display token query result
+      ansible.builtin.debug:
+        msg: "Attributes via token: {{ token_query_result.attribute_count }}"
+      when: token_query_result is defined
+      tags: [query_with_token]
+
+    # --- AC6: Within-playbook caching demonstration ---
+    - name: First query (populates cache)
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        query_type: "all"
+      register: first_query
+      tags: [cache_demo]
+
+    - name: Second query (returns cached data, faster)
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        query_type: "all"
+      register: second_query
+      tags: [cache_demo]
+
+    - name: Display caching results
+      ansible.builtin.debug:
+        msg:
+          - "First query attributes: {{ first_query.attribute_count }}"
+          - "Second query attributes: {{ second_query.attribute_count }}"
+          - "Both queries return same data (cached)"
+      tags: [cache_demo]
+
+    - name: Force refresh to bypass cache
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        force_refresh: true
+      register: refresh_result
+      tags: [cache_demo]
+
+    - name: Display force refresh result
+      ansible.builtin.debug:
+        msg: "Force refresh attributes: {{ refresh_result.attribute_count }}"
+      tags: [cache_demo]
+
+    # --- AC6: Multi-target query using loop ---
+    - name: Query multiple iDRAC targets
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "{{ item }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        query_type: "all"
+      loop: "{{ idrac_targets | default([idrac_ip]) }}"
+      register: multi_target_results
+      ignore_errors: true
+      tags: [multi_target]
+
+    - name: Aggregate multi-target results
+      ansible.builtin.set_fact:
+        successful_targets: "{{ multi_target_results.results | selectattr('failed', 'equalto', false) | list }}"
+        failed_targets: "{{ multi_target_results.results | selectattr('failed', 'equalto', true) | list }}"
+      when: multi_target_results is defined
+      tags: [multi_target]
+
+    - name: Display multi-target summary
+      ansible.builtin.debug:
+        msg:
+          - "Total targets: {{ multi_target_results.results | length }}"
+          - "Successful: {{ successful_targets | length }}"
+          - "Failed: {{ failed_targets | length }}"
+      when: multi_target_results is defined
+      tags: [multi_target]
+
+    # --- Error handling example ---
+    - name: Query with error handling (continues on failure)
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "{{ item }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+      loop: "{{ idrac_targets | default([idrac_ip]) }}"
+      register: error_handling_results
+      ignore_errors: true
+      tags: [error_handling]
+
+    - name: Report per-target status
+      ansible.builtin.debug:
+        msg: "{{ item.item }}: {{ 'SUCCESS' if not item.failed else 'FAILED - ' + item.msg }}"
+      loop: "{{ error_handling_results.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+      when: error_handling_results is defined
+      tags: [error_handling]

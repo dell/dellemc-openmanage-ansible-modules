@@ -1,0 +1,44 @@
+---
+# Test: X-Auth token session reuse (AC6 / FR-2)
+# Verifies that the module works with x_auth_token for session reuse
+
+- name: "Test session reuse - Establish session"
+  dellemc.openmanage.idrac_session:
+    hostname: "{{ idrac_ip }}"
+    username: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    validate_certs: "{{ validate_certs }}"
+    state: "present"
+  register: session_result
+
+- name: "Test session reuse - Query with x_auth_token"
+  dellemc.openmanage.idrac_network_attribute_registry:
+    idrac_ip: "{{ idrac_ip }}"
+    x_auth_token: "{{ session_result.session_data.x_auth_token }}"
+    query_type: "all"
+    validate_certs: "{{ validate_certs }}"
+  register: token_result
+
+- name: "Verify session reuse query succeeded"
+  ansible.builtin.assert:
+    that:
+      - token_result.changed == false
+      - token_result.attribute_count > 0
+      - token_result.firmware_version is defined
+      - token_result.idrac_model is defined
+    fail_msg: "Session reuse query failed"
+
+- name: "Test session reuse - Query with username/password (fallback)"
+  dellemc.openmanage.idrac_network_attribute_registry:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    query_type: "all"
+    validate_certs: "{{ validate_certs }}"
+  register: password_result
+
+- name: "Verify both queries return same attributes"
+  ansible.builtin.assert:
+    that:
+      - password_result.attribute_count == token_result.attribute_count
+    fail_msg: "Token and password queries returned different attribute counts"

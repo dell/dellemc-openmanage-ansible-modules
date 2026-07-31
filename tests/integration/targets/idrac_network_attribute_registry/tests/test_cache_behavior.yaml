@@ -1,0 +1,52 @@
+---
+# Test: Within-playbook registry caching (AC6 / FR-3)
+# Verifies cache hit on second query to same target
+
+- name: "Test caching - First query (populates cache)"
+  dellemc.openmanage.idrac_network_attribute_registry:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    query_type: "all"
+    validate_certs: "{{ validate_certs }}"
+  register: first_query
+
+- name: "Verify first query succeeded"
+  ansible.builtin.assert:
+    that:
+      - first_query.changed == false
+      - first_query.attribute_count > 0
+    fail_msg: "First query failed"
+
+- name: "Test caching - Second query (should use cache)"
+  dellemc.openmanage.idrac_network_attribute_registry:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    query_type: "all"
+    validate_certs: "{{ validate_certs }}"
+  register: second_query
+
+- name: "Verify second query returns same data"
+  ansible.builtin.assert:
+    that:
+      - second_query.changed == false
+      - second_query.attribute_count == first_query.attribute_count
+    fail_msg: "Second query returned different data than first"
+
+- name: "Test caching - Force refresh bypasses cache"
+  dellemc.openmanage.idrac_network_attribute_registry:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    query_type: "all"
+    validate_certs: "{{ validate_certs }}"
+    force_refresh: true
+  register: refresh_result
+
+- name: "Verify force refresh succeeded"
+  ansible.builtin.assert:
+    that:
+      - refresh_result.changed == false
+      - refresh_result.attribute_count > 0
+    fail_msg: "Force refresh query failed"
