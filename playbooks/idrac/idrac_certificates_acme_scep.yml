@@ -1,0 +1,196 @@
+---
+# Dell OpenManage Ansible iDRAC ACME/SCEP CA Certificate Management
+#
+# This playbook demonstrates ACME (Automated Certificate Management Environment)
+# and SCEP (Simple Certificate Enrollment Protocol) CA certificate operations.
+#
+# Prerequisites:
+#   - iDRAC9 firmware 7.00.00.00 or later, OR iDRAC10 firmware 1.20.50.50 or later
+#   - Active iDRAC Datacenter license
+#
+# Usage:
+#   ansible-playbook -i inventory idrac_certificates_acme_scep.yml -e @vars.yml
+#
+# Variables (vars.yml):
+#   idrac_ip: "192.168.0.1"
+#   idrac_user: "admin"
+#   idrac_password: "password"
+#   ca_path: "/path/to/ca_cert.pem"
+#   acme_ca_cert_path: "/path/to/acme_ca_cert.pem"
+#   scep_ca_cert_path: "/path/to/scep_ca_cert.pem"
+#   export_dir: "/home/user/certs"
+
+- name: Dell OpenManage Ansible iDRAC ACME/SCEP CA Certificate Management
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    # =========================================================================
+    # ACME CA Certificate Operations
+    # =========================================================================
+
+    - name: Import ACME CA certificate
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "{{ ca_path }}"
+        command: "import"
+        certificate_type: "ACME_CA_CERT"
+        certificate_path: "{{ acme_ca_cert_path }}"
+        # ACME/SCEP CA certificates do not require iDRAC reset
+        reset: false
+      delegate_to: localhost
+      register: acme_import_result
+
+    - name: Display ACME import result
+      ansible.builtin.debug:
+        var: acme_import_result
+
+    - name: Import ACME CA certificate - Check mode (preview changes)
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "{{ ca_path }}"
+        command: "import"
+        certificate_type: "ACME_CA_CERT"
+        certificate_path: "{{ acme_ca_cert_path }}"
+        reset: false
+      delegate_to: localhost
+      check_mode: true
+      register: acme_import_check
+
+    - name: Display ACME import check mode result
+      ansible.builtin.debug:
+        msg: "Would change: {{ acme_import_check.changed }}"
+
+    - name: Export ACME CA certificate
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "{{ ca_path }}"
+        command: "export"
+        certificate_type: "ACME_CA_CERT"
+        certificate_path: "{{ export_dir }}"
+      delegate_to: localhost
+      register: acme_export_result
+
+    - name: Display exported ACME certificate path
+      ansible.builtin.debug:
+        msg: "Certificate exported to: {{ acme_export_result.certificate_path }}"
+
+    - name: Delete ACME CA certificate
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "{{ ca_path }}"
+        command: "delete"
+        certificate_type: "ACME_CA_CERT"
+      delegate_to: localhost
+      register: acme_delete_result
+
+    - name: Display ACME delete result
+      ansible.builtin.debug:
+        var: acme_delete_result
+
+    # =========================================================================
+    # SCEP CA Certificate Operations
+    # =========================================================================
+
+    - name: Import SCEP CA certificate
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "{{ ca_path }}"
+        command: "import"
+        certificate_type: "SCEP_CA_CERT"
+        certificate_path: "{{ scep_ca_cert_path }}"
+        reset: false
+      delegate_to: localhost
+      register: scep_import_result
+
+    - name: Display SCEP import result
+      ansible.builtin.debug:
+        var: scep_import_result
+
+    - name: Export SCEP CA certificate
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "{{ ca_path }}"
+        command: "export"
+        certificate_type: "SCEP_CA_CERT"
+        certificate_path: "{{ export_dir }}"
+      delegate_to: localhost
+      register: scep_export_result
+
+    - name: Display exported SCEP certificate path
+      ansible.builtin.debug:
+        msg: "Certificate exported to: {{ scep_export_result.certificate_path }}"
+
+    - name: Delete SCEP CA certificate
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "{{ ca_path }}"
+        command: "delete"
+        certificate_type: "SCEP_CA_CERT"
+      delegate_to: localhost
+      register: scep_delete_result
+
+    - name: Display SCEP delete result
+      ansible.builtin.debug:
+        var: scep_delete_result
+
+    # =========================================================================
+    # Diff Mode Example - Shows before/after certificate state
+    # =========================================================================
+
+    - name: Import ACME CA certificate with diff mode
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "{{ ca_path }}"
+        command: "import"
+        certificate_type: "ACME_CA_CERT"
+        certificate_path: "{{ acme_ca_cert_path }}"
+        reset: false
+      delegate_to: localhost
+      diff: true
+      register: acme_import_diff
+
+    - name: Display diff result
+      ansible.builtin.debug:
+        var: acme_import_diff.diff
+      when: acme_import_diff.diff is defined
+
+    # =========================================================================
+    # Idempotency Example - Re-importing same certificate shows no changes
+    # =========================================================================
+
+    - name: Re-import same ACME CA certificate (idempotency check)
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "{{ ca_path }}"
+        command: "import"
+        certificate_type: "ACME_CA_CERT"
+        certificate_path: "{{ acme_ca_cert_path }}"
+        reset: false
+      delegate_to: localhost
+      register: acme_reimport_result
+
+    - name: Verify idempotency
+      ansible.builtin.assert:
+        that:
+          - not acme_reimport_result.changed
+        fail_msg: "Expected no changes when re-importing same certificate"
+        success_msg: "Idempotency verified - no changes detected"
