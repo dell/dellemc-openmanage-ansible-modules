@@ -1,0 +1,26 @@
+---
+# Test: Full retrieval without filters
+# Given: iDRAC with LC log service enabled and log entries exist
+# When: Module retrieves all LC logs without filters
+# Then: Module returns all available log entries
+
+- name: Test full retrieval without filters
+  tags:
+    - full_retrieval_without_filters
+  block:
+    - name: Retrieve all LC logs without filters
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+      register: result
+
+    - name: Verify full retrieval succeeded
+      assert:
+        that:
+          - result.failed is false
+          - result.changed is false
+          - result.results[0].lc_logs is defined
+        fail_msg: "Full retrieval without filters failed"
+        success_msg: "Full retrieval without filters completed successfully"

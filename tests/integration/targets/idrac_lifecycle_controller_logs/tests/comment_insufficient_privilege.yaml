@@ -1,0 +1,27 @@
+---
+# Test: Comment insertion fails due to insufficient privilege
+# Given: iDRAC with LC log service enabled
+# When: Module attempts to insert comment with insufficient privilege
+# Then: Module returns privilege error
+
+- name: Test comment insertion fails due to insufficient privilege
+  tags:
+    - comment_insufficient_privilege
+  block:
+    - name: Attempt to insert comment with low privilege user
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        insert_comment: "{{ test_comment }}"
+      register: result
+      ignore_errors: true
+
+    - name: Verify privilege error is raised
+      assert:
+        that:
+          - result.failed is true
+          - "'privilege' in result.msg | lower or 'permission' in result.msg | lower or 'access' in result.msg | lower"
+        fail_msg: "Privilege error not raised as expected"
+        success_msg: "Privilege error correctly raised"

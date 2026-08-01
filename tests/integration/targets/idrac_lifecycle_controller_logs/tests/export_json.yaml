@@ -1,0 +1,45 @@
+---
+# Test: Successful JSON export
+# Given: iDRAC with LC log service enabled and log entries exist
+# When: Module exports LC logs in JSON format
+# Then: Module creates valid JSON file with log data
+
+- name: Test JSON export
+  tags:
+    - export_json
+  block:
+    - name: Export LC logs to JSON
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        export_format: "json"
+        export_path: "{{ test_export_path }}.json"
+      register: result
+
+    - name: Verify JSON export succeeded
+      assert:
+        that:
+          - result.failed is false
+          - result.changed is true
+        fail_msg: "JSON export failed"
+        success_msg: "JSON export completed successfully"
+
+    - name: Verify exported JSON file exists
+      stat:
+        path: "{{ test_export_path }}.json"
+      register: json_file
+
+    - name: Verify JSON file is valid
+      assert:
+        that:
+          - json_file.stat.exists is true
+          - json_file.stat.size > 0
+        fail_msg: "Exported JSON file is invalid or empty"
+        success_msg: "Exported JSON file is valid"
+
+    - name: Clean up exported file
+      file:
+        path: "{{ test_export_path }}.json"
+        state: absent

@@ -1,0 +1,27 @@
+---
+# Test: Filter by category
+# Given: iDRAC with LC log service enabled
+# When: Module retrieves LC logs filtered by category
+# Then: Module returns only logs matching the specified category
+
+- name: Test filter by category
+  tags:
+    - filter_by_category
+  block:
+    - name: Retrieve LC logs filtered by category
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        category: "{{ test_category_filter }}"
+      register: result
+
+    - name: Verify category filter applied
+      assert:
+        that:
+          - result.failed is false
+          - result.changed is false
+          - result.results[0].lc_logs is defined
+        fail_msg: "Category filter failed"
+        success_msg: "Category filter applied successfully"

@@ -4,7 +4,7 @@
   gather_facts: false
 
   tasks:
-    - name: Export Lifecycle Controller Logs
+    - name: Export Lifecycle Controller Logs to a local share
       dellemc.openmanage.idrac_lifecycle_controller_logs:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
@@ -12,4 +12,57 @@
         ca_path: "/path/to/ca_cert.pem"
         share_name: "{{ playbook_dir }}"
         job_wait: true
+      delegate_to: localhost
+
+    - name: Query LC logs filtered by date range and severity
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        date_start: "2026-01-01T00:00:00Z"
+        date_end: "2026-01-31T23:59:59Z"
+        severity:
+          - Critical
+          - Warning
+      delegate_to: localhost
+
+    - name: Fetch LC log service metadata only
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        fetch_metadata_only: true
+      delegate_to: localhost
+
+    - name: Export filtered LC logs to a local JSON file for SIEM ingestion
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        date_start: "2026-01-01T00:00:00Z"
+        export_format: "json"
+        export_path: "/tmp/lc_logs_export.json"
+      delegate_to: localhost
+
+    - name: Export LC logs before clearing them (safety gate enabled)
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        export_path: "/tmp/lc_logs_archive.json"
+        clear_logs: true
+        clear_only_if_export_succeeded: true
+      delegate_to: localhost
+
+    - name: Insert a custom comment into the LC log
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        insert_comment: "Maintenance window started at 02:00 UTC"
       delegate_to: localhost

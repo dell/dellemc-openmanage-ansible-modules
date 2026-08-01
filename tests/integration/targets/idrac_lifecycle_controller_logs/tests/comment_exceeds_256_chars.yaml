@@ -1,0 +1,27 @@
+---
+# Test: Comment exceeds 256 characters
+# Given: iDRAC with LC log service enabled and log entries exist
+# When: Module attempts to insert comment exceeding 256 characters
+# Then: Module returns validation error
+
+- name: Test comment exceeds 256 characters
+  tags:
+    - comment_exceeds_256_chars
+  block:
+    - name: Attempt to insert long comment
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        insert_comment: "{{ test_long_comment }}"
+      register: result
+      ignore_errors: true
+
+    - name: Verify comment length validation error is raised
+      assert:
+        that:
+          - result.failed is true
+          - "'length' in result.msg | lower or '256' in result.msg or 'character' in result.msg | lower"
+        fail_msg: "Comment length validation error not raised as expected"
+        success_msg: "Comment length validation error correctly raised"

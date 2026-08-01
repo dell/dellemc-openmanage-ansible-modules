@@ -1,0 +1,28 @@
+---
+# Test: Filters produce no results
+# Given: iDRAC with LC log service enabled
+# When: Module retrieves LC logs with filters that match no entries
+# Then: Module returns empty result set without error
+
+- name: Test filters produce no results
+  tags:
+    - filters_produce_no_results
+  block:
+    - name: Retrieve LC logs with future date filter
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        date_start: "{{ test_future_date_start }}"
+        date_end: "{{ test_future_date_end }}"
+      register: result
+
+    - name: Verify empty result set returned
+      assert:
+        that:
+          - result.failed is false
+          - result.changed is false
+          - result.results[0].lc_logs | length == 0
+        fail_msg: "Empty result set not returned as expected"
+        success_msg: "Empty result set returned correctly"

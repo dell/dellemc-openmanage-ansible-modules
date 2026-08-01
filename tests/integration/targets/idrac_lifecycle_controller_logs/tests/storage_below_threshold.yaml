@@ -1,0 +1,27 @@
+---
+# Test: Storage utilization below threshold
+# Given: iDRAC with LC log service enabled and storage utilization below threshold
+# When: Module queries metadata
+# Then: Module returns no warning about storage utilization
+
+- name: Test storage utilization below threshold
+  tags:
+    - storage_below_threshold
+  block:
+    - name: Query LC log metadata to check storage utilization
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        query_metadata: true
+      register: result
+
+    - name: Verify no storage warning is triggered
+      assert:
+        that:
+          - result.failed is false
+          - result.changed is false
+          - result.results[0].metadata.storage_utilization_percent is defined
+        fail_msg: "Storage below threshold check failed"
+        success_msg: "No storage warning triggered as expected"

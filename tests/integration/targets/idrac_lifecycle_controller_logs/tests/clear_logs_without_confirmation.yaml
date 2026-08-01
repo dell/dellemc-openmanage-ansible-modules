@@ -1,0 +1,28 @@
+---
+# Test: Log clear without explicit confirmation
+# Given: iDRAC with LC log service enabled and log entries exist
+# When: Module attempts to clear logs without confirmation
+# Then: Module returns error requiring confirmation
+
+- name: Test log clear without confirmation
+  tags:
+    - clear_logs_without_confirmation
+  block:
+    - name: Attempt to clear LC logs without confirmation
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        clear_logs: true
+        clear_logs_confirm: false
+      register: result
+      ignore_errors: true
+
+    - name: Verify confirmation error is raised
+      assert:
+        that:
+          - result.failed is true
+          - "'confirm' in result.msg | lower or 'confirmation' in result.msg | lower"
+        fail_msg: "Confirmation error not raised as expected"
+        success_msg: "Confirmation error correctly raised"

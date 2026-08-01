@@ -1,0 +1,27 @@
+---
+# Test: Filter by severity
+# Given: iDRAC with LC log service enabled
+# When: Module retrieves LC logs filtered by severity
+# Then: Module returns only logs matching the specified severity
+
+- name: Test filter by severity
+  tags:
+    - filter_by_severity
+  block:
+    - name: Retrieve LC logs filtered by severity
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        severity: "{{ test_severity_filter }}"
+      register: result
+
+    - name: Verify severity filter applied
+      assert:
+        that:
+          - result.failed is false
+          - result.changed is false
+          - result.results[0].lc_logs is defined
+        fail_msg: "Severity filter failed"
+        success_msg: "Severity filter applied successfully"

@@ -1,0 +1,26 @@
+---
+# Test: LC log service disabled
+# Given: iDRAC with LC log service disabled
+# When: Module attempts to retrieve LC logs
+# Then: Module returns error indicating service is disabled
+
+- name: Test LC log service disabled
+  tags:
+    - lc_log_service_disabled
+  block:
+    - name: Attempt to retrieve LC logs when service is disabled
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+      register: result
+      ignore_errors: true
+
+    - name: Verify LC log service disabled error is raised
+      assert:
+        that:
+          - result.failed is true
+          - "'disabled' in result.msg | lower or 'service' in result.msg | lower"
+        fail_msg: "LC log service disabled error not raised as expected"
+        success_msg: "LC log service disabled error correctly raised"

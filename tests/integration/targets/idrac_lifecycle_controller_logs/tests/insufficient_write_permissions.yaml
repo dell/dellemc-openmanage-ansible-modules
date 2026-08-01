@@ -1,0 +1,28 @@
+---
+# Test: Insufficient write permissions
+# Given: iDRAC with LC log service enabled
+# When: Module attempts to export to path without write permissions
+# Then: Module returns permission error without creating partial file
+
+- name: Test insufficient write permissions
+  tags:
+    - insufficient_write_permissions
+  block:
+    - name: Attempt to export to read-only directory
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        export_format: "json"
+        export_path: "/root/lc_logs_export.json"
+      register: result
+      ignore_errors: true
+
+    - name: Verify permission error is raised
+      assert:
+        that:
+          - result.failed is true
+          - "'permission' in result.msg | lower or 'access' in result.msg | lower or 'denied' in result.msg | lower"
+        fail_msg: "Permission error not raised as expected"
+        success_msg: "Permission error correctly raised"

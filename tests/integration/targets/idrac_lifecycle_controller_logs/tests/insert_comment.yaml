@@ -1,0 +1,26 @@
+---
+# Test: Successful comment insertion
+# Given: iDRAC with LC log service enabled and log entries exist
+# When: Module inserts comment into log entry
+# Then: Module returns success with comment inserted
+
+- name: Test successful comment insertion
+  tags:
+    - insert_comment
+  block:
+    - name: Insert comment into LC log
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        insert_comment: "{{ test_comment }}"
+      register: result
+
+    - name: Verify comment insertion succeeded
+      assert:
+        that:
+          - result.failed is false
+          - result.changed is true
+        fail_msg: "Comment insertion failed"
+        success_msg: "Comment inserted successfully"

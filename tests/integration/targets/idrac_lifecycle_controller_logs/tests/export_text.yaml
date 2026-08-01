@@ -1,0 +1,45 @@
+---
+# Test: Successful text export
+# Given: iDRAC with LC log service enabled and log entries exist
+# When: Module exports LC logs in text format
+# Then: Module creates valid text file with log data
+
+- name: Test text export
+  tags:
+    - export_text
+  block:
+    - name: Export LC logs to text
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        export_format: "text"
+        export_path: "{{ test_export_path }}.txt"
+      register: result
+
+    - name: Verify text export succeeded
+      assert:
+        that:
+          - result.failed is false
+          - result.changed is true
+        fail_msg: "Text export failed"
+        success_msg: "Text export completed successfully"
+
+    - name: Verify exported text file exists
+      stat:
+        path: "{{ test_export_path }}.txt"
+      register: text_file
+
+    - name: Verify text file is valid
+      assert:
+        that:
+          - text_file.stat.exists is true
+          - text_file.stat.size > 0
+        fail_msg: "Exported text file is invalid or empty"
+        success_msg: "Exported text file is valid"
+
+    - name: Clean up exported file
+      file:
+        path: "{{ test_export_path }}.txt"
+        state: absent

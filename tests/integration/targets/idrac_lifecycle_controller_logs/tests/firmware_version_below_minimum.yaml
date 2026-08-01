@@ -1,0 +1,26 @@
+---
+# Test: Firmware version below minimum
+# Given: iDRAC with firmware version < minimum requirement
+# When: Module attempts to query iDRAC
+# Then: Module returns error indicating firmware version gate failure
+
+- name: Test firmware version below minimum
+  tags:
+    - firmware_version_below_minimum
+  block:
+    - name: Attempt to query LC logs with insufficient firmware
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+      register: result
+      ignore_errors: true
+
+    - name: Verify firmware version gate error is raised
+      assert:
+        that:
+          - result.failed is true
+          - "'firmware' in result.msg | lower or 'version' in result.msg | lower or 'gate' in result.msg | lower"
+        fail_msg: "Firmware version gate error not raised as expected"
+        success_msg: "Firmware version gate error correctly raised"

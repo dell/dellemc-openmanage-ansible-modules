@@ -1,0 +1,27 @@
+---
+# Test: MessageRegistry available — entries enriched
+# Given: iDRAC with LC log service enabled and MessageRegistry is accessible
+# When: Module retrieves LC logs with enrichment enabled
+# Then: Module returns log entries enriched with MessageRegistry data
+
+- name: Test MessageRegistry available
+  tags:
+    - message_registry_available
+  block:
+    - name: Retrieve LC logs with MessageRegistry enrichment
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        enrich_with_registry: true
+      register: result
+
+    - name: Verify MessageRegistry enrichment succeeded
+      assert:
+        that:
+          - result.failed is false
+          - result.changed is false
+          - result.results[0].lc_logs is defined
+        fail_msg: "MessageRegistry enrichment failed"
+        success_msg: "MessageRegistry enrichment completed successfully"

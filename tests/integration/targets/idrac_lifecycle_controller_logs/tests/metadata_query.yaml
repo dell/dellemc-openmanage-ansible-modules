@@ -1,0 +1,35 @@
+---
+# Test: Metadata query returns service statistics
+# Given: iDRAC with LC log service enabled
+# When: Module queries LC log metadata
+# Then: Module returns service statistics including total entries and storage utilization
+
+- name: Test metadata query
+  tags:
+    - metadata_query
+  block:
+    - name: Query LC log metadata
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        query_metadata: true
+      register: result
+
+    - name: Verify metadata query succeeded
+      assert:
+        that:
+          - result.failed is false
+          - result.changed is false
+          - result.results[0].metadata is defined
+        fail_msg: "Metadata query failed"
+        success_msg: "Metadata query completed successfully"
+
+    - name: Verify metadata contains expected fields
+      assert:
+        that:
+          - result.results[0].metadata.total_entries is defined
+          - result.results[0].metadata.storage_utilization_percent is defined
+        fail_msg: "Metadata missing expected fields"
+        success_msg: "Metadata contains all expected fields"

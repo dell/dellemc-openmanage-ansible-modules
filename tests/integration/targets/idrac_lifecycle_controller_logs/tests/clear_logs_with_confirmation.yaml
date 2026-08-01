@@ -1,0 +1,27 @@
+---
+# Test: Successful log clear with confirmation
+# Given: iDRAC with LC log service enabled and log entries exist
+# When: Module clears LC logs with explicit confirmation
+# Then: Module clears logs and returns success with pre/post counts
+
+- name: Test log clear with confirmation
+  tags:
+    - clear_logs_with_confirmation
+  block:
+    - name: Clear LC logs with confirmation
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        clear_logs: true
+        clear_logs_confirm: true
+      register: result
+
+    - name: Verify log clear succeeded
+      assert:
+        that:
+          - result.failed is false
+          - result.changed is true
+        fail_msg: "Log clear failed"
+        success_msg: "Log clear completed successfully"

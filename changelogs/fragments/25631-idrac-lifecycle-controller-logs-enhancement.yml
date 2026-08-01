@@ -1,0 +1,8 @@
+minor_changes:
+  - idrac_lifecycle_controller_logs - added filtered log query support with I(date_start), I(date_end), I(severity), I(category), and I(message_contains) parameters.
+  - idrac_lifecycle_controller_logs - added I(fetch_metadata_only) to retrieve LC log service metadata (entry count, timestamps, storage utilization, severity breakdown) without fetching individual entries.
+  - idrac_lifecycle_controller_logs - added I(export_format) and I(export_path) to export filtered LC log entries to JSON, CSV, or text files.
+  - idrac_lifecycle_controller_logs - added MessageRegistry enrichment, adding message_description and message_resolution fields to returned log entries.
+  - idrac_lifecycle_controller_logs - added I(clear_logs) and I(clear_only_if_export_succeeded) to clear the LC log with an export-before-clear safety gate.
+  - idrac_lifecycle_controller_logs - added I(insert_comment) to insert custom comment entries into the LC log.
+  - idrac_lifecycle_controller_logs - added I(storage_threshold_pct) to generate a storage capacity warning.

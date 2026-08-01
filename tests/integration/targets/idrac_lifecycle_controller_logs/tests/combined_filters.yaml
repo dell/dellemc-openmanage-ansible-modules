@@ -1,0 +1,30 @@
+---
+# Test: Combined date range, severity, and category filters
+# Given: iDRAC with LC log service enabled
+# When: Module retrieves LC logs with multiple filters
+# Then: Module returns only logs matching all specified filters
+
+- name: Test combined filters
+  tags:
+    - combined_filters
+  block:
+    - name: Retrieve LC logs with combined filters
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        date_start: "{{ test_date_start }}"
+        date_end: "{{ test_date_end }}"
+        severity: "{{ test_severity_filter }}"
+        category: "{{ test_category_filter }}"
+      register: result
+
+    - name: Verify combined filters applied
+      assert:
+        that:
+          - result.failed is false
+          - result.changed is false
+          - result.results[0].lc_logs is defined
+        fail_msg: "Combined filters failed"
+        success_msg: "Combined filters applied successfully"

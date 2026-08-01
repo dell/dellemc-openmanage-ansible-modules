@@ -1,0 +1,28 @@
+---
+# Test: Invalid date range — end before start
+# Given: iDRAC with LC log service enabled
+# When: Module attempts to retrieve LC logs with invalid date range (end before start)
+# Then: Module returns validation error
+
+- name: Test invalid date range
+  tags:
+    - invalid_date_range
+  block:
+    - name: Attempt to retrieve LC logs with invalid date range
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        date_start: "{{ test_invalid_date_start }}"
+        date_end: "{{ test_invalid_date_end }}"
+      register: result
+      ignore_errors: true
+
+    - name: Verify invalid date range error is raised
+      assert:
+        that:
+          - result.failed is true
+          - "'date' in result.msg | lower or 'range' in result.msg | lower or 'invalid' in result.msg | lower"
+        fail_msg: "Invalid date range error not raised as expected"
+        success_msg: "Invalid date range error correctly raised"

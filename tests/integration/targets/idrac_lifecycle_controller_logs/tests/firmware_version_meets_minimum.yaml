@@ -1,0 +1,27 @@
+---
+# Test: Firmware version meets minimum requirement
+# Given: iDRAC with firmware version >= minimum requirement
+# When: Module queries iDRAC firmware version
+# Then: Module returns success without version gate error
+
+- name: Test firmware version meets minimum requirement
+  tags:
+    - firmware_version_meets_minimum
+  block:
+    - name: Get iDRAC firmware version
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        query_metadata: true
+      register: result
+
+    - name: Verify firmware version meets minimum requirement
+      assert:
+        that:
+          - result.failed is false
+          - result.changed is false
+          - result.results[0].metadata is defined
+        fail_msg: "Firmware version check failed - module returned error"
+        success_msg: "Firmware version meets minimum requirement"

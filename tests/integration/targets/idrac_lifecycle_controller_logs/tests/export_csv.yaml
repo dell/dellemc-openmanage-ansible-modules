@@ -1,0 +1,45 @@
+---
+# Test: Successful CSV export
+# Given: iDRAC with LC log service enabled and log entries exist
+# When: Module exports LC logs in CSV format
+# Then: Module creates valid CSV file with log data
+
+- name: Test CSV export
+  tags:
+    - export_csv
+  block:
+    - name: Export LC logs to CSV
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        export_format: "csv"
+        export_path: "{{ test_export_path }}.csv"
+      register: result
+
+    - name: Verify CSV export succeeded
+      assert:
+        that:
+          - result.failed is false
+          - result.changed is true
+        fail_msg: "CSV export failed"
+        success_msg: "CSV export completed successfully"
+
+    - name: Verify exported CSV file exists
+      stat:
+        path: "{{ test_export_path }}.csv"
+      register: csv_file
+
+    - name: Verify CSV file is valid
+      assert:
+        that:
+          - csv_file.stat.exists is true
+          - csv_file.stat.size > 0
+        fail_msg: "Exported CSV file is invalid or empty"
+        success_msg: "Exported CSV file is valid"
+
+    - name: Clean up exported file
+      file:
+        path: "{{ test_export_path }}.csv"
+        state: absent
