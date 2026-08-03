@@ -10,6 +10,7 @@
     idrac_password: "{{ idrac_password }}"
     query_type: "all"
     validate_certs: "{{ validate_certs }}"
+    network_device_function_id: "{{ network_device_function_id }}"
   loop: "{{ idrac_targets | default([idrac_ip]) }}"
   register: multi_results
   ignore_errors: true
@@ -38,6 +39,7 @@
     idrac_password: "{{ idrac_password }}"
     query_type: "all"
     validate_certs: "{{ validate_certs }}"
+    network_device_function_id: "{{ network_device_function_id }}"
     timeout: 5
   loop:
     - "{{ idrac_ip }}"

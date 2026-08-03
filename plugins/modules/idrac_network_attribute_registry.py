@@ -20,9 +20,12 @@ module: idrac_network_attribute_registry
 short_description: Queries and validates iDRAC network attribute registry
 version_added: "9.12.0"
 description:
-  - This module queries the iDRAC Redfish network attribute registry to discover available
-    network attributes with their schemas (data types, valid values, descriptions, read-only
-    vs read-write status).
+  - This module queries the iDRAC Redfish network attribute registry for a specific NIC
+    to discover available network attributes with their schemas (data types, valid values,
+    descriptions, read-only vs read-write status).
+  - Requires I(network_device_function_id) to target a specific NIC. To discover available
+    NIC IDs, first query C(/redfish/v1/Registries) or use I(dellemc.openmanage.idrac_network_attributes)
+    with the desired network adapter and device function.
   - Supports querying all attributes, standard Redfish-only attributes, or Dell OEM-only attributes.
   - Supports wildcard pattern filtering to narrow results to specific attribute categories.
   - Supports batch validation of attribute name-value pairs against the registry schema with
@@ -34,6 +37,15 @@ description:
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_x_auth_options
 options:
+  network_device_function_id:
+    type: str
+    required: true
+    description:
+      - FQDD of the network device function whose attribute registry to query.
+      - "An example of FQDD of the network device function is C(NIC.Integrated.1-1-1) or C(NIC.Slot.2-1-1)."
+      - "To discover available NIC IDs, query the iDRAC Registries endpoint at
+        C(/redfish/v1/Registries) and look for members whose name starts with
+        C(NetworkAttributesRegistry_)."
   query_type:
     type: str
     description:
@@ -89,31 +101,36 @@ notes:
   - This module supports C(check_mode).
   - This module is read-only and does not make any configuration changes.
   - Minimum firmware required - iDRAC9 7.30.30.50 or iDRAC10 1.30.30.50.
-  - Registry data is cached per iDRAC target within a playbook run. Use I(force_refresh) to bypass.
+  - I(network_device_function_id) is required to target a specific NIC for performance reasons.
+    Querying all NICs simultaneously can result in 10+ minute response times.
+  - Registry data is cached per iDRAC target and NIC within a playbook run. Use I(force_refresh) to bypass.
   - When used with C(x_auth_token), authentication overhead is reduced by reusing an existing session.
 """
 
 EXAMPLES = """
 ---
-- name: Query all network attributes
+- name: Query all network attributes for a specific NIC
   dellemc.openmanage.idrac_network_attribute_registry:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
+    network_device_function_id: "NIC.Integrated.1-1-1"
     query_type: "all"
 
-- name: Query only standard Redfish attributes
+- name: Query only standard Redfish attributes for a NIC
   dellemc.openmanage.idrac_network_attribute_registry:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
+    network_device_function_id: "NIC.Integrated.1-1-1"
     query_type: "redfish"
 
-- name: Query only Dell OEM attributes
+- name: Query only Dell OEM attributes for a NIC
   dellemc.openmanage.idrac_network_attribute_registry:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
+    network_device_function_id: "NIC.Integrated.1-1-1"
     query_type: "oem"
 
 - name: Filter VLAN-related attributes using wildcard
@@ -121,23 +138,26 @@ EXAMPLES = """
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
-    attribute_pattern: "VLAN*"
+    network_device_function_id: "NIC.Integrated.1-1-1"
+    attribute_pattern: "VLan*"
 
-- name: Validate attribute name-value pairs
+- name: Validate attribute name-value pairs for a NIC
   dellemc.openmanage.idrac_network_attribute_registry:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
+    network_device_function_id: "NIC.Integrated.1-1-1"
     query_type: "validate"
     validate_attributes:
       VLanMode: "Enabled"
-      LinkSpeed: "1Gbps"
+      LnkSpeed: "AutoNeg"
 
 - name: Query attributes with YAML output format
   dellemc.openmanage.idrac_network_attribute_registry:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
+    network_device_function_id: "NIC.Integrated.1-1-1"
     output_format: "yaml"
 
 - name: Query attributes with table output format
@@ -145,12 +165,14 @@ EXAMPLES = """
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
+    network_device_function_id: "NIC.Integrated.1-1-1"
     output_format: "table"
 
 - name: Query using X-Auth token for session reuse
   dellemc.openmanage.idrac_network_attribute_registry:
     idrac_ip: "192.168.0.1"
     x_auth_token: "{{ auth_token }}"
+    network_device_function_id: "NIC.Integrated.1-1-1"
     query_type: "all"
 
 - name: Establish session and query with token reuse
@@ -166,7 +188,8 @@ EXAMPLES = """
     - name: Query registry using session token
       dellemc.openmanage.idrac_network_attribute_registry:
         idrac_ip: "192.168.0.1"
-        x_auth_token: "{{ session_result.session_data.x_auth_token }}"
+        x_auth_token: "{{ session_result.x_auth_token }}"
+        network_device_function_id: "NIC.Integrated.1-1-1"
         query_type: "all"
 
 - name: Force refresh to bypass cache
@@ -174,6 +197,7 @@ EXAMPLES = """
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
+    network_device_function_id: "NIC.Integrated.1-1-1"
     force_refresh: true
 
 - name: Multi-target query using loop
@@ -181,6 +205,7 @@ EXAMPLES = """
     idrac_ip: "{{ item }}"
     idrac_user: "user_name"
     idrac_password: "user_password"
+    network_device_function_id: "NIC.Integrated.1-1-1"
     query_type: "all"
   loop:
     - "192.168.0.1"
@@ -196,7 +221,18 @@ msg:
   description: Status message for the operation.
   returned: always
   type: str
-  sample: "Successfully retrieved network attribute registry."
+  sample: "Successfully retrieved network attribute registry for NIC.Integrated.1-1-1."
+network_device_function_id:
+  description: The NIC ID that was queried.
+  returned: always
+  type: str
+  sample: "NIC.Integrated.1-1-1"
+available_nics:
+  description: List of available NIC IDs with network attribute registries on the target iDRAC.
+  returned: on failure when NIC ID is not found
+  type: list
+  elements: str
+  sample: ["NIC.Integrated.1-1-1", "NIC.Integrated.1-2-1", "NIC.Slot.2-1-1"]
 attributes:
   description:
     - List of network attributes from the registry.
@@ -291,7 +327,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish i
 )
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
 
-REGISTRY_URI = "/redfish/v1/Registries/NetworkAttributeRegistry"
+REGISTRIES_URI = "/redfish/v1/Registries"
 MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 IDRAC_ATTRIBUTES_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
 
@@ -299,26 +335,31 @@ MIN_FW_IDRAC9 = "7.30.30.50"
 MIN_FW_IDRAC10 = "1.30.30.50"
 ODATA_ID = "(.*?)@odata"
 
-SUCCESS_QUERY_MSG = "Successfully retrieved network attribute registry."
-SUCCESS_VALIDATE_MSG = "Attribute validation completed."
+SUCCESS_QUERY_MSG = "Successfully retrieved network attribute registry for {nic_id}."
+SUCCESS_VALIDATE_MSG = "Attribute validation completed for {nic_id}."
 FIRMWARE_TOO_OLD_MSG = (
     "iDRAC firmware version {fw_version} does not support attribute registry endpoints. "
     "Minimum required version: {min_version}. "
     "Please upgrade firmware or use manual attribute configuration."
 )
-NO_REGISTRY_MSG = "No network attribute registry data found on the target."
+NO_REGISTRY_MSG = (
+    "No network attribute registry found for '{nic_id}' on iDRAC {idrac_ip}. "
+    "Available NICs with registries: {available_nics}. "
+    "To discover available NICs, query /redfish/v1/Registries on the target iDRAC."
+)
 VALIDATE_REQUIRES_ATTRS_MSG = "The 'validate_attributes' parameter is required when query_type is 'validate'."
 RETRY_TRANSIENT_MSG = "Transient error on attempt {attempt}/{max_retries}: {error}. Retrying in {delay}s..."
 MAX_RETRIES = 3
 RETRY_BASE_DELAY = 1
+NETWORK_REGISTRY_PREFIX = "NetworkAttributesRegistry_"
 
 # In-memory cache for registry data (per-process, within a playbook run)
 _registry_cache = {}
 
 
-def get_cache_key(idrac_ip, port):
-    """Generate cache key based on iDRAC IP and port."""
-    return "{0}:{1}".format(idrac_ip, port)
+def get_cache_key(idrac_ip, port, nic_id):
+    """Generate cache key based on iDRAC IP, port, and NIC ID."""
+    return "{0}:{1}:{2}".format(idrac_ip, port, nic_id)
 
 
 def get_from_cache(cache_key):
@@ -396,28 +437,79 @@ def check_firmware_version(firmware_version, hw_model):
     return len(fw_parts) >= len(min_parts), min_version
 
 
-def fetch_registry_attributes(idrac, module=None):
-    """Fetch raw attribute registry data from iDRAC Redfish endpoint with retry."""
-    response = _invoke_with_retry(idrac, REGISTRY_URI, 'GET', module=module)
+def discover_available_nics(idrac, module=None):
+    """Discover available NIC IDs from the Registries endpoint.
+
+    Returns a list of NIC ID strings (e.g. ['NIC.Integrated.1-1-1', 'NIC.Slot.2-1-1']).
+    """
+    response = _invoke_with_retry(idrac, REGISTRIES_URI, 'GET', module=module)
     if response.status_code != 200:
-        return None
+        return []
 
-    registry_data = response.json_data
-    members = registry_data.get("Members", registry_data.get("RegistryEntries", {}))
+    members = response.json_data.get("Members", [])
+    nics = []
+    for member in members:
+        odata_id = member.get("@odata.id", "")
+        # Extract NIC ID from registry names like NetworkAttributesRegistry_NIC.Slot.10-2-1
+        if NETWORK_REGISTRY_PREFIX in odata_id:
+            nic_id = odata_id.rsplit("/", 1)[-1].replace(NETWORK_REGISTRY_PREFIX, "")
+            nics.append(nic_id)
+    return nics
 
-    if isinstance(members, list) and len(members) > 0:
-        location = members[0] if isinstance(members[0], dict) else {}
-        registry_uri = location.get("@odata.id")
-        if registry_uri:
-            if module:
-                module.log("Fetching registry detail from: {0}".format(registry_uri))
-            detail_resp = _invoke_with_retry(idrac, registry_uri, 'GET', module=module)
-            if detail_resp.status_code == 200:
-                return detail_resp.json_data
-    elif isinstance(members, dict):
-        return registry_data
 
-    return registry_data
+def fetch_registry_attributes(idrac, nic_id, module=None):
+    """Fetch raw attribute registry data for a specific NIC from iDRAC Redfish endpoint.
+
+    Discovery flow:
+    1. GET /redfish/v1/Registries — list all registry members
+    2. Find the member whose @odata.id contains the nic_id
+    3. GET the member URI to retrieve the Location array
+    4. GET Location[0].Uri to retrieve the actual AttributeRegistry JSON
+    """
+    response = _invoke_with_retry(idrac, REGISTRIES_URI, 'GET', module=module)
+    if response.status_code != 200:
+        return None, []
+
+    members = response.json_data.get("Members", [])
+    available_nics = []
+    matching_member_uri = None
+
+    for member in members:
+        odata_id = member.get("@odata.id", "")
+        if NETWORK_REGISTRY_PREFIX in odata_id:
+            member_nic_id = odata_id.rsplit("/", 1)[-1].replace(NETWORK_REGISTRY_PREFIX, "")
+            available_nics.append(member_nic_id)
+            if nic_id == member_nic_id:
+                matching_member_uri = odata_id
+
+    if not matching_member_uri:
+        return None, available_nics
+
+    if module:
+        module.log("Found registry member for {0}: {1}".format(nic_id, matching_member_uri))
+
+    # Step 2: GET the registry member to find Location URI
+    member_resp = _invoke_with_retry(idrac, matching_member_uri, 'GET', module=module)
+    if member_resp.status_code != 200:
+        return None, available_nics
+
+    location = member_resp.json_data.get("Location", [])
+    if not location:
+        return None, available_nics
+
+    registry_json_uri = location[0].get("Uri")
+    if not registry_json_uri:
+        return None, available_nics
+
+    if module:
+        module.log("Fetching registry JSON from: {0}".format(registry_json_uri))
+
+    # Step 3: GET the actual AttributeRegistry JSON
+    detail_resp = _invoke_with_retry(idrac, registry_json_uri, 'GET', module=module)
+    if detail_resp.status_code == 200:
+        return detail_resp.json_data, available_nics
+
+    return None, available_nics
 
 
 def parse_registry_attributes(registry_data):
@@ -550,6 +642,10 @@ def format_output(attributes, output_format):
 def main():
     try:
         specs = {
+            "network_device_function_id": {
+                "type": "str",
+                "required": True,
+            },
             "query_type": {
                 "type": "str",
                 "default": "all",
@@ -580,6 +676,7 @@ def main():
             required_if=[["query_type", "validate", ("validate_attributes",)]],
         )
 
+        nic_id = module.params.get("network_device_function_id")
         query_type = module.params.get("query_type")
         attribute_pattern = module.params.get("attribute_pattern")
         validate_attrs = module.params.get("validate_attributes")
@@ -588,11 +685,11 @@ def main():
 
         idrac_ip = module.params.get("idrac_ip")
         idrac_port = module.params.get("idrac_port", 443)
-        cache_key = get_cache_key(idrac_ip, idrac_port)
+        cache_key = get_cache_key(idrac_ip, idrac_port, nic_id)
 
         module.log("Starting network attribute registry query on iDRAC {0}, "
-                   "query_type={1}, attribute_pattern={2}, output_format={3}".format(
-                       idrac_ip, query_type, attribute_pattern, output_format))
+                   "nic_id={1}, query_type={2}, attribute_pattern={3}, output_format={4}".format(
+                       idrac_ip, nic_id, query_type, attribute_pattern, output_format))
 
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
             start_time = time.time()
@@ -619,6 +716,7 @@ def main():
                     changed=False,
                     firmware_version=firmware_version,
                     idrac_model=hw_model,
+                    network_device_function_id=nic_id,
                 )
 
             cached_data = None
@@ -630,37 +728,45 @@ def main():
                 registry_data = cached_data
             else:
                 module.log("Cache miss for {0}, fetching from iDRAC".format(cache_key))
-                registry_data = fetch_registry_attributes(idrac, module=module)
+                registry_data, available_nics = fetch_registry_attributes(idrac, nic_id, module=module)
                 if not registry_data:
-                    module.fail_json(msg=NO_REGISTRY_MSG)
+                    module.fail_json(
+                        msg=NO_REGISTRY_MSG.format(
+                            nic_id=nic_id, idrac_ip=idrac_ip,
+                            available_nics=available_nics if available_nics else "none found"
+                        ),
+                        network_device_function_id=nic_id,
+                        available_nics=available_nics,
+                    )
                 store_in_cache(cache_key, registry_data)
 
             all_attributes = parse_registry_attributes(registry_data)
             query_duration = round(time.time() - start_time, 2)
-            module.log("Registry query completed in {0}s, {1} attributes parsed".format(
-                query_duration, len(all_attributes)))
+            module.log("Registry query completed in {0}s, {1} attributes parsed for {2}".format(
+                query_duration, len(all_attributes), nic_id))
 
             if query_type == "validate":
                 module.log("Validating {0} attribute(s)".format(len(validate_attrs)))
                 validation_results = validate_attributes_against_registry(all_attributes, validate_attrs)
                 module.exit_json(
-                    msg=SUCCESS_VALIDATE_MSG,
+                    msg=SUCCESS_VALIDATE_MSG.format(nic_id=nic_id),
                     changed=False,
                     validation_results=validation_results,
                     firmware_version=firmware_version,
                     idrac_model=hw_model,
                     output_format=output_format,
+                    network_device_function_id=nic_id,
                 )
             else:
                 filtered = filter_by_query_type(all_attributes, query_type)
                 filtered = filter_by_pattern(filtered, attribute_pattern)
                 formatted = format_output(filtered, output_format)
-                module.log("Query completed: {0} attributes returned (query_type={1}, "
-                           "pattern={2}, duration={3}s)".format(
-                               len(filtered), query_type, attribute_pattern, query_duration))
+                module.log("Query completed: {0} attributes returned (nic_id={1}, query_type={2}, "
+                           "pattern={3}, duration={4}s)".format(
+                               len(filtered), nic_id, query_type, attribute_pattern, query_duration))
 
                 module.exit_json(
-                    msg=SUCCESS_QUERY_MSG,
+                    msg=SUCCESS_QUERY_MSG.format(nic_id=nic_id),
                     changed=False,
                     attributes=filtered if output_format == "json" else [],
                     attribute_count=len(filtered),
@@ -668,6 +774,7 @@ def main():
                     idrac_model=hw_model,
                     output_format=output_format,
                     formatted_output=formatted,
+                    network_device_function_id=nic_id,
                 )
 
     except HTTPError as err:

@@ -9,6 +9,7 @@
     idrac_password: "{{ idrac_password }}"
     query_type: "all"
     validate_certs: "{{ validate_certs }}"
+    network_device_function_id: "{{ network_device_function_id }}"
   register: first_query
 
 - name: "Verify first query succeeded"
@@ -25,6 +26,7 @@
     idrac_password: "{{ idrac_password }}"
     query_type: "all"
     validate_certs: "{{ validate_certs }}"
+    network_device_function_id: "{{ network_device_function_id }}"
   register: second_query
 
 - name: "Verify second query returns same data"
@@ -41,6 +43,7 @@
     idrac_password: "{{ idrac_password }}"
     query_type: "all"
     validate_certs: "{{ validate_certs }}"
+    network_device_function_id: "{{ network_device_function_id }}"
     force_refresh: true
   register: refresh_result
 

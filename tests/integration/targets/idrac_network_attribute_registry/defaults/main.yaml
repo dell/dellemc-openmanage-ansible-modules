@@ -1,3 +1,4 @@
 ---
 testcase: "[^_].*"
 test_items: []
+network_device_function_id: "NIC.Integrated.1-1-1"

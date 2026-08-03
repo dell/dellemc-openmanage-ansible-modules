@@ -5,7 +5,7 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
 # Example playbook: idrac_network_attribute_registry
-# Queries and validates iDRAC network attribute registry.
+# Queries and validates iDRAC network attribute registry for a specific NIC.
 
 - name: iDRAC Network Attribute Registry Operations
   hosts: idrac
@@ -15,15 +15,17 @@
     idrac_user: "{{ lookup('env', 'IDRAC_USER') | default('admin', true) }}"
     idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
     validate_certs: false
+    network_device_function_id: "{{ lookup('env', 'NIC_ID') | default('NIC.Integrated.1-1-1', true) }}"
 
   tasks:
-    # --- AC1: Query all network attributes ---
-    - name: Query all network attributes
+    # --- AC1: Query all network attributes for a specific NIC ---
+    - name: Query all network attributes for a NIC
       dellemc.openmanage.idrac_network_attribute_registry:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
+        network_device_function_id: "{{ network_device_function_id }}"
         query_type: "all"
       register: all_attributes
       tags: [query_all]
@@ -31,6 +33,7 @@
     - name: Display all attributes summary
       ansible.builtin.debug:
         msg:
+          - "NIC: {{ all_attributes.network_device_function_id }}"
           - "Total attributes: {{ all_attributes.attribute_count }}"
           - "Firmware: {{ all_attributes.firmware_version }}"
           - "Model: {{ all_attributes.idrac_model }}"
@@ -43,6 +46,7 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
+        network_device_function_id: "{{ network_device_function_id }}"
         query_type: "redfish"
       register: redfish_attributes
       tags: [query_redfish]
@@ -59,6 +63,7 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
+        network_device_function_id: "{{ network_device_function_id }}"
         query_type: "oem"
       register: oem_attributes
       tags: [query_oem]
@@ -75,6 +80,7 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
+        network_device_function_id: "{{ network_device_function_id }}"
         query_type: "validate"
         validate_attributes:
           VLanMode: "Enabled"
@@ -92,6 +98,7 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
+        network_device_function_id: "{{ network_device_function_id }}"
         query_type: "validate"
         validate_attributes:
           VLanMod: "Enabled"
@@ -109,6 +116,7 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
+        network_device_function_id: "{{ network_device_function_id }}"
         query_type: "validate"
         validate_attributes:
           VLanMode: "InvalidValue"
@@ -127,7 +135,8 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
-        attribute_pattern: "VLAN*"
+        network_device_function_id: "{{ network_device_function_id }}"
+        attribute_pattern: "VLan*"
       register: vlan_attributes
       tags: [query_filter]
 
@@ -143,6 +152,7 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
+        network_device_function_id: "{{ network_device_function_id }}"
         query_type: "all"
       register: gen_result
       tags: [multi_gen]
@@ -162,6 +172,7 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
+        network_device_function_id: "{{ network_device_function_id }}"
         output_format: "yaml"
       register: yaml_result
       tags: [output_yaml]
@@ -177,6 +188,7 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
+        network_device_function_id: "{{ network_device_function_id }}"
         output_format: "table"
       register: table_result
       tags: [output_table]
@@ -191,6 +203,7 @@
       dellemc.openmanage.idrac_network_attribute_registry:
         idrac_ip: "{{ idrac_ip }}"
         x_auth_token: "{{ auth_token | default(omit) }}"
+        network_device_function_id: "{{ network_device_function_id }}"
         query_type: "all"
         validate_certs: "{{ validate_certs }}"
       register: token_result
@@ -218,6 +231,7 @@
       dellemc.openmanage.idrac_network_attribute_registry:
         idrac_ip: "{{ idrac_ip }}"
         x_auth_token: "{{ session_result.session_data.x_auth_token }}"
+        network_device_function_id: "{{ network_device_function_id }}"
         query_type: "all"
         validate_certs: "{{ validate_certs }}"
       register: token_query_result
@@ -237,6 +251,7 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
+        network_device_function_id: "{{ network_device_function_id }}"
         query_type: "all"
       register: first_query
       tags: [cache_demo]
@@ -247,6 +262,7 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
+        network_device_function_id: "{{ network_device_function_id }}"
         query_type: "all"
       register: second_query
       tags: [cache_demo]
@@ -265,6 +281,7 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
+        network_device_function_id: "{{ network_device_function_id }}"
         force_refresh: true
       register: refresh_result
       tags: [cache_demo]
@@ -281,6 +298,7 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
+        network_device_function_id: "{{ network_device_function_id }}"
         query_type: "all"
       loop: "{{ idrac_targets | default([idrac_ip]) }}"
       register: multi_target_results
@@ -310,6 +328,7 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
+        network_device_function_id: "{{ network_device_function_id }}"
       loop: "{{ idrac_targets | default([idrac_ip]) }}"
       register: error_handling_results
       ignore_errors: true

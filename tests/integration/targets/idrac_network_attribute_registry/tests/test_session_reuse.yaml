@@ -17,6 +17,7 @@
     x_auth_token: "{{ session_result.session_data.x_auth_token }}"
     query_type: "all"
     validate_certs: "{{ validate_certs }}"
+    network_device_function_id: "{{ network_device_function_id }}"
   register: token_result
 
 - name: "Verify session reuse query succeeded"
@@ -35,6 +36,7 @@
     idrac_password: "{{ idrac_password }}"
     query_type: "all"
     validate_certs: "{{ validate_certs }}"
+    network_device_function_id: "{{ network_device_function_id }}"
   register: password_result
 
 - name: "Verify both queries return same attributes"

@@ -117,11 +117,25 @@ HW_MODEL_RESP_IDRAC10 = {
     "Attributes": {"Info.1.HWModel": "iDRAC 10"},
 }
 
-REGISTRY_LIST_RESP = {
+REGISTRIES_RESP = {
     "Members": [
-        {"@odata.id": "/redfish/v1/Registries/NetworkAttributeRegistry_NIC.Integrated.1-1-1"}
+        {"@odata.id": "/redfish/v1/Registries/BaseMessages"},
+        {"@odata.id": "/redfish/v1/Registries/NetworkAttributesRegistry_NIC.Integrated.1-1-1"},
+        {"@odata.id": "/redfish/v1/Registries/NetworkAttributesRegistry_NIC.Slot.2-1-1"},
     ]
 }
+
+REGISTRY_MEMBER_RESP = {
+    "Id": "NetworkAttributesRegistry_NIC.Integrated.1-1-1",
+    "Location": [
+        {
+            "Language": "en",
+            "Uri": "/redfish/v1/Registries/NetworkAttributesRegistry_NIC.Integrated.1-1-1/NetworkAttributesRegistry_NIC.Integrated.1-1-1.json"
+        }
+    ],
+}
+
+DEFAULT_NIC_ID = "NIC.Integrated.1-1-1"
 
 
 class TestIdracNetworkAttributeRegistry(FakeAnsibleModule):
@@ -144,6 +158,7 @@ class TestIdracNetworkAttributeRegistry(FakeAnsibleModule):
             "validate_certs": False,
             "ca_path": None,
             "timeout": 30,
+            "network_device_function_id": DEFAULT_NIC_ID,
         }
 
     @pytest.fixture
@@ -176,18 +191,33 @@ class TestIdracNetworkAttributeRegistry(FakeAnsibleModule):
         )
         mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
-            return_value=SAMPLE_REGISTRY_DATA
+            return_value=(SAMPLE_REGISTRY_DATA, [DEFAULT_NIC_ID])
         )
         result = self._run_module(idrac_default_args)
         assert result['changed'] is False
-        assert result['msg'] == "Successfully retrieved network attribute registry."
+        assert "Successfully retrieved network attribute registry" in result['msg']
         assert result['attribute_count'] == 6
+        assert result['network_device_function_id'] == DEFAULT_NIC_ID
 
     def test_validate_requires_validate_attributes(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
         """Test that query_type=validate without validate_attributes fails."""
         idrac_default_args.update({"query_type": "validate"})
         result = self._run_module_with_fail_json(idrac_default_args)
         assert "validate_attributes" in result['msg']
+
+    def test_missing_network_device_function_id_rejected(self, idrac_connection_mock, idrac_mock):
+        """Test that missing network_device_function_id is rejected by argument spec."""
+        args = {
+            "idrac_ip": "192.168.0.1",
+            "idrac_user": "admin",
+            "idrac_password": "password",
+            "idrac_port": 443,
+            "validate_certs": False,
+            "ca_path": None,
+            "timeout": 30,
+        }
+        result = self._run_module_with_fail_json(args)
+        assert result['failed'] is True
 
     def test_invalid_query_type_rejected(self, idrac_default_args, idrac_connection_mock, idrac_mock):
         """Test that an invalid query_type is rejected by argument spec."""
@@ -211,7 +241,7 @@ class TestIdracNetworkAttributeRegistry(FakeAnsibleModule):
         )
         mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
-            return_value=SAMPLE_REGISTRY_DATA
+            return_value=(SAMPLE_REGISTRY_DATA, [DEFAULT_NIC_ID])
         )
         self._run_module(idrac_default_args)
         idrac_connection_mock.assert_called_once()
@@ -271,7 +301,7 @@ class TestIdracNetworkAttributeRegistry(FakeAnsibleModule):
         )
         mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
-            return_value=SAMPLE_REGISTRY_DATA
+            return_value=(SAMPLE_REGISTRY_DATA, [DEFAULT_NIC_ID])
         )
         result = self._run_module(idrac_default_args)
         assert result['attribute_count'] == 6
@@ -288,7 +318,7 @@ class TestIdracNetworkAttributeRegistry(FakeAnsibleModule):
         )
         mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
-            return_value=SAMPLE_REGISTRY_DATA
+            return_value=(SAMPLE_REGISTRY_DATA, [DEFAULT_NIC_ID])
         )
         result = self._run_module(idrac_default_args)
         for attr in result['attributes']:
@@ -299,18 +329,20 @@ class TestIdracNetworkAttributeRegistry(FakeAnsibleModule):
             assert 'read_only' in attr
 
     def test_no_registry_data_fails(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
-        """Test that missing registry data causes failure."""
+        """Test that missing registry data causes failure with available NICs."""
         mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.get_idrac_firmware_info',
             return_value=(16, "7.30.30.50", "iDRAC 9")
         )
         mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
-            return_value=None
+            return_value=(None, ["NIC.Slot.2-1-1", "NIC.Slot.2-2-1"])
         )
         result = self._run_module_with_fail_json(idrac_default_args)
         assert result['failed'] is True
-        assert "No network attribute registry data found" in result['msg']
+        assert "No network attribute registry found" in result['msg']
+        assert DEFAULT_NIC_ID in result['msg']
+        assert result['available_nics'] == ["NIC.Slot.2-1-1", "NIC.Slot.2-2-1"]
 
     # --- Parse helper tests ---
 
@@ -345,7 +377,7 @@ class TestIdracNetworkAttributeRegistry(FakeAnsibleModule):
         )
         mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
-            return_value=SAMPLE_REGISTRY_DATA
+            return_value=(SAMPLE_REGISTRY_DATA, [DEFAULT_NIC_ID])
         )
         idrac_default_args.update({"query_type": "oem"})
         result = self._run_module(idrac_default_args)
@@ -362,7 +394,7 @@ class TestIdracNetworkAttributeRegistry(FakeAnsibleModule):
         )
         mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
-            return_value=SAMPLE_REGISTRY_DATA
+            return_value=(SAMPLE_REGISTRY_DATA, [DEFAULT_NIC_ID])
         )
         idrac_default_args.update({"query_type": "redfish"})
         result = self._run_module(idrac_default_args)
@@ -380,7 +412,7 @@ class TestIdracNetworkAttributeRegistry(FakeAnsibleModule):
         )
         mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
-            return_value=SAMPLE_REGISTRY_DATA
+            return_value=(SAMPLE_REGISTRY_DATA, [DEFAULT_NIC_ID])
         )
         idrac_default_args.update({"attribute_pattern": "VLan*"})
         result = self._run_module(idrac_default_args)
@@ -396,7 +428,7 @@ class TestIdracNetworkAttributeRegistry(FakeAnsibleModule):
         )
         mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
-            return_value=SAMPLE_REGISTRY_DATA
+            return_value=(SAMPLE_REGISTRY_DATA, [DEFAULT_NIC_ID])
         )
         idrac_default_args.update({"attribute_pattern": "NonExistent*"})
         result = self._run_module(idrac_default_args)
@@ -413,7 +445,7 @@ class TestIdracNetworkAttributeRegistry(FakeAnsibleModule):
         )
         mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
-            return_value=SAMPLE_REGISTRY_DATA
+            return_value=(SAMPLE_REGISTRY_DATA, [DEFAULT_NIC_ID])
         )
         idrac_default_args.update({
             "query_type": "validate",
@@ -421,7 +453,7 @@ class TestIdracNetworkAttributeRegistry(FakeAnsibleModule):
         })
         result = self._run_module(idrac_default_args)
         assert result['changed'] is False
-        assert result['msg'] == "Attribute validation completed."
+        assert "Attribute validation completed" in result['msg']
         assert len(result['validation_results']) == 2
         statuses = {r['attribute_name']: r['status'] for r in result['validation_results']}
         assert statuses['VLanMode'] == 'pass'
@@ -741,7 +773,7 @@ class TestSessionReuse(FakeAnsibleModule):
         )
         mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
-            return_value=SAMPLE_REGISTRY_DATA
+            return_value=(SAMPLE_REGISTRY_DATA, [DEFAULT_NIC_ID])
         )
         args = {
             "idrac_ip": "192.168.0.1",
@@ -750,10 +782,11 @@ class TestSessionReuse(FakeAnsibleModule):
             "validate_certs": False,
             "ca_path": None,
             "timeout": 30,
+            "network_device_function_id": DEFAULT_NIC_ID,
         }
         result = self._run_module(args)
         assert result['changed'] is False
-        assert result['msg'] == "Successfully retrieved network attribute registry."
+        assert "Successfully retrieved network attribute registry" in result['msg']
 
     def test_fallback_to_password_auth_without_token(self, idrac_connection_mock, idrac_mock, mocker):
         """Test that missing x_auth_token falls back to username/password auth."""
@@ -763,7 +796,7 @@ class TestSessionReuse(FakeAnsibleModule):
         )
         mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
-            return_value=SAMPLE_REGISTRY_DATA
+            return_value=(SAMPLE_REGISTRY_DATA, [DEFAULT_NIC_ID])
         )
         args = {
             "idrac_ip": "192.168.0.1",
@@ -773,6 +806,7 @@ class TestSessionReuse(FakeAnsibleModule):
             "validate_certs": False,
             "ca_path": None,
             "timeout": 30,
+            "network_device_function_id": DEFAULT_NIC_ID,
         }
         result = self._run_module(args)
         assert result['changed'] is False
@@ -786,7 +820,7 @@ class TestSessionReuse(FakeAnsibleModule):
         )
         mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
-            return_value=SAMPLE_REGISTRY_DATA
+            return_value=(SAMPLE_REGISTRY_DATA, [DEFAULT_NIC_ID])
         )
         args = {
             "idrac_ip": "192.168.0.1",
@@ -795,6 +829,7 @@ class TestSessionReuse(FakeAnsibleModule):
             "validate_certs": False,
             "ca_path": None,
             "timeout": 30,
+            "network_device_function_id": DEFAULT_NIC_ID,
         }
         self._run_module(args)
         call_args = idrac_connection_mock.call_args
@@ -828,7 +863,7 @@ class TestRegistryCache(FakeAnsibleModule):
 
     def test_cache_stores_data_after_first_query(self):
         """Test that cache stores registry data after first fetch."""
-        cache_key = "192.168.0.1:443"
+        cache_key = "192.168.0.1:443:NIC.Integrated.1-1-1"
         assert cache_key not in idrac_network_attribute_registry._registry_cache
         idrac_network_attribute_registry.store_in_cache(cache_key, SAMPLE_REGISTRY_DATA)
         assert cache_key in idrac_network_attribute_registry._registry_cache
@@ -836,23 +871,27 @@ class TestRegistryCache(FakeAnsibleModule):
 
     def test_cache_returns_none_on_miss(self):
         """Test cache returns None when key is not found."""
-        result = idrac_network_attribute_registry.get_from_cache("nonexistent:443")
+        result = idrac_network_attribute_registry.get_from_cache("nonexistent:443:NIC.X")
         assert result is None
 
     def test_cache_key_generation(self):
-        """Test cache key is generated from idrac_ip and port."""
-        key = idrac_network_attribute_registry.get_cache_key("10.0.0.1", 443)
-        assert key == "10.0.0.1:443"
+        """Test cache key is generated from idrac_ip, port, and nic_id."""
+        key = idrac_network_attribute_registry.get_cache_key("10.0.0.1", 443, "NIC.Integrated.1-1-1")
+        assert key == "10.0.0.1:443:NIC.Integrated.1-1-1"
 
-    def test_cache_is_keyed_per_target(self):
-        """Test that different targets use different cache keys."""
-        key1 = idrac_network_attribute_registry.get_cache_key("192.168.0.1", 443)
-        key2 = idrac_network_attribute_registry.get_cache_key("192.168.0.2", 443)
+    def test_cache_is_keyed_per_target_and_nic(self):
+        """Test that different targets and NICs use different cache keys."""
+        key1 = idrac_network_attribute_registry.get_cache_key("192.168.0.1", 443, "NIC.Integrated.1-1-1")
+        key2 = idrac_network_attribute_registry.get_cache_key("192.168.0.2", 443, "NIC.Integrated.1-1-1")
+        key3 = idrac_network_attribute_registry.get_cache_key("192.168.0.1", 443, "NIC.Slot.2-1-1")
         assert key1 != key2
+        assert key1 != key3
         idrac_network_attribute_registry.store_in_cache(key1, {"data": "target1"})
         idrac_network_attribute_registry.store_in_cache(key2, {"data": "target2"})
+        idrac_network_attribute_registry.store_in_cache(key3, {"data": "target1_nic2"})
         assert idrac_network_attribute_registry.get_from_cache(key1)["data"] == "target1"
         assert idrac_network_attribute_registry.get_from_cache(key2)["data"] == "target2"
+        assert idrac_network_attribute_registry.get_from_cache(key3)["data"] == "target1_nic2"
 
     def test_force_refresh_bypasses_cache(self, idrac_connection_mock, idrac_mock, mocker):
         """Test force_refresh=True bypasses the cache."""
@@ -862,9 +901,9 @@ class TestRegistryCache(FakeAnsibleModule):
         )
         fetch_mock = mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
-            return_value=SAMPLE_REGISTRY_DATA
+            return_value=(SAMPLE_REGISTRY_DATA, [DEFAULT_NIC_ID])
         )
-        cache_key = "192.168.0.1:443"
+        cache_key = "192.168.0.1:443:" + DEFAULT_NIC_ID
         idrac_network_attribute_registry.store_in_cache(cache_key, SAMPLE_REGISTRY_DATA)
         args = {
             "idrac_ip": "192.168.0.1",
@@ -875,6 +914,7 @@ class TestRegistryCache(FakeAnsibleModule):
             "ca_path": None,
             "timeout": 30,
             "force_refresh": True,
+            "network_device_function_id": DEFAULT_NIC_ID,
         }
         result = self._run_module(args)
         assert result['changed'] is False
@@ -888,9 +928,9 @@ class TestRegistryCache(FakeAnsibleModule):
         )
         fetch_mock = mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
-            return_value=SAMPLE_REGISTRY_DATA
+            return_value=(SAMPLE_REGISTRY_DATA, [DEFAULT_NIC_ID])
         )
-        cache_key = "192.168.0.1:443"
+        cache_key = "192.168.0.1:443:" + DEFAULT_NIC_ID
         idrac_network_attribute_registry.store_in_cache(cache_key, SAMPLE_REGISTRY_DATA)
         args = {
             "idrac_ip": "192.168.0.1",
@@ -901,6 +941,7 @@ class TestRegistryCache(FakeAnsibleModule):
             "ca_path": None,
             "timeout": 30,
             "force_refresh": False,
+            "network_device_function_id": DEFAULT_NIC_ID,
         }
         result = self._run_module(args)
         assert result['changed'] is False
@@ -915,9 +956,9 @@ class TestRegistryCache(FakeAnsibleModule):
         )
         mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
-            return_value=SAMPLE_REGISTRY_DATA
+            return_value=(SAMPLE_REGISTRY_DATA, [DEFAULT_NIC_ID])
         )
-        cache_key = "192.168.0.1:443"
+        cache_key = "192.168.0.1:443:" + DEFAULT_NIC_ID
         idrac_network_attribute_registry.store_in_cache(cache_key, SAMPLE_REGISTRY_DATA)
         args = {
             "idrac_ip": "192.168.0.1",
@@ -927,6 +968,7 @@ class TestRegistryCache(FakeAnsibleModule):
             "validate_certs": False,
             "ca_path": None,
             "timeout": 30,
+            "network_device_function_id": DEFAULT_NIC_ID,
         }
         result = self._run_module(args)
         assert result['changed'] is False
@@ -957,7 +999,7 @@ class TestMultiTargetErrorAggregation(FakeAnsibleModule):
         )
         mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
-            return_value=SAMPLE_REGISTRY_DATA
+            return_value=(SAMPLE_REGISTRY_DATA, [DEFAULT_NIC_ID])
         )
         args = {
             "idrac_ip": "192.168.0.1",
@@ -967,6 +1009,7 @@ class TestMultiTargetErrorAggregation(FakeAnsibleModule):
             "validate_certs": False,
             "ca_path": None,
             "timeout": 30,
+            "network_device_function_id": DEFAULT_NIC_ID,
         }
         result = self._run_module(args)
         assert result.get('failed', False) is False
@@ -987,6 +1030,7 @@ class TestMultiTargetErrorAggregation(FakeAnsibleModule):
             "validate_certs": False,
             "ca_path": None,
             "timeout": 30,
+            "network_device_function_id": DEFAULT_NIC_ID,
         }
         result = self._run_module(args)
         assert result.get('unreachable') is True
@@ -1009,6 +1053,7 @@ class TestMultiTargetErrorAggregation(FakeAnsibleModule):
             "validate_certs": False,
             "ca_path": None,
             "timeout": 30,
+            "network_device_function_id": DEFAULT_NIC_ID,
         }
         result = self._run_module(args)
         assert result['failed'] is True
@@ -1022,7 +1067,7 @@ class TestMultiTargetErrorAggregation(FakeAnsibleModule):
         )
         mocker.patch(
             MODULE_PATH + 'idrac_network_attribute_registry.fetch_registry_attributes',
-            return_value=SAMPLE_REGISTRY_DATA
+            return_value=(SAMPLE_REGISTRY_DATA, [DEFAULT_NIC_ID])
         )
         for qt in ["all", "redfish", "oem"]:
             args = {
@@ -1034,6 +1079,7 @@ class TestMultiTargetErrorAggregation(FakeAnsibleModule):
                 "ca_path": None,
                 "timeout": 30,
                 "query_type": qt,
+                "network_device_function_id": DEFAULT_NIC_ID,
             }
             result = self._run_module(args)
             assert result['changed'] is False

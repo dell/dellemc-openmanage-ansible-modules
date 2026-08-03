@@ -71,3 +71,4 @@
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
+      network_device_function_id: "{{ network_device_function_id }}"
