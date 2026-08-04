@@ -5,13 +5,13 @@
 
 - name: "Test multi-target - Query multiple iDRAC targets"
   dellemc.openmanage.idrac_network_attribute_registry:
-    idrac_ip: "{{ item }}"
-    idrac_user: "{{ idrac_user }}"
-    idrac_password: "{{ idrac_password }}"
+    idrac_ip: "{{ hostvars[item].idrac_ip }}"
+    idrac_user: "{{ hostvars[item].idrac_user | default(idrac_user) }}"
+    idrac_password: "{{ hostvars[item].idrac_password | default(idrac_password) }}"
     query_type: "all"
-    validate_certs: "{{ validate_certs }}"
-    network_device_function_id: "{{ network_device_function_id }}"
-  loop: "{{ idrac_targets | default([idrac_ip]) }}"
+    validate_certs: "{{ hostvars[item].validate_certs | default(validate_certs) }}"
+    network_device_function_id: "{{ hostvars[item].network_device_function_id }}"
+  loop: "{{ groups['idrac'] | default([inventory_hostname], true) }}"
   register: multi_results
   ignore_errors: true
 
@@ -27,10 +27,10 @@
     that:
       - item.msg is defined
       - item.changed == false
-    fail_msg: "Target {{ item.item }} missing required fields"
+    fail_msg: "Target {{ hostvars[item.item].idrac_ip | default(item.item) }} missing required fields"
   loop: "{{ multi_results.results }}"
   loop_control:
-    label: "{{ item.item }}"
+    label: "{{ hostvars[item.item].idrac_ip | default(item.item) }}"
 
 - name: "Test multi-target - Mixed success/failure with unreachable target"
   dellemc.openmanage.idrac_network_attribute_registry:
@@ -46,6 +46,7 @@
     - "192.168.255.254"
   register: mixed_results
   ignore_errors: true
+  ignore_unreachable: true
 
 - name: "Verify first target succeeded"
   ansible.builtin.assert:
