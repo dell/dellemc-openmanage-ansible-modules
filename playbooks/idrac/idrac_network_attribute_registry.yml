@@ -199,10 +199,14 @@
       tags: [output_table]
 
     # --- Session token example ---
-    - name: Query using X-Auth token (session reuse)
+    # Note: x_auth_token is mutually exclusive with idrac_user/idrac_password.
+    # The module uses env_fallback for IDRAC_USERNAME/IDRAC_PASSWORD env vars.
+    # When using x_auth_token, ensure those env vars are NOT set, or pass
+    # the token via the IDRAC_X_AUTH_TOKEN env var instead (without credentials).
+    - name: Query using X-Auth token (pre-established)
       dellemc.openmanage.idrac_network_attribute_registry:
         idrac_ip: "{{ idrac_ip }}"
-        x_auth_token: "{{ auth_token | default(omit) }}"
+        x_auth_token: "{{ auth_token }}"
         network_device_function_id: "{{ network_device_function_id }}"
         query_type: "all"
         validate_certs: "{{ validate_certs }}"
@@ -227,22 +231,14 @@
       when: session_result is defined and session_result.session_data is defined
       tags: [auth_session]
 
-    - name: Query registry using established session token
-      dellemc.openmanage.idrac_network_attribute_registry:
-        idrac_ip: "{{ idrac_ip }}"
-        x_auth_token: "{{ session_result.session_data.x_auth_token }}"
-        network_device_function_id: "{{ network_device_function_id }}"
-        query_type: "all"
-        validate_certs: "{{ validate_certs }}"
-      register: token_query_result
+    # Token-based query is demonstrated in the second play below to avoid
+    # conflict with IDRAC_PASSWORD/IDRAC_USERNAME env var fallback.
+    - name: Save session token for next play
+      ansible.builtin.set_fact:
+        saved_x_auth_token: "{{ session_result.x_auth_token }}"
+        saved_session_id: "{{ session_result.session_data.Id }}"
       when: session_result is defined and session_result.session_data is defined
-      tags: [query_with_token]
-
-    - name: Display token query result
-      ansible.builtin.debug:
-        msg: "Attributes via token: {{ token_query_result.attribute_count }}"
-      when: token_query_result is defined
-      tags: [query_with_token]
+      tags: [auth_session]
 
     # --- AC6: Within-playbook caching demonstration ---
     - name: First query (populates cache)
@@ -342,3 +338,53 @@
         label: "{{ item.item }}"
       when: error_handling_results is defined
       tags: [error_handling]
+
+# --- Separate play for token-based query ---
+# x_auth_token is mutually exclusive with idrac_user/idrac_password.
+# The module uses env_fallback for IDRAC_USERNAME/IDRAC_PASSWORD environment
+# variables. When those env vars are set, they conflict with x_auth_token.
+#
+# To run the token-based query, ensure IDRAC_USERNAME and IDRAC_PASSWORD
+# env vars are NOT set in the shell. For example:
+#   unset IDRAC_USERNAME IDRAC_PASSWORD
+#   export IDRAC_X_AUTH_TOKEN="<your_token>"
+#   ansible-playbook playbooks/idrac/idrac_network_attribute_registry.yml \
+#     --tags query_with_token -e idrac_ip=192.168.0.1 -e network_device_function_id=NIC.Integrated.1-1-1
+#
+# When running the full playbook with credentials, the token query is
+# skipped if IDRAC_PASSWORD is detected in the environment.
+- name: iDRAC Token-Based Registry Query
+  hosts: localhost
+  gather_facts: false
+  vars:
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') | default('192.168.0.1', true) }}"
+    validate_certs: false
+    network_device_function_id: "{{ lookup('env', 'NIC_ID') | default('NIC.Integrated.1-1-1', true) }}"
+    has_credential_env_vars: "{{ lookup('env', 'IDRAC_PASSWORD') | length > 0 }}"
+
+  tasks:
+    - name: Skip token query (IDRAC_PASSWORD env var is set)
+      ansible.builtin.debug:
+        msg: >-
+          Skipping token-based query because IDRAC_PASSWORD env var is set.
+          The module's env_fallback makes idrac_password and x_auth_token mutually exclusive.
+          To test token auth, unset IDRAC_PASSWORD and IDRAC_USERNAME before running.
+      when: has_credential_env_vars | bool
+      tags: [query_with_token]
+
+    - name: Query registry using established session token
+      dellemc.openmanage.idrac_network_attribute_registry:
+        idrac_ip: "{{ idrac_ip }}"
+        x_auth_token: "{{ saved_x_auth_token }}"
+        network_device_function_id: "{{ network_device_function_id }}"
+        query_type: "all"
+        validate_certs: "{{ validate_certs }}"
+      register: token_query_result
+      when: saved_x_auth_token is defined and not (has_credential_env_vars | bool)
+      tags: [query_with_token]
+
+    - name: Display token query result
+      ansible.builtin.debug:
+        msg: "Attributes via token: {{ token_query_result.attribute_count }}"
+      when: token_query_result is defined and token_query_result is not skipped
+      tags: [query_with_token]

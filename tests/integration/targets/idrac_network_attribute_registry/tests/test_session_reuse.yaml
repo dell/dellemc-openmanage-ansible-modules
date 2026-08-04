@@ -14,7 +14,7 @@
 - name: "Test session reuse - Query with x_auth_token"
   dellemc.openmanage.idrac_network_attribute_registry:
     idrac_ip: "{{ idrac_ip }}"
-    x_auth_token: "{{ session_result.session_data.x_auth_token }}"
+    x_auth_token: "{{ session_result.x_auth_token }}"
     query_type: "all"
     validate_certs: "{{ validate_certs }}"
     network_device_function_id: "{{ network_device_function_id }}"
