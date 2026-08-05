@@ -15,7 +15,7 @@
     - name: Filter VLAN-related attributes using wildcard
       dellemc.openmanage.idrac_network_attribute_registry:
         query_type: "all"
-        attribute_pattern: "VLAN*"
+        attribute_pattern: "VLan*"
       register: vlan_result
 
     - name: Verify VLAN filter succeeded
