@@ -68,6 +68,7 @@ MOCK_OEM_ATTRS_RESP = {
         'VLanMode': 'Disabled',
         'VLanId': '1',
         'WakeOnLan': 'Enabled',
+        'IscsiInitiatorName': 'iqn.2026-01.com.dell:server1',
     },
     'AttributeRegistry': 'NetworkAttributeRegistry_NIC.Embedded.1-1-1',
 }
@@ -123,6 +124,18 @@ MOCK_REGISTRY_FULL = {
                 'HelpText': 'Enable or disable Wake-on-LAN.',
                 'ReadOnly': False,
                 'Oem': {},
+                'Dependency': [],
+            },
+            {
+                'AttributeName': 'IscsiInitiatorName',
+                'Type': 'String',
+                'DefaultValue': '',
+                'Value': [],
+                'HelpText': 'iSCSI initiator name (IQN format).',
+                'ReadOnly': False,
+                'MinLength': 0,
+                'MaxLength': 223,
+                'Oem': {'Dell': {}},
                 'Dependency': [],
             },
         ]
@@ -202,10 +215,10 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
         assert result['msg'] == "Successfully queried network attribute registry."
         assert result['network_device_function_id'] == 'NIC.Embedded.1-1-1'
         assert result['attribute_registry'] == 'NetworkAttributeRegistry_NIC.Embedded.1-1-1'
-        assert result['attribute_count'] == 3
+        assert result['attribute_count'] == 4
 
         attrs = result['network_attributes']
-        assert len(attrs) == 3
+        assert len(attrs) == 4
 
         # Verify VLanMode attribute has all expected fields
         vlan_mode = next(a for a in attrs if a['name'] == 'VLanMode')
@@ -261,7 +274,7 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
 
         # Verify the module resolved the registry via the Registries endpoint
         assert result['attribute_registry'] == 'NetworkAttributeRegistry_NIC.Embedded.1-1-1'
-        assert result['attribute_count'] == 3
+        assert result['attribute_count'] == 4
         # Verify current values were merged from the OEM attributes response
         attrs = result['network_attributes']
         vlan_mode = next(a for a in attrs if a['name'] == 'VLanMode')
@@ -289,7 +302,7 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
 
         # Second call should use cache
         result2 = self._run_module(idrac_default_args)
-        assert result2['attribute_count'] == 3
+        assert result2['attribute_count'] == 4
         assert idrac_mock.invoke_request.call_count == call_count_after_first
 
     def test_force_refresh_bypasses_cache(self, idrac_default_args, idrac_connection_mock, idrac_mock):
@@ -420,4 +433,6 @@ def idrac_default_args():
         'attribute_name': None,
         'attribute_source': 'all',
         'force_refresh': False,
+        'validate': False,
+        'attributes': None,
     }
