@@ -8,12 +8,14 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
 
-"""Ansible module for querying iDRAC Network Attribute Registry.
+"""Ansible module for querying and validating iDRAC Network Attribute Registry.
 
 This module queries the Dell OEM DellNetworkAttributes endpoint and
 NetworkAttributesRegistry for a specific NIC, returning full attribute
-schema with current values. Supports attribute name filtering and
-OEM vs. standard attribute classification.
+schema with current values. Supports attribute name filtering,
+OEM vs. standard attribute classification, and validation of
+user-supplied attribute name-value pairs against the registry with
+fuzzy match suggestions for misspelled names.
 """
 
 from __future__ import (absolute_import, division, print_function)
@@ -22,7 +24,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: idrac_network_attributes_info
-short_description: Query iDRAC Network Attribute Registry for a specific NIC
+short_description: Query and validate iDRAC Network Attribute Registry for a specific NIC
 version_added: "10.0.0"
 description:
     - Query the Dell OEM DellNetworkAttributes endpoint and NetworkAttributesRegistry
@@ -30,6 +32,9 @@ description:
     - Returns full attribute schema with current values, supporting attribute name
       filtering and OEM vs. standard attribute classification.
     - Supports both iDRAC9 (16G) and iDRAC10 (17G) via dynamic URI resolution.
+    - When C(validate=true) and C(attributes) is provided, validates each user-supplied
+      attribute name-value pair against the registry and returns a consolidated report
+      with fuzzy match suggestions for misspelled attribute names.
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 
@@ -57,6 +62,22 @@ options:
         type: bool
         required: false
         default: false
+    validate:
+        description:
+            - When set to C(true), validates the attribute name-value pairs provided in I(attributes)
+              against the attribute registry for the specified NIC.
+            - Returns a consolidated validation report with per-attribute status.
+            - Requires I(attributes) to be provided.
+        type: bool
+        required: false
+        default: false
+    attributes:
+        description:
+            - Dictionary of attribute name-value pairs to validate against the registry.
+            - Required when I(validate=true).
+            - "Example: C({VLanMode: Enabled, VLanId: 100})."
+        type: dict
+        required: false
 
 requirements:
     - "python >= 3.9.6"
@@ -93,6 +114,28 @@ EXAMPLES = """
     idrac_password: "user_password"
     network_device_function_id: "NIC.Embedded.1-1-1"
     attribute_source: "oem"
+
+- name: Validate attribute values before applying
+  dellemc.openmanage.idrac_network_attributes_info:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    network_device_function_id: "NIC.Embedded.1-1-1"
+    validate: true
+    attributes:
+      VLanMode: "Enabled"
+      VLanId: "100"
+
+- name: Batch validate with fuzzy match suggestions for misspelled names
+  dellemc.openmanage.idrac_network_attributes_info:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    network_device_function_id: "NIC.Embedded.1-1-1"
+    validate: true
+    attributes:
+      VLanMoed: "Enabled"
+      VLanId: "99999"
 
 - name: Two-step workflow - discover NICs then query attributes
   hosts: idrac_hosts
@@ -172,6 +215,39 @@ idrac_model:
   description: iDRAC model identifier.
   returned: success
   sample: "iDRAC 9"
+valid:
+  description: Whether all submitted attributes passed validation.
+  returned: when validate=true
+  type: bool
+  sample: false
+valid_count:
+  description: Number of attributes that passed validation.
+  returned: when validate=true
+  type: int
+  sample: 1
+invalid_count:
+  description: Number of attributes that failed validation.
+  returned: when validate=true
+  type: int
+  sample: 1
+validation_results:
+  description: Per-attribute validation results.
+  returned: when validate=true
+  type: list
+  sample: [
+    {
+      "attribute": "VLanMode",
+      "status": "valid",
+      "reason": "Value 'Enabled' is valid for enumeration attribute.",
+      "suggestions": []
+    },
+    {
+      "attribute": "VLanMoed",
+      "status": "invalid",
+      "reason": "Attribute not found.",
+      "suggestions": ["VLanMode", "VLanId"]
+    }
+  ]
 redfish_error:
   description: Details of the HTTP Error.
   returned: on HTTP error
@@ -184,8 +260,10 @@ redfish_error:
   }
 '''
 
+import difflib
 import fnmatch
 import json
+import re
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -404,11 +482,16 @@ def main():
             'choices': ['all', 'oem', 'standard']
         },
         'force_refresh': {'type': 'bool', 'required': False, 'default': False},
+        'validate': {'type': 'bool', 'required': False, 'default': False},
+        'attributes': {'type': 'dict', 'required': False},
     })
 
     module = AnsibleModule(
         argument_spec=argument_spec,
-        supports_check_mode=True
+        supports_check_mode=True,
+        required_if=[
+            ('validate', True, ['attributes']),
+        ]
     )
 
     try:
