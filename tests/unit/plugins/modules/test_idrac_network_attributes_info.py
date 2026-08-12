@@ -566,6 +566,82 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
         assert vr[0]['reason'] == 'Attribute not found.'
         assert vr[0]['suggestions'] == []
 
+    # --- Batch Validation Tests ---
+
+    def test_batch_all_valid(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: All valid attributes → valid=true, valid_count=N, invalid_count=0."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['validate'] = True
+        idrac_default_args['attributes'] = {
+            'VLanMode': 'Enabled',
+            'VLanId': '100',
+            'WakeOnLan': 'Disabled',
+        }
+
+        result = self._run_module(idrac_default_args)
+
+        assert result['valid'] is True
+        assert result['valid_count'] == 3
+        assert result['invalid_count'] == 0
+        assert len(result['validation_results']) == 3
+
+    def test_batch_mixed_valid_invalid(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: Mix of valid and invalid → valid=false, counts correct, per-attribute status."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['validate'] = True
+        idrac_default_args['attributes'] = {
+            'VLanMode': 'Enabled',       # valid
+            'VLanId': '99999',           # invalid (out of range)
+            'VLanMoed': 'Enabled',       # invalid (not found)
+        }
+
+        result = self._run_module(idrac_default_args)
+
+        assert result['valid'] is False
+        assert result['valid_count'] == 1
+        assert result['invalid_count'] == 2
+        assert len(result['validation_results']) == 3
+        statuses = {vr['attribute']: vr['status'] for vr in result['validation_results']}
+        assert statuses['VLanMode'] == 'valid'
+        assert statuses['VLanId'] == 'invalid'
+        assert statuses['VLanMoed'] == 'invalid'
+
+    def test_batch_all_invalid(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: All invalid attributes → valid=false, valid_count=0, invalid_count=N."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['validate'] = True
+        idrac_default_args['attributes'] = {
+            'VLanMode': 'BadValue',
+            'NonExistent': 'something',
+        }
+
+        result = self._run_module(idrac_default_args)
+
+        assert result['valid'] is False
+        assert result['valid_count'] == 0
+        assert result['invalid_count'] == 2
+
+    def test_validate_true_empty_attributes_fails(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: validate=true with empty attributes dict → failed=true."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['validate'] = True
+        idrac_default_args['attributes'] = {}
+
+        result = self._run_module_with_fail_json(idrac_default_args)
+
+        assert result['failed'] is True
+
+    def test_validate_false_omits_validation_keys(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: validate=false omits validation keys from response."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+
+        result = self._run_module(idrac_default_args)
+
+        assert 'valid' not in result
+        assert 'valid_count' not in result
+        assert 'invalid_count' not in result
+        assert 'validation_results' not in result
+
 
 @pytest.fixture
 def idrac_default_args():
