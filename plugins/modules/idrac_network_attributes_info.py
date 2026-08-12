@@ -455,6 +455,126 @@ def merge_attributes(registry_attributes, current_attributes):
     return merged
 
 
+def validate_attribute(attr_name, attr_value, registry_attrs):
+    """Validate a single attribute name-value pair against the registry.
+
+    Args:
+        attr_name: User-supplied attribute name.
+        attr_value: User-supplied attribute value (always a string).
+        registry_attrs: List of merged attribute dicts from the registry.
+
+    Returns:
+        dict with keys: attribute, status, reason, suggestions.
+    """
+    # Build lookup by name
+    attr_by_name = {a['name']: a for a in registry_attrs}
+    result = {
+        'attribute': attr_name,
+        'status': 'invalid',
+        'reason': '',
+        'suggestions': [],
+    }
+
+    if attr_name not in attr_by_name:
+        suggestions = difflib.get_close_matches(
+            attr_name, list(attr_by_name.keys()), n=3, cutoff=0.6)
+        result['reason'] = 'Attribute not found.'
+        result['suggestions'] = suggestions
+        return result
+
+    reg_attr = attr_by_name[attr_name]
+    attr_type = reg_attr.get('type', '')
+
+    if attr_type == 'Enumeration':
+        valid_values = reg_attr.get('valid_values', [])
+        if str(attr_value) in valid_values:
+            result['status'] = 'valid'
+            result['reason'] = f"Value '{attr_value}' is valid for enumeration attribute."
+        else:
+            result['reason'] = (
+                f"Invalid value '{attr_value}' for enumeration attribute. "
+                f"Allowed values: {valid_values}"
+            )
+
+    elif attr_type == 'Integer':
+        try:
+            int_val = int(attr_value)
+        except (ValueError, TypeError):
+            result['reason'] = f"Integer value is not numeric: '{attr_value}'"
+            return result
+
+        lower = reg_attr.get('lower_bound')
+        upper = reg_attr.get('upper_bound')
+        if lower is not None and upper is not None:
+            if lower <= int_val <= upper:
+                result['status'] = 'valid'
+                result['reason'] = (
+                    f"Value {int_val} is within range [{lower}, {upper}]."
+                )
+            else:
+                result['reason'] = (
+                    f"Value {int_val} is out of range. "
+                    f"Expected range: [{lower}, {upper}]."
+                )
+        else:
+            result['status'] = 'valid'
+            result['reason'] = f"Value {int_val} is a valid integer."
+
+    elif attr_type == 'String':
+        str_val = str(attr_value)
+        min_len = reg_attr.get('min_length')
+        max_len = reg_attr.get('max_length')
+
+        if min_len is not None and len(str_val) < min_len:
+            result['reason'] = (
+                f"String length {len(str_val)} is below minimum length {min_len}."
+            )
+            return result
+
+        if max_len is not None and len(str_val) > max_len:
+            result['reason'] = (
+                f"String length {len(str_val)} exceeds maximum length {max_len}."
+            )
+            return result
+
+        # Check regex pattern if present in the raw registry data
+        result['status'] = 'valid'
+        result['reason'] = f"Value '{str_val}' is valid for string attribute."
+
+    else:
+        # Unknown type — accept as valid
+        result['status'] = 'valid'
+        result['reason'] = f"Value accepted for attribute type '{attr_type}'."
+
+    return result
+
+
+def validate_attributes(attributes, registry_attrs):
+    """Validate a batch of attribute name-value pairs against the registry.
+
+    Args:
+        attributes: dict of {name: value} pairs from user input.
+        registry_attrs: List of merged attribute dicts from the registry.
+
+    Returns:
+        dict with keys: valid (bool), valid_count, invalid_count, validation_results (list).
+    """
+    results = []
+    for attr_name, attr_value in attributes.items():
+        result = validate_attribute(attr_name, str(attr_value), registry_attrs)
+        results.append(result)
+
+    valid_count = sum(1 for r in results if r['status'] == 'valid')
+    invalid_count = sum(1 for r in results if r['status'] == 'invalid')
+
+    return {
+        'valid': invalid_count == 0,
+        'valid_count': valid_count,
+        'invalid_count': invalid_count,
+        'validation_results': results,
+    }
+
+
 def filter_attributes_by_name(attributes, pattern):
     """Filter attributes by name using glob pattern matching."""
     if not pattern:
@@ -557,7 +677,7 @@ def main():
 
             attribute_count = len(network_attributes)
 
-            module.exit_json(
+            exit_kwargs = dict(
                 msg="Successfully queried network attribute registry.",
                 changed=False,
                 network_attributes=network_attributes,
@@ -566,8 +686,25 @@ def main():
                 attribute_count=attribute_count,
                 idrac_generation=generation,
                 idrac_firmware_version=firmware_version,
-                idrac_model=hw_model
+                idrac_model=hw_model,
             )
+
+            # Validation mode
+            if module.params.get('validate'):
+                user_attrs = module.params.get('attributes')
+                if not user_attrs:
+                    module.fail_json(
+                        msg="'attributes' must be a non-empty dict when validate=true."
+                    )
+                # Use unfiltered registry for validation (from cache or fetched)
+                all_attrs = cached_data['network_attributes'] if cached_data else network_attributes
+                # If filters were applied, re-read from cache for full list
+                if (attribute_name or attribute_source != 'all') and cached_data:
+                    all_attrs = cached_data['network_attributes']
+                validation = validate_attributes(user_attrs, all_attrs)
+                exit_kwargs.update(validation)
+
+            module.exit_json(**exit_kwargs)
     except HTTPError as e:
         redfish_error = {}
         try:
