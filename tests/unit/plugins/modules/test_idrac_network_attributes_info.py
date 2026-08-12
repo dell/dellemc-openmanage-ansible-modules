@@ -135,6 +135,7 @@ MOCK_REGISTRY_FULL = {
                 'ReadOnly': False,
                 'MinLength': 0,
                 'MaxLength': 223,
+                'Regex': '^iqn\\.',
                 'Oem': {'Dell': {}},
                 'Dependency': [],
             },
@@ -532,6 +533,19 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
         vr = result['validation_results']
         assert vr[0]['status'] == 'invalid'
         assert '223' in vr[0]['reason']
+
+    def test_string_not_matching_regex_is_invalid(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: String not matching Regex pattern is invalid."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['validate'] = True
+        idrac_default_args['attributes'] = {'IscsiInitiatorName': 'not-an-iqn'}
+
+        result = self._run_module(idrac_default_args)
+
+        assert result['valid'] is False
+        vr = result['validation_results']
+        assert vr[0]['status'] == 'invalid'
+        assert 'does not match pattern' in vr[0]['reason']
 
     # --- Fuzzy Match Suggestion Tests ---
 

@@ -451,23 +451,54 @@ def merge_attributes(registry_attributes, current_attributes):
             'upper_bound': attr.get('UpperBound'),
             'min_length': attr.get('MinLength'),
             'max_length': attr.get('MaxLength'),
+            'regex': attr.get('Regex'),
+            'value_expression': attr.get('ValueExpression'),
         })
     return merged
 
 
-def validate_attribute(attr_name, attr_value, registry_attrs):
+def _validate_string_value(str_val, reg_attr, result):
+    """Validate a string value against min/max length and regex."""
+    min_len = reg_attr.get('min_length')
+    if min_len is not None and len(str_val) < min_len:
+        result['reason'] = (
+            f"String length {len(str_val)} is below minimum length {min_len}."
+        )
+        return
+
+    max_len = reg_attr.get('max_length')
+    if max_len is not None and len(str_val) > max_len:
+        result['reason'] = (
+            f"String length {len(str_val)} exceeds maximum length {max_len}."
+        )
+        return
+
+    regex_pattern = reg_attr.get('regex') or reg_attr.get('value_expression')
+    if regex_pattern and not re.match(regex_pattern, str_val):
+        result['reason'] = (
+            f"Value '{str_val}' does not match pattern "
+            f"'{regex_pattern}'."
+        )
+        return
+
+    result['status'] = 'valid'
+    result['reason'] = f"Value '{str_val}' is valid for string attribute."
+
+
+def validate_attribute(attr_name, attr_value, registry_attrs, attr_by_name=None):
     """Validate a single attribute name-value pair against the registry.
 
     Args:
         attr_name: User-supplied attribute name.
         attr_value: User-supplied attribute value (always a string).
         registry_attrs: List of merged attribute dicts from the registry.
+        attr_by_name: Optional pre-built name->attribute lookup dict.
 
     Returns:
         dict with keys: attribute, status, reason, suggestions.
     """
-    # Build lookup by name
-    attr_by_name = {a['name']: a for a in registry_attrs}
+    if attr_by_name is None:
+        attr_by_name = {a['name']: a for a in registry_attrs}
     result = {
         'attribute': attr_name,
         'status': 'invalid',
@@ -476,10 +507,9 @@ def validate_attribute(attr_name, attr_value, registry_attrs):
     }
 
     if attr_name not in attr_by_name:
-        suggestions = difflib.get_close_matches(
-            attr_name, list(attr_by_name.keys()), n=3, cutoff=0.6)
         result['reason'] = 'Attribute not found.'
-        result['suggestions'] = suggestions
+        result['suggestions'] = difflib.get_close_matches(
+            attr_name, list(attr_by_name.keys()), n=3, cutoff=0.6)
         return result
 
     reg_attr = attr_by_name[attr_name]
@@ -489,7 +519,8 @@ def validate_attribute(attr_name, attr_value, registry_attrs):
         valid_values = reg_attr.get('valid_values', [])
         if str(attr_value) in valid_values:
             result['status'] = 'valid'
-            result['reason'] = f"Value '{attr_value}' is valid for enumeration attribute."
+            result['reason'] = (
+                f"Value '{attr_value}' is valid for enumeration attribute.")
         else:
             result['reason'] = (
                 f"Invalid value '{attr_value}' for enumeration attribute. "
@@ -521,25 +552,7 @@ def validate_attribute(attr_name, attr_value, registry_attrs):
             result['reason'] = f"Value {int_val} is a valid integer."
 
     elif attr_type == 'String':
-        str_val = str(attr_value)
-        min_len = reg_attr.get('min_length')
-        max_len = reg_attr.get('max_length')
-
-        if min_len is not None and len(str_val) < min_len:
-            result['reason'] = (
-                f"String length {len(str_val)} is below minimum length {min_len}."
-            )
-            return result
-
-        if max_len is not None and len(str_val) > max_len:
-            result['reason'] = (
-                f"String length {len(str_val)} exceeds maximum length {max_len}."
-            )
-            return result
-
-        # Check regex pattern if present in the raw registry data
-        result['status'] = 'valid'
-        result['reason'] = f"Value '{str_val}' is valid for string attribute."
+        _validate_string_value(str(attr_value), reg_attr, result)
 
     else:
         # Unknown type — accept as valid
@@ -560,8 +573,9 @@ def validate_attributes(attributes, registry_attrs):
         dict with keys: valid (bool), valid_count, invalid_count, validation_results (list).
     """
     results = []
+    attr_by_name = {a['name']: a for a in registry_attrs}
     for attr_name, attr_value in attributes.items():
-        result = validate_attribute(attr_name, str(attr_value), registry_attrs)
+        result = validate_attribute(attr_name, str(attr_value), registry_attrs, attr_by_name)
         results.append(result)
 
     valid_count = sum(1 for r in results if r['status'] == 'valid')
@@ -666,6 +680,9 @@ def main():
                     'attribute_registry': registry_name,
                 })
 
+            # Save unfiltered attributes for validation
+            all_network_attributes = list(network_attributes)
+
             # Apply filters
             attribute_name = module.params.get('attribute_name')
             attribute_source = module.params.get('attribute_source')
@@ -696,11 +713,8 @@ def main():
                     module.fail_json(
                         msg="'attributes' must be a non-empty dict when validate=true."
                     )
-                # Use unfiltered registry for validation (from cache or fetched)
-                all_attrs = cached_data['network_attributes'] if cached_data else network_attributes
-                # If filters were applied, re-read from cache for full list
-                if (attribute_name or attribute_source != 'all') and cached_data:
-                    all_attrs = cached_data['network_attributes']
+                # Use unfiltered registry for validation
+                all_attrs = cached_data['network_attributes'] if cached_data else all_network_attributes
                 validation = validate_attributes(user_attrs, all_attrs)
                 exit_kwargs.update(validation)
 
