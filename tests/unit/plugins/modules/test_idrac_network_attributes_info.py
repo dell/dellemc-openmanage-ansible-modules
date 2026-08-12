@@ -418,6 +418,93 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
             assert attr['name'].startswith('VLan')
 
 
+    # --- Validation Tests ---
+
+    def test_valid_enum_value_returns_valid(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: Valid enumeration value returns status=valid."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['validate'] = True
+        idrac_default_args['attributes'] = {'VLanMode': 'Enabled'}
+
+        result = self._run_module(idrac_default_args)
+
+        assert result['valid'] is True
+        assert result['valid_count'] == 1
+        assert result['invalid_count'] == 0
+        vr = result['validation_results']
+        assert len(vr) == 1
+        assert vr[0]['attribute'] == 'VLanMode'
+        assert vr[0]['status'] == 'valid'
+
+    def test_invalid_enum_value_returns_invalid(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: Invalid enumeration value returns status=invalid with reason and allowed values."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['validate'] = True
+        idrac_default_args['attributes'] = {'VLanMode': 'True'}
+
+        result = self._run_module(idrac_default_args)
+
+        assert result['valid'] is False
+        assert result['invalid_count'] == 1
+        vr = result['validation_results']
+        assert vr[0]['status'] == 'invalid'
+        assert 'True' in vr[0]['reason']
+        # Reason should mention allowed values
+        assert 'Disabled' in vr[0]['reason'] or 'Enabled' in vr[0]['reason']
+
+    def test_enum_case_sensitive_matching(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: Case-sensitive matching for enumeration values."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['validate'] = True
+        idrac_default_args['attributes'] = {'VLanMode': 'enabled'}  # lowercase
+
+        result = self._run_module(idrac_default_args)
+
+        assert result['valid'] is False
+        vr = result['validation_results']
+        assert vr[0]['status'] == 'invalid'
+
+    def test_valid_integer_within_bounds(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: Valid integer within LowerBound/UpperBound returns valid."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['validate'] = True
+        idrac_default_args['attributes'] = {'VLanId': '100'}
+
+        result = self._run_module(idrac_default_args)
+
+        assert result['valid'] is True
+        vr = result['validation_results']
+        assert vr[0]['status'] == 'valid'
+        assert vr[0]['attribute'] == 'VLanId'
+
+    def test_integer_out_of_range_returns_invalid(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: Out-of-range integer returns invalid with range details."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['validate'] = True
+        idrac_default_args['attributes'] = {'VLanId': '99999'}
+
+        result = self._run_module(idrac_default_args)
+
+        assert result['valid'] is False
+        vr = result['validation_results']
+        assert vr[0]['status'] == 'invalid'
+        assert '1' in vr[0]['reason']
+        assert '4094' in vr[0]['reason']
+
+    def test_non_numeric_integer_returns_invalid(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: Non-numeric string for integer attribute returns invalid."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['validate'] = True
+        idrac_default_args['attributes'] = {'VLanId': 'abc'}
+
+        result = self._run_module(idrac_default_args)
+
+        assert result['valid'] is False
+        vr = result['validation_results']
+        assert vr[0]['status'] == 'invalid'
+        assert 'not numeric' in vr[0]['reason'].lower() or 'integer' in vr[0]['reason'].lower()
+
+
 @pytest.fixture
 def idrac_default_args():
     """Override default args with module-specific parameters."""
