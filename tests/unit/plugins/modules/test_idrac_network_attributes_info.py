@@ -504,6 +504,68 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
         assert vr[0]['status'] == 'invalid'
         assert 'not numeric' in vr[0]['reason'].lower() or 'integer' in vr[0]['reason'].lower()
 
+    # --- String Validation Tests ---
+
+    def test_string_within_maxlength_is_valid(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: String within MinLength/MaxLength bounds is valid."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['validate'] = True
+        idrac_default_args['attributes'] = {'IscsiInitiatorName': 'iqn.2026-01.com.dell:test'}
+
+        result = self._run_module(idrac_default_args)
+
+        assert result['valid'] is True
+        vr = result['validation_results']
+        assert vr[0]['status'] == 'valid'
+        assert vr[0]['attribute'] == 'IscsiInitiatorName'
+
+    def test_string_exceeding_maxlength_is_invalid(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: String violating MaxLength is invalid."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['validate'] = True
+        # MaxLength is 223 for IscsiInitiatorName; use 250 chars
+        idrac_default_args['attributes'] = {'IscsiInitiatorName': 'x' * 250}
+
+        result = self._run_module(idrac_default_args)
+
+        assert result['valid'] is False
+        vr = result['validation_results']
+        assert vr[0]['status'] == 'invalid'
+        assert '223' in vr[0]['reason']
+
+    # --- Fuzzy Match Suggestion Tests ---
+
+    def test_fuzzy_match_suggestions_for_misspelled_name(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: Non-existent attribute name returns suggestions list with up to 3 close matches."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['validate'] = True
+        idrac_default_args['attributes'] = {'VLanMoed': 'Enabled'}
+
+        result = self._run_module(idrac_default_args)
+
+        assert result['valid'] is False
+        vr = result['validation_results']
+        assert vr[0]['status'] == 'invalid'
+        assert vr[0]['reason'] == 'Attribute not found.'
+        assert len(vr[0]['suggestions']) > 0
+        assert len(vr[0]['suggestions']) <= 3
+        # VLanMode is close to VLanMoed
+        assert 'VLanMode' in vr[0]['suggestions']
+
+    def test_fuzzy_match_no_suggestions_for_unrelated_name(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: Completely unrelated name returns empty suggestions."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['validate'] = True
+        idrac_default_args['attributes'] = {'XyzNotAnAttribute123': 'value'}
+
+        result = self._run_module(idrac_default_args)
+
+        assert result['valid'] is False
+        vr = result['validation_results']
+        assert vr[0]['status'] == 'invalid'
+        assert vr[0]['reason'] == 'Attribute not found.'
+        assert vr[0]['suggestions'] == []
+
 
 @pytest.fixture
 def idrac_default_args():
