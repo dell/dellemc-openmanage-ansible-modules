@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 # Dell OpenManage Ansible Modules
 # Version 9.12.3

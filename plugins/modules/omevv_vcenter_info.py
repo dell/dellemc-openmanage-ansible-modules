@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 # Dell OpenManage Ansible Modules
 # Version 10.0.1
