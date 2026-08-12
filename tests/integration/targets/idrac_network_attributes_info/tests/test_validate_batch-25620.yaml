@@ -1,0 +1,63 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user,
+     idrac_password, network_device_function_id, valid_enum_attr, valid_enum_value,
+     valid_int_attr, invalid_int_value, misspelled_attr.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined or network_device_function_id is not defined or
+   valid_enum_attr is not defined or valid_enum_value is not defined or
+   valid_int_attr is not defined or invalid_int_value is not defined or
+   misspelled_attr is not defined
+
+- name: Check iDRAC firmware version
+  ansible.builtin.include_tasks: _check_idrac_version.yml
+
+- block:
+    - name: Batch validation with mixed valid and invalid attributes
+      dellemc.openmanage.idrac_network_attributes_info:
+        network_device_function_id: "{{ network_device_function_id }}"
+        validate: true
+        attributes: "{{ {valid_enum_attr: valid_enum_value, valid_int_attr: invalid_int_value, misspelled_attr: 'value'} }}"
+      register: batch_result
+
+    - name: Verify batch validation overall result
+      ansible.builtin.assert:
+        that:
+          - batch_result is not failed
+          - batch_result.valid is false
+          - batch_result.valid_count is defined
+          - batch_result.invalid_count is defined
+          - batch_result.valid_count + batch_result.invalid_count == 3
+          - batch_result.validation_results | length == 3
+
+    - name: Verify each result entry has required fields
+      ansible.builtin.assert:
+        that:
+          - item.attribute is defined
+          - item.status is defined
+          - item.status in ['valid', 'invalid']
+          - item.reason is defined
+      loop: "{{ batch_result.validation_results }}"
+      loop_control:
+        label: "{{ item.attribute }}"
+
+    - name: Display batch validation summary
+      ansible.builtin.debug:
+        msg: >
+          Overall valid: {{ batch_result.valid }},
+          Valid count: {{ batch_result.valid_count }},
+          Invalid count: {{ batch_result.invalid_count }}
+
+  module_defaults:
+    dellemc.openmanage.idrac_network_attributes_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port | default(443) }}"
+      validate_certs: false

@@ -1,0 +1,67 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user,
+     idrac_password, network_device_function_id, valid_enum_attr, valid_enum_value, invalid_enum_value.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined or network_device_function_id is not defined or
+   valid_enum_attr is not defined or valid_enum_value is not defined or
+   invalid_enum_value is not defined
+
+- name: Check iDRAC firmware version
+  ansible.builtin.include_tasks: _check_idrac_version.yml
+
+- block:
+    - name: Validate a valid enumeration value
+      dellemc.openmanage.idrac_network_attributes_info:
+        network_device_function_id: "{{ network_device_function_id }}"
+        validate: true
+        attributes: "{{ {valid_enum_attr: valid_enum_value} }}"
+      register: valid_enum_result
+
+    - name: Verify valid enumeration validation
+      ansible.builtin.assert:
+        that:
+          - valid_enum_result is not failed
+          - valid_enum_result.valid is true
+          - valid_enum_result.valid_count == 1
+          - valid_enum_result.invalid_count == 0
+          - valid_enum_result.validation_results | length == 1
+          - valid_enum_result.validation_results[0].status == 'valid'
+          - valid_enum_result.validation_results[0].attribute == valid_enum_attr
+
+    - name: Validate an invalid enumeration value
+      dellemc.openmanage.idrac_network_attributes_info:
+        network_device_function_id: "{{ network_device_function_id }}"
+        validate: true
+        attributes: "{{ {valid_enum_attr: invalid_enum_value} }}"
+      register: invalid_enum_result
+
+    - name: Verify invalid enumeration validation
+      ansible.builtin.assert:
+        that:
+          - invalid_enum_result is not failed
+          - invalid_enum_result.valid is false
+          - invalid_enum_result.invalid_count == 1
+          - invalid_enum_result.validation_results[0].status == 'invalid'
+          - "'Allowed values' in invalid_enum_result.validation_results[0].reason or
+             'Invalid value' in invalid_enum_result.validation_results[0].reason"
+
+    - name: Display enumeration validation summary
+      ansible.builtin.debug:
+        msg: >
+          Valid enum test: {{ valid_enum_result.valid }},
+          Invalid enum test: {{ invalid_enum_result.valid }}
+
+  module_defaults:
+    dellemc.openmanage.idrac_network_attributes_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port | default(443) }}"
+      validate_certs: false
