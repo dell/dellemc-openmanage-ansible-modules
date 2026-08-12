@@ -1,0 +1,37 @@
+---
+- name: Discover Network Device Functions (NICs) on iDRAC
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Discover all NICs
+      dellemc.openmanage.idrac_network_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+      register: nic_result
+      tags:
+        - discover_all
+      delegate_to: localhost
+
+    - name: Display discovered NICs
+      ansible.builtin.debug:
+        msg: "{{ item.id }} - {{ item.net_dev_func_type }} - {{ item.mac_address }} - {{ item.link_status }}"
+      loop: "{{ nic_result.network_device_functions }}"
+      loop_control:
+        label: "{{ item.id }}"
+      tags:
+        - discover_all
+      delegate_to: localhost
+
+    - name: Force refresh NIC discovery (bypass cache)
+      dellemc.openmanage.idrac_network_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        force_refresh: true
+      tags:
+        - force_refresh
+      delegate_to: localhost

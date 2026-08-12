@@ -1,0 +1,81 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- name: Check iDRAC firmware version
+  ansible.builtin.include_tasks: _check_idrac_version.yml
+
+- block:
+    - name: Discover all network device functions
+      dellemc.openmanage.idrac_network_info: {}
+      register: discovery_result
+
+    - name: Verify module succeeded
+      ansible.builtin.assert:
+        that:
+          - discovery_result is not failed
+          - discovery_result is succeeded
+
+    - name: Verify required output fields
+      ansible.builtin.assert:
+        that:
+          - discovery_result.network_device_functions is defined
+          - discovery_result.network_device_functions is iterable
+          - discovery_result.msg is defined
+
+    - name: Verify non-empty results (server must have NICs)
+      ansible.builtin.assert:
+        that:
+          - discovery_result.network_device_functions | length > 0
+
+    - name: Verify NIC metadata fields
+      ansible.builtin.assert:
+        that:
+          - item.id is defined
+          - item.net_dev_func_type is defined
+          - item.mac_address is defined
+          - item.link_status is defined
+          - item.device_description is defined
+          - item.link_speed is defined
+          - item.media_type is defined
+      loop: "{{ discovery_result.network_device_functions }}"
+      loop_control:
+        label: "{{ item.id }}"
+
+    - name: Verify iDRAC generation information
+      ansible.builtin.assert:
+        that:
+          - discovery_result.idrac_generation is defined
+          - discovery_result.idrac_firmware_version is defined
+          - discovery_result.idrac_model is defined
+
+    - name: Verify changed flag is false (read-only operation)
+      ansible.builtin.assert:
+        that:
+          - discovery_result.changed is defined
+          - discovery_result.changed is false
+
+    - name: Display discovery summary
+      ansible.builtin.debug:
+        msg: >
+          Discovered {{ discovery_result.network_device_functions | length }} NICs
+          on {{ discovery_result.idrac_model }}
+          (gen {{ discovery_result.idrac_generation }},
+          fw {{ discovery_result.idrac_firmware_version }})
+
+  module_defaults:
+    dellemc.openmanage.idrac_network_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port | default(443) }}"
+      validate_certs: false

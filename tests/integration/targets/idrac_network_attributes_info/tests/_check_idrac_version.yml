@@ -1,0 +1,27 @@
+---
+- name: Fetch firmware version
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+      /redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_data
+  ignore_errors: true
+
+- name: Set iDRAC 9 (DellSoftwareInventory endpoint not available)
+  ansible.builtin.set_fact:
+    is_idrac_9: true
+    is_idrac_10: false
+  when: uri_data.status != 200
+
+- name: Set iDRAC 10 (DellSoftwareInventory endpoint available)
+  ansible.builtin.set_fact:
+    is_idrac_9: false
+    is_idrac_10: true
+  when: uri_data.status == 200

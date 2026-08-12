@@ -1,0 +1,94 @@
+---
+- name: Query Network Attribute Registry for a Specific NIC
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Step 1 - Discover all NICs
+      dellemc.openmanage.idrac_network_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+      register: nic_result
+      tags:
+        - two_step_workflow
+      delegate_to: localhost
+
+    - name: Step 2 - Query attributes for first NIC
+      dellemc.openmanage.idrac_network_attributes_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        network_device_function_id: "{{ nic_result.network_device_functions[0].id }}"
+      register: attr_result
+      tags:
+        - two_step_workflow
+      delegate_to: localhost
+
+    - name: Display attribute summary
+      ansible.builtin.debug:
+        msg: "Found {{ attr_result.attribute_count }} attributes for {{ attr_result.network_device_function_id }}"
+      tags:
+        - two_step_workflow
+      delegate_to: localhost
+
+    - name: Query attributes for a specific NIC by ID
+      dellemc.openmanage.idrac_network_attributes_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        network_device_function_id: "{{ network_device_function_id | default('NIC.Embedded.1-1-1') }}"
+      tags:
+        - query_specific
+      delegate_to: localhost
+
+    - name: Filter attributes by glob pattern
+      dellemc.openmanage.idrac_network_attributes_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        network_device_function_id: "{{ network_device_function_id | default('NIC.Embedded.1-1-1') }}"
+        attribute_name: "VLan*"
+      tags:
+        - filter_name
+      delegate_to: localhost
+
+    - name: Query OEM attributes only
+      dellemc.openmanage.idrac_network_attributes_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        network_device_function_id: "{{ network_device_function_id | default('NIC.Embedded.1-1-1') }}"
+        attribute_source: "oem"
+      tags:
+        - filter_oem
+      delegate_to: localhost
+
+    - name: Query standard Redfish attributes only
+      dellemc.openmanage.idrac_network_attributes_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        network_device_function_id: "{{ network_device_function_id | default('NIC.Embedded.1-1-1') }}"
+        attribute_source: "standard"
+      tags:
+        - filter_standard
+      delegate_to: localhost
+
+    - name: Force refresh attribute registry (bypass cache)
+      dellemc.openmanage.idrac_network_attributes_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        network_device_function_id: "{{ network_device_function_id | default('NIC.Embedded.1-1-1') }}"
+        force_refresh: true
+      tags:
+        - force_refresh
+      delegate_to: localhost

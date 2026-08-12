@@ -1,0 +1,46 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- name: Check iDRAC firmware version
+  ansible.builtin.include_tasks: _check_idrac_version.yml
+
+- block:
+    - name: Initial NIC discovery (populates cache)
+      dellemc.openmanage.idrac_network_info: {}
+      register: initial_result
+
+    - name: Verify initial discovery succeeded
+      ansible.builtin.assert:
+        that:
+          - initial_result is not failed
+          - initial_result.network_device_functions | length > 0
+
+    - name: Force refresh NIC discovery (bypasses cache)
+      dellemc.openmanage.idrac_network_info:
+        force_refresh: true
+      register: refresh_result
+
+    - name: Verify force refresh succeeded
+      ansible.builtin.assert:
+        that:
+          - refresh_result is not failed
+          - refresh_result.network_device_functions | length > 0
+          - refresh_result.changed is false
+
+  module_defaults:
+    dellemc.openmanage.idrac_network_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port | default(443) }}"
+      validate_certs: false
