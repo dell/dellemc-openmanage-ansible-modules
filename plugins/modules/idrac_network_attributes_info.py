@@ -172,7 +172,7 @@ idrac_model:
   description: iDRAC model identifier.
   returned: success
   sample: "iDRAC 9"
-error_info:
+redfish_error:
   description: Details of the HTTP Error.
   returned: on HTTP error
   type: dict
@@ -185,6 +185,8 @@ error_info:
 '''
 
 import fnmatch
+import json
+
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -199,6 +201,18 @@ _REGISTRY_CACHE = {}
 CHASSIS_URI = "/redfish/v1/Chassis"
 REGISTRIES_URI = "/redfish/v1/Registries"
 ODATA_ID = "@odata.id"
+ODATA_NEXT_LINK = "Members@odata.nextLink"
+
+
+def get_collection_members(idrac, collection_uri):
+    """Return all members of a Redfish collection, following nextLink pagination."""
+    members = []
+    next_uri = collection_uri
+    while next_uri:
+        resp = idrac.invoke_request(next_uri, 'GET').json_data
+        members.extend(resp.get('Members', []))
+        next_uri = resp.get(ODATA_NEXT_LINK) or resp.get('@odata.nextLink')
+    return members
 
 
 def get_cache_key(idrac_ip, idrac_port, ndf_id):
@@ -219,7 +233,8 @@ def store_in_cache(cache_key, data):
 def discover_valid_nic_ids(idrac):
     """Discover all valid NIC IDs on the iDRAC for error messages.
 
-    Returns a list of NIC FQDD strings.
+    Returns a list of NIC FQDD strings. Discovery errors are intentionally
+    swallowed so that the primary "NIC not found" error is surfaced.
     """
     nic_ids = []
     try:
@@ -234,8 +249,7 @@ def discover_valid_nic_ids(idrac):
         if not network_adapters_link:
             return nic_ids
 
-        adapters_resp = idrac.invoke_request(network_adapters_link, 'GET').json_data
-        for adapter_ref in adapters_resp.get('Members', []):
+        for adapter_ref in get_collection_members(idrac, network_adapters_link):
             adapter_uri = adapter_ref.get(ODATA_ID, '')
             if not adapter_uri:
                 continue
@@ -243,12 +257,11 @@ def discover_valid_nic_ids(idrac):
             ndf_link = adapter_detail.get('NetworkDeviceFunctions', {}).get(ODATA_ID)
             if not ndf_link:
                 continue
-            ndf_resp = idrac.invoke_request(ndf_link, 'GET').json_data
-            for ndf_ref in ndf_resp.get('Members', []):
+            for ndf_ref in get_collection_members(idrac, ndf_link):
                 ndf_uri = ndf_ref.get(ODATA_ID, '')
                 if ndf_uri:
                     nic_ids.append(ndf_uri.split('/')[-1])
-    except Exception:  # pylint: disable=broad-except
+    except (HTTPError, URLError, ConnectionError, SSLValidationError):
         pass
     return nic_ids
 
@@ -270,8 +283,7 @@ def find_network_device_function_uri(idrac, target_ndf_id):
     if not network_adapters_link:
         return None
 
-    adapters_resp = idrac.invoke_request(network_adapters_link, 'GET').json_data
-    for adapter_ref in adapters_resp.get('Members', []):
+    for adapter_ref in get_collection_members(idrac, network_adapters_link):
         adapter_uri = adapter_ref.get(ODATA_ID, '')
         if not adapter_uri:
             continue
@@ -279,8 +291,7 @@ def find_network_device_function_uri(idrac, target_ndf_id):
         ndf_link = adapter_detail.get('NetworkDeviceFunctions', {}).get(ODATA_ID)
         if not ndf_link:
             continue
-        ndf_resp = idrac.invoke_request(ndf_link, 'GET').json_data
-        for ndf_ref in ndf_resp.get('Members', []):
+        for ndf_ref in get_collection_members(idrac, ndf_link):
             ndf_uri = ndf_ref.get(ODATA_ID, '')
             if ndf_uri and ndf_uri.split('/')[-1] == target_ndf_id:
                 return ndf_uri
@@ -288,7 +299,7 @@ def find_network_device_function_uri(idrac, target_ndf_id):
     return None
 
 
-def get_registry_attributes(idrac, ndf_detail):
+def get_registry_attributes(idrac, ndf_detail, module=None):
     """Resolve and fetch the attribute registry for a NIC.
 
     Follows the AttributeRegistry field from the OEM DellNetworkAttributes
@@ -304,29 +315,35 @@ def get_registry_attributes(idrac, ndf_detail):
         return None, []
 
     # Read the DellNetworkAttributes resource
-    oem_resp = idrac.invoke_request(oem_link, 'GET').json_data
+    try:
+        oem_resp = idrac.invoke_request(oem_link, 'GET').json_data
+    except HTTPError as e:
+        if e.code == 404 and module is not None:
+            module.fail_json(
+                msg="DellNetworkAttributes endpoint not supported on this firmware. "
+                    "Minimum required firmware: iDRAC9 >= 7.30.30.50, "
+                    "iDRAC10 >= 1.30.30.50."
+            )
+        raise
+
     current_attributes = oem_resp.get('Attributes', {})
     registry_name = oem_resp.get('AttributeRegistry', '')
 
     # Resolve the registry from /redfish/v1/Registries
     registry_attributes = []
     if registry_name:
-        try:
-            registries_resp = idrac.invoke_request(REGISTRIES_URI, 'GET').json_data
-            for member in registries_resp.get('Members', []):
-                member_uri = member.get(ODATA_ID, '')
-                if registry_name in member_uri:
-                    registry_detail = idrac.invoke_request(member_uri, 'GET').json_data
-                    locations = registry_detail.get('Location', [])
-                    if locations:
-                        registry_uri = locations[0].get('Uri', '')
-                        if registry_uri:
-                            full_registry = idrac.invoke_request(registry_uri, 'GET').json_data
-                            registry_attributes = full_registry.get(
-                                'RegistryEntries', {}).get('Attributes', [])
-                    break
-        except Exception:  # pylint: disable=broad-except
-            pass
+        for member in get_collection_members(idrac, REGISTRIES_URI):
+            member_uri = member.get(ODATA_ID, '')
+            if registry_name in member_uri:
+                registry_detail = idrac.invoke_request(member_uri, 'GET').json_data
+                locations = registry_detail.get('Location', [])
+                if locations:
+                    registry_uri = locations[0].get('Uri', '')
+                    if registry_uri:
+                        full_registry = idrac.invoke_request(registry_uri, 'GET').json_data
+                        registry_attributes = full_registry.get(
+                            'RegistryEntries', {}).get('Attributes', [])
+                break
 
     return registry_name, merge_attributes(registry_attributes, current_attributes)
 
@@ -433,7 +450,7 @@ def main():
                 ndf_detail = idrac.invoke_request(ndf_uri, 'GET').json_data
 
                 # Query the registry
-                registry_name, network_attributes = get_registry_attributes(idrac, ndf_detail)
+                registry_name, network_attributes = get_registry_attributes(idrac, ndf_detail, module)
                 if not registry_name:
                     module.fail_json(
                         msg=f"Dell OEM network attributes link not found for NIC '{ndf_id}'. "
@@ -469,10 +486,15 @@ def main():
                 idrac_model=hw_model
             )
     except HTTPError as e:
+        redfish_error = {}
+        try:
+            redfish_error = json.load(e)
+        except Exception:
+            pass
         if e.code in [401, 403]:
-            module.fail_json(msg=f"Authentication failed: {e.msg}")
+            module.fail_json(msg=f"Authentication failed: {e.msg}", redfish_error=redfish_error)
         else:
-            module.fail_json(msg=f"HTTP error {e.code}: {e.msg}")
+            module.fail_json(msg=f"HTTP error {e.code}: {e.msg}", redfish_error=redfish_error)
     except SSLValidationError as e:
         module.fail_json(msg=f"SSL validation error: {str(e)}")
     except ConnectionError as e:
