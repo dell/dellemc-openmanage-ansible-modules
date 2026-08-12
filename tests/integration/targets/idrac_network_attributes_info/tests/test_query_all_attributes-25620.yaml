@@ -1,0 +1,84 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user,
+     idrac_password, and network_device_function_id.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined or network_device_function_id is not defined
+
+- name: Check iDRAC firmware version
+  ansible.builtin.include_tasks: _check_idrac_version.yml
+
+- block:
+    - name: Query all network attributes for NIC
+      dellemc.openmanage.idrac_network_attributes_info:
+        network_device_function_id: "{{ network_device_function_id }}"
+      register: query_result
+
+    - name: Verify module succeeded
+      ansible.builtin.assert:
+        that:
+          - query_result is not failed
+          - query_result is succeeded
+
+    - name: Verify required output fields
+      ansible.builtin.assert:
+        that:
+          - query_result.network_attributes is defined
+          - query_result.network_attributes is iterable
+          - query_result.attribute_count is defined
+          - query_result.attribute_count is number
+          - query_result.network_device_function_id is defined
+          - query_result.attribute_registry is defined
+
+    - name: Verify non-empty results
+      ansible.builtin.assert:
+        that:
+          - query_result.attribute_count | int > 0
+          - query_result.network_attributes | length == query_result.attribute_count | int
+
+    - name: Verify attribute schema fields
+      ansible.builtin.assert:
+        that:
+          - item.name is defined
+          - item.type is defined
+          - item.current_value is defined
+          - item.description is defined
+          - item.is_oem is defined
+          - item.read_only is defined
+      loop: "{{ query_result.network_attributes }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Verify iDRAC generation information
+      ansible.builtin.assert:
+        that:
+          - query_result.idrac_generation is defined
+          - query_result.idrac_firmware_version is defined
+          - query_result.idrac_model is defined
+
+    - name: Verify changed flag is false (read-only operation)
+      ansible.builtin.assert:
+        that:
+          - query_result.changed is defined
+          - query_result.changed is false
+
+    - name: Display query summary
+      ansible.builtin.debug:
+        msg: >
+          Queried {{ query_result.attribute_count }} attributes from
+          registry {{ query_result.attribute_registry }}
+          for NIC {{ query_result.network_device_function_id }}
+
+  module_defaults:
+    dellemc.openmanage.idrac_network_attributes_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port | default(443) }}"
+      validate_certs: false
