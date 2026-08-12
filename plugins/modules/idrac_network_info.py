@@ -118,7 +118,7 @@ idrac_model:
   description: iDRAC model identifier.
   returned: success
   sample: "iDRAC 9"
-error_info:
+redfish_error:
   description: Details of the HTTP Error.
   returned: on HTTP error
   type: dict
@@ -129,6 +129,8 @@ error_info:
     }
   }
 '''
+
+import json
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -143,6 +145,18 @@ _NIC_CACHE = {}
 
 CHASSIS_URI = "/redfish/v1/Chassis"
 ODATA_ID = "@odata.id"
+ODATA_NEXT_LINK = "Members@odata.nextLink"
+
+
+def get_collection_members(idrac, collection_uri):
+    """Return all members of a Redfish collection, following nextLink pagination."""
+    members = []
+    next_uri = collection_uri
+    while next_uri:
+        resp = idrac.invoke_request(next_uri, 'GET').json_data
+        members.extend(resp.get('Members', []))
+        next_uri = resp.get(ODATA_NEXT_LINK) or resp.get('@odata.nextLink')
+    return members
 
 
 def get_cache_key(idrac_ip, idrac_port):
@@ -184,8 +198,7 @@ def discover_network_device_functions(idrac):
     if not network_adapters_link:
         return network_device_functions
 
-    adapters_resp = idrac.invoke_request(network_adapters_link, 'GET').json_data
-    adapter_members = adapters_resp.get('Members', [])
+    adapter_members = get_collection_members(idrac, network_adapters_link)
 
     for adapter_ref in adapter_members:
         adapter_uri = adapter_ref.get(ODATA_ID, '')
@@ -199,8 +212,7 @@ def discover_network_device_functions(idrac):
         if not ndf_link:
             continue
 
-        ndf_resp = idrac.invoke_request(ndf_link, 'GET').json_data
-        ndf_members = ndf_resp.get('Members', [])
+        ndf_members = get_collection_members(idrac, ndf_link)
 
         for ndf_ref in ndf_members:
             ndf_uri = ndf_ref.get(ODATA_ID, '')
@@ -209,14 +221,18 @@ def discover_network_device_functions(idrac):
 
             ndf_detail = idrac.invoke_request(ndf_uri, 'GET').json_data
 
-            # Extract Dell OEM DellNIC extension for link_speed and media_type
+            # Extract Dell OEM DellNIC extension for link_speed, media_type and link_status
             dell_nic = ndf_detail.get('Oem', {}).get('Dell', {}).get('DellNIC', {})
 
             func_data = {
                 'id': ndf_detail.get('Id', ndf_uri.split('/')[-1]),
                 'net_dev_func_type': ndf_detail.get('NetDevFuncType', ''),
                 'mac_address': ndf_detail.get('Ethernet', {}).get('MACAddress', ''),
-                'link_status': ndf_detail.get('Status', {}).get('Health', dell_nic.get('LinkStatus', '')),
+                'link_status': (
+                    dell_nic.get('LinkStatus') or
+                    ndf_detail.get('Status', {}).get('State', '') or
+                    ndf_detail.get('Status', {}).get('Health', '')
+                ),
                 'device_description': dell_nic.get('DeviceDescription', ''),
                 'link_speed': dell_nic.get('LinkSpeed', ''),
                 'media_type': dell_nic.get('MediaType', ''),
@@ -264,10 +280,16 @@ def main():
                 try:
                     network_device_functions = discover_network_device_functions(idrac)
                 except HTTPError as e:
+                    redfish_error = {}
+                    try:
+                        redfish_error = json.load(e)
+                    except Exception:
+                        pass
                     if e.code == 404:
                         module.fail_json(
                             msg="NetworkAdapters endpoint not supported on this firmware. "
-                                "Please update iDRAC firmware."
+                                "Please update iDRAC firmware.",
+                            redfish_error=redfish_error
                         )
                     raise
 
@@ -285,10 +307,15 @@ def main():
                 idrac_model=hw_model
             )
     except HTTPError as e:
+        redfish_error = {}
+        try:
+            redfish_error = json.load(e)
+        except Exception:
+            pass
         if e.code in [401, 403]:
-            module.fail_json(msg=f"Authentication failed: {e.msg}")
+            module.fail_json(msg=f"Authentication failed: {e.msg}", redfish_error=redfish_error)
         else:
-            module.fail_json(msg=f"HTTP error {e.code}: {e.msg}")
+            module.fail_json(msg=f"HTTP error {e.code}: {e.msg}", redfish_error=redfish_error)
     except SSLValidationError as e:
         module.fail_json(msg=f"SSL validation error: {str(e)}")
     except ConnectionError as e:

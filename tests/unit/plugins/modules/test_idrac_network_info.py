@@ -158,7 +158,7 @@ class TestIdracNetworkInfo(FakeAnsibleModule):
         assert nic1['id'] == 'NIC.Embedded.1-1-1'
         assert nic1['net_dev_func_type'] == 'Ethernet'
         assert nic1['mac_address'] == 'B0:26:28:E4:95:60'
-        assert nic1['link_status'] == 'OK'
+        assert nic1['link_status'] == 'LinkUp'
         assert nic1['device_description'] == 'Embedded NIC 1 Port 1 Partition 1'
         assert nic1['link_speed'] == '10000 Mbps'
         assert nic1['media_type'] == 'Base-T'
