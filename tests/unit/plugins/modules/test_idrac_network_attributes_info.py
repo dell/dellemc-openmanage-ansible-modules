@@ -325,6 +325,85 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
         result = self._run_module(idrac_default_args, check_mode=True)
         assert result['changed'] is False
 
+    # --- Phase 4 Tests: Attribute Filtering ---
+
+    def test_glob_pattern_filter(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: Glob pattern filter — provide attribute_name='VLan*', assert only matching."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['attribute_name'] = 'VLan*'
+
+        result = self._run_module(idrac_default_args)
+
+        assert result['changed'] is False
+        attrs = result['network_attributes']
+        assert len(attrs) == 2  # VLanMode and VLanId
+        names = [a['name'] for a in attrs]
+        assert 'VLanMode' in names
+        assert 'VLanId' in names
+        assert 'WakeOnLan' not in names
+        assert result['attribute_count'] == 2
+
+    def test_exact_name_filter(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: Exact name filter — provide exact attribute name, assert single result."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['attribute_name'] = 'VLanMode'
+
+        result = self._run_module(idrac_default_args)
+
+        attrs = result['network_attributes']
+        assert len(attrs) == 1
+        assert attrs[0]['name'] == 'VLanMode'
+        assert result['attribute_count'] == 1
+
+    def test_no_match_filter(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: No match — provide non-existent pattern, assert empty list."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['attribute_name'] = 'NonExistent*'
+
+        result = self._run_module(idrac_default_args)
+
+        assert result['changed'] is False
+        assert result['network_attributes'] == []
+        assert result['attribute_count'] == 0
+
+    def test_oem_filter(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: OEM filter — attribute_source='oem', assert all results have is_oem=true."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['attribute_source'] = 'oem'
+
+        result = self._run_module(idrac_default_args)
+
+        for attr in result['network_attributes']:
+            assert attr['is_oem'] is True
+
+    def test_standard_filter(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: Standard filter — attribute_source='standard', assert all results have is_oem=false."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['attribute_source'] = 'standard'
+
+        result = self._run_module(idrac_default_args)
+
+        for attr in result['network_attributes']:
+            assert attr['is_oem'] is False
+        # WakeOnLan has empty Oem.Dell, so is_oem=false
+        names = [a['name'] for a in result['network_attributes']]
+        assert 'WakeOnLan' in names
+
+    def test_combined_filters(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+        """Test: Combined filters — attribute_name + attribute_source, assert both applied."""
+        idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
+        idrac_default_args['attribute_name'] = 'VLan*'
+        idrac_default_args['attribute_source'] = 'oem'
+
+        result = self._run_module(idrac_default_args)
+
+        # VLanMode and VLanId match 'VLan*' pattern and both have is_oem=True
+        attrs = result['network_attributes']
+        assert len(attrs) == 2
+        for attr in attrs:
+            assert attr['is_oem'] is True
+            assert attr['name'].startswith('VLan')
+
 
 @pytest.fixture
 def idrac_default_args():
