@@ -166,7 +166,7 @@ class TestOmeDeviceInfo(FakeAnsibleModule):
 
     @pytest.mark.parametrize("module_params,data", [({"system_query_options": None}, None),
                                                     ({"system_query_options": {"fileter": None}}, None),
-                                                    ({"system_query_options": {"filter": "abc"}}, "$filter")])
+                                                    ({"system_query_options": {"filter": "Type eq 2000"}}, "$filter")])
     def test_get_query_parameters(self, module_params, data):
         res = self.module._get_query_parameters(module_params)
         if data is not None:
