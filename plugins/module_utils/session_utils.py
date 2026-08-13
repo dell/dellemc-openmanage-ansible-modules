@@ -133,7 +133,7 @@ class SessionAPI():
                 - "password" (str): The password for authentication.
                 - "port" (int, optional): The port number. Defaults to None.
                 - "validate_certs" (bool, optional): Whether to validate SSL certificates. Defaults
-                to False.
+                to True.
                 - "ca_path" (str, optional): The path to the CA certificate file. Defaults to None.
                 - "timeout" (int, optional): The timeout value in seconds. Defaults to None.
                 - "use_proxy" (bool, optional): Whether to use a proxy. Defaults to True.
@@ -145,7 +145,7 @@ class SessionAPI():
         self.username = module_params.get("username")
         self.password = module_params.get("password")
         self.port = module_params.get("port")
-        self.validate_certs = module_params.get("validate_certs", False)
+        self.validate_certs = module_params.get("validate_certs", True)
         self.ca_path = module_params.get("ca_path")
         self.timeout = module_params.get("timeout")
         self.use_proxy = module_params.get("use_proxy", True)
