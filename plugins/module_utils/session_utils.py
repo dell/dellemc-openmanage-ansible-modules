@@ -95,7 +95,7 @@ class OpenURLResponse():
         :rtype: bool
         """
         status = self.status_code
-        return status >= 200 & status <= 299
+        return 200 <= status <= 299
 
     @property
     def headers(self):
