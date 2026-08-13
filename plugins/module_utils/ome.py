@@ -49,35 +49,21 @@ def _escape_odata_string(value):
 
 def _validate_odata_filter(filter_value):
     """
-    Validate an OData $filter string against a strict allowlist.
-    Only filters of the form '<Property> <operator> <number|true|false|null>'
-    joined by 'and'/'or' are permitted. This prevents unescaped string literals
-    and arbitrary OData operator injection.
+    Validate an OData $filter string against a permissive allowlist.
+    Allows comparison clauses: <Property> <operator> <value>
+    where value may be a number, boolean, null or a single-quoted string.
+    Clauses may be joined with 'and'/'or' and grouped with parentheses.
+    Any single quote inside a string literal must be doubled (OData escape).
     """
-    tokens = re.split(r"\s+", filter_value.strip())
-    if not tokens:
+    if not isinstance(filter_value, str) or not filter_value.strip():
         raise ValueError("Empty OData $filter string is not allowed.")
-    boolean_ops = {"and", "or"}
-    comparison_ops = {"eq", "ne", "gt", "lt", "ge", "le"}
-    i = 0
-    while i < len(tokens):
-        if i > 0:
-            if tokens[i].lower() not in boolean_ops:
-                raise ValueError("Invalid OData $filter string: expected 'and'/'or' at position {0}.".format(i))
-            i += 1
-            if i >= len(tokens):
-                raise ValueError("Invalid OData $filter string: trailing boolean operator.")
-        prop = tokens[i]
-        if not re.fullmatch(r"[\w./]+", prop):
-            raise ValueError("Invalid OData $filter string: property '{0}' is not allowed.".format(prop))
-        if i + 2 >= len(tokens):
-            raise ValueError("Invalid OData $filter string: incomplete expression.")
-        if tokens[i + 1].lower() not in comparison_ops:
-            raise ValueError("Invalid OData $filter string: operator '{0}' is not allowed.".format(tokens[i + 1]))
-        value = tokens[i + 2]
-        if not re.fullmatch(r"\d+|true|false|null", value, re.IGNORECASE):
-            raise ValueError("Invalid OData $filter string: value '{0}' is not allowed.".format(value))
-        i += 3
+    prop = r"[A-Za-z_][\w./]*"
+    op = r"(?:eq|ne|gt|lt|ge|le)"
+    value = r"(?:-?\d+|true|false|null|'(?:[^']|'')*')"
+    clause = r"\(?\s*{0}\s+{1}\s+{2}\s*\)?".format(prop, op, value)
+    pattern = r"^{0}(?:\s+(?:and|or)\s+{0})*$".format(clause)
+    if not re.fullmatch(pattern, filter_value.strip(), re.IGNORECASE):
+        raise ValueError("Invalid OData $filter string: {0}".format(filter_value))
     return filter_value
 
 
