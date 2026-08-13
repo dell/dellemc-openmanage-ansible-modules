@@ -1,3 +1,14 @@
 ---
 testcase: "[^_].*"
 test_items: []
+
+# Validation test defaults — shared across iDRAC 9 and iDRAC 10.
+# These attributes exist on both iDRAC 9 and iDRAC 10.
+# Override in inventory or group_vars if the target NIC has different attributes.
+valid_enum_attr: VLanMode
+valid_enum_value: Enabled
+invalid_enum_value: InvalidValue
+valid_int_attr: BlnkLeds
+valid_int_value: 5
+invalid_int_value: 999
+misspelled_attr: VLanMoed
