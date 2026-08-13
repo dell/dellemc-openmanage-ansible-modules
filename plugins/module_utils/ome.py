@@ -42,6 +42,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import co
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict
 from ansible.module_utils.basic import AnsibleModule
 
+
 def _escape_odata_string(value):
     """Escape a single quote inside an OData string literal (' becomes '')."""
     return str(value).replace("'", "''")
