@@ -308,6 +308,34 @@ def store_in_cache(cache_key, data):
     _REGISTRY_CACHE[cache_key] = data
 
 
+def _get_network_adapters_uri(idrac, chassis_members):
+    """Return the first chassis member that exposes a NetworkAdapters link."""
+    for member in chassis_members:
+        chassis_uri = member.get(ODATA_ID, '')
+        if not chassis_uri:
+            continue
+        try:
+            chassis_detail = idrac.invoke_request(chassis_uri, 'GET').json_data
+        except (HTTPError, URLError, ConnectionError, SSLValidationError):
+            continue
+        network_adapters_link = chassis_detail.get('NetworkAdapters', {}).get(ODATA_ID)
+        if network_adapters_link:
+            return network_adapters_link
+    return None
+
+
+def _get_ndf_members(idrac, adapter_detail):
+    """Return NetworkDeviceFunctions members from inline array or collection link."""
+    ndf = adapter_detail.get('NetworkDeviceFunctions')
+    if isinstance(ndf, list):
+        return ndf
+    if isinstance(ndf, dict):
+        ndf_link = ndf.get(ODATA_ID)
+        if ndf_link:
+            return get_collection_members(idrac, ndf_link)
+    return []
+
+
 def discover_valid_nic_ids(idrac):
     """Discover all valid NIC IDs on the iDRAC for error messages.
 
@@ -318,12 +346,7 @@ def discover_valid_nic_ids(idrac):
     try:
         chassis_resp = idrac.invoke_request(CHASSIS_URI, 'GET').json_data
         chassis_members = chassis_resp.get('Members', [])
-        if not chassis_members:
-            return nic_ids
-
-        chassis_uri = chassis_members[0].get(ODATA_ID, '')
-        chassis_detail = idrac.invoke_request(chassis_uri, 'GET').json_data
-        network_adapters_link = chassis_detail.get('NetworkAdapters', {}).get(ODATA_ID)
+        network_adapters_link = _get_network_adapters_uri(idrac, chassis_members)
         if not network_adapters_link:
             return nic_ids
 
@@ -332,10 +355,7 @@ def discover_valid_nic_ids(idrac):
             if not adapter_uri:
                 continue
             adapter_detail = idrac.invoke_request(adapter_uri, 'GET').json_data
-            ndf_link = adapter_detail.get('NetworkDeviceFunctions', {}).get(ODATA_ID)
-            if not ndf_link:
-                continue
-            for ndf_ref in get_collection_members(idrac, ndf_link):
+            for ndf_ref in _get_ndf_members(idrac, adapter_detail):
                 ndf_uri = ndf_ref.get(ODATA_ID, '')
                 if ndf_uri:
                     nic_ids.append(ndf_uri.split('/')[-1])
@@ -352,12 +372,7 @@ def find_network_device_function_uri(idrac, target_ndf_id):
     """
     chassis_resp = idrac.invoke_request(CHASSIS_URI, 'GET').json_data
     chassis_members = chassis_resp.get('Members', [])
-    if not chassis_members:
-        return None
-
-    chassis_uri = chassis_members[0].get(ODATA_ID, '')
-    chassis_detail = idrac.invoke_request(chassis_uri, 'GET').json_data
-    network_adapters_link = chassis_detail.get('NetworkAdapters', {}).get(ODATA_ID)
+    network_adapters_link = _get_network_adapters_uri(idrac, chassis_members)
     if not network_adapters_link:
         return None
 
@@ -366,10 +381,7 @@ def find_network_device_function_uri(idrac, target_ndf_id):
         if not adapter_uri:
             continue
         adapter_detail = idrac.invoke_request(adapter_uri, 'GET').json_data
-        ndf_link = adapter_detail.get('NetworkDeviceFunctions', {}).get(ODATA_ID)
-        if not ndf_link:
-            continue
-        for ndf_ref in get_collection_members(idrac, ndf_link):
+        for ndf_ref in _get_ndf_members(idrac, adapter_detail):
             ndf_uri = ndf_ref.get(ODATA_ID, '')
             if ndf_uri and ndf_uri.split('/')[-1] == target_ndf_id:
                 return ndf_uri
@@ -410,9 +422,16 @@ def get_registry_attributes(idrac, ndf_detail, module=None):
     # Resolve the registry from /redfish/v1/Registries
     registry_attributes = []
     if registry_name:
+        # Some iDRAC versions report the registry name as
+        # "NetworkAttributeRegistry_..." while the Redfish member Id uses the
+        # plural form "NetworkAttributesRegistry_...". Normalize and try both.
+        candidate_names = [
+            registry_name,
+            registry_name.replace('AttributeRegistry', 'AttributesRegistry'),
+        ]
         for member in get_collection_members(idrac, REGISTRIES_URI):
             member_uri = member.get(ODATA_ID, '')
-            if registry_name in member_uri:
+            if any(name in member_uri for name in candidate_names):
                 registry_detail = idrac.invoke_request(member_uri, 'GET').json_data
                 locations = registry_detail.get('Location', [])
                 if locations:

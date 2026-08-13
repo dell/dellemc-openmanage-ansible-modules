@@ -174,6 +174,34 @@ def store_in_cache(cache_key, data):
     _NIC_CACHE[cache_key] = data
 
 
+def _get_network_adapters_uri(idrac, chassis_members):
+    """Return the first chassis member that exposes a NetworkAdapters link."""
+    for member in chassis_members:
+        chassis_uri = member.get(ODATA_ID, '')
+        if not chassis_uri:
+            continue
+        try:
+            chassis_detail = idrac.invoke_request(chassis_uri, 'GET').json_data
+        except (HTTPError, URLError, ConnectionError, SSLValidationError):
+            continue
+        network_adapters_link = chassis_detail.get('NetworkAdapters', {}).get(ODATA_ID)
+        if network_adapters_link:
+            return network_adapters_link
+    return None
+
+
+def _get_ndf_members(idrac, adapter_detail):
+    """Return NetworkDeviceFunctions members from inline array or collection link."""
+    ndf = adapter_detail.get('NetworkDeviceFunctions')
+    if isinstance(ndf, list):
+        return ndf
+    if isinstance(ndf, dict):
+        ndf_link = ndf.get(ODATA_ID)
+        if ndf_link:
+            return get_collection_members(idrac, ndf_link)
+    return []
+
+
 def discover_network_device_functions(idrac):
     """Discover all network device functions via chassis-scoped NetworkAdapters.
 
@@ -184,17 +212,10 @@ def discover_network_device_functions(idrac):
     """
     network_device_functions = []
 
-    # Get first chassis member
+    # Find the chassis member that exposes network adapters
     chassis_resp = idrac.invoke_request(CHASSIS_URI, 'GET').json_data
     chassis_members = chassis_resp.get('Members', [])
-    if not chassis_members:
-        return network_device_functions
-
-    chassis_uri = chassis_members[0].get(ODATA_ID, '')
-
-    # Follow NetworkAdapters link
-    chassis_detail = idrac.invoke_request(chassis_uri, 'GET').json_data
-    network_adapters_link = chassis_detail.get('NetworkAdapters', {}).get(ODATA_ID)
+    network_adapters_link = _get_network_adapters_uri(idrac, chassis_members)
     if not network_adapters_link:
         return network_device_functions
 
@@ -207,21 +228,14 @@ def discover_network_device_functions(idrac):
 
         adapter_detail = idrac.invoke_request(adapter_uri, 'GET').json_data
 
-        # Follow NetworkDeviceFunctions link
-        ndf_link = adapter_detail.get('NetworkDeviceFunctions', {}).get(ODATA_ID)
-        if not ndf_link:
-            continue
-
-        ndf_members = get_collection_members(idrac, ndf_link)
-
-        for ndf_ref in ndf_members:
+        for ndf_ref in _get_ndf_members(idrac, adapter_detail):
             ndf_uri = ndf_ref.get(ODATA_ID, '')
             if not ndf_uri:
                 continue
 
             ndf_detail = idrac.invoke_request(ndf_uri, 'GET').json_data
 
-            # Extract Dell OEM DellNIC extension for link_speed, media_type and link_status
+            # Extract Dell OEM DellNIC extension for link_status and media metadata
             dell_nic = ndf_detail.get('Oem', {}).get('Dell', {}).get('DellNIC', {})
 
             func_data = {
