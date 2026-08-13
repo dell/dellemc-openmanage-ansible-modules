@@ -196,7 +196,8 @@ device_info:
 
 from ssl import SSLError
 
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
+    RestOME, OmeAnsibleModule, _escape_odata_string, _validate_odata_filter)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -228,7 +229,7 @@ def update_device_details_with_filtering(missing_service_tags, service_tag_dict,
     """
     try:
         for tag in missing_service_tags:
-            query = "DeviceServiceTag eq '{0}'".format(tag)
+            query = "DeviceServiceTag eq '{0}'".format(_escape_odata_string(tag))
             query_param = {"$filter": query}
             resp = rest_obj.invoke_request('GET', DEVICE_RESOURCE_COLLECTION[DEVICE_LIST]["resource"], query_param=query_param)
             value = resp.json_data["value"]
@@ -314,7 +315,7 @@ def _get_query_parameters(module_params):
     if system_query_options_param:
         filter_by_val = system_query_options_param.get("filter")
         if filter_by_val:
-            query_parameter = {"$filter": filter_by_val}
+            query_parameter = {"$filter": _validate_odata_filter(filter_by_val)}
     return query_parameter
 
 
