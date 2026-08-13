@@ -108,7 +108,6 @@ class TestidracFirmware(FakeAnsibleModule):
         ET_mock.fromstring.return_value = obj
         return ET_mock
 
-
     @pytest.fixture
     def idrac_connection_firmware_mock(self, mocker, idrac_firmware_update_mock):
         idrac_conn_class_mock = mocker.patch(MODULE_PATH +
@@ -162,8 +161,6 @@ class TestidracFirmware(FakeAnsibleModule):
         assert result[0] == ['Component', 'Component']
         assert result[1]
         assert result[2]
-
-
 
     def test_message_verification(self, idrac_connection_firmware_redfish_mock, idrac_default_args, mocker):
         idrac_default_args.update({"share_name": DELL_SHARE, "catalog_file_name": CATALOG,
@@ -442,8 +439,6 @@ class TestidracFirmware(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + TIME_SLEEP, return_value=None)
         result = self.module.get_error_syslog(idrac_connection_firm_mock, "", "/api/service")
         assert result[0]
-
-
 
     @pytest.mark.parametrize("exc_type", [RuntimeError, URLError, SSLValidationError, ConnectionError, KeyError,
                                           ImportError, ValueError, TypeError, IOError, AssertionError, OSError])
