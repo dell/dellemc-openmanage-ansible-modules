@@ -545,7 +545,8 @@ error_info:
 
 import time
 from ssl import SSLError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
+    RestOME, OmeAnsibleModule, _escape_odata_string)
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import apply_diff_key, job_tracking
@@ -600,7 +601,7 @@ def get_group_devices_all(rest_obj, uri):
 
 
 def get_group(rest_obj, module, group_name):
-    query_param = {"$filter": "Name eq '{0}'".format(group_name)}
+    query_param = {"$filter": "Name eq '{0}'".format(_escape_odata_string(group_name))}
     group_req = rest_obj.invoke_request("GET", GROUP_URI, query_param=query_param)
     for grp in group_req.json_data.get('value'):
         if grp['Name'] == group_name:
@@ -668,7 +669,7 @@ def get_type_id_valid(rest_obj, typeid):
 def get_template_by_name(template_name, module, rest_obj):
     template = {}
     template_path = TEMPLATES_URI
-    query_param = {"$filter": "Name eq '{0}'".format(template_name)}
+    query_param = {"$filter": "Name eq '{0}'".format(_escape_odata_string(template_name))}
     template_req = rest_obj.invoke_request("GET", template_path, query_param=query_param)
     for each in template_req.json_data.get('value'):
         if each['Name'] == template_name:
@@ -846,7 +847,7 @@ def get_template_details(module, rest_obj):
     srch = 'Id'
     if not id:
         id = module.params.get('template_name')
-        query_param = {"$filter": "Name eq '{0}'".format(id)}
+        query_param = {"$filter": "Name eq '{0}'".format(_escape_odata_string(id))}
         srch = 'Name'
     template = {}
     resp = rest_obj.invoke_request('GET', TEMPLATES_URI, query_param=query_param)
