@@ -78,7 +78,7 @@ class OpenURLResponse(object):
     @property
     def success(self):
         status = self.status_code
-        return status >= 200 & status <= 299
+        return 200 <= status <= 299
 
     @property
     def token_header(self):
