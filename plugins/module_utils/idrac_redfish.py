@@ -148,7 +148,7 @@ class iDRACRedfishAPI(object):
         self.password = module_params['idrac_password']
         self.x_auth_token = module_params.get('x_auth_token')
         self.port = module_params['idrac_port']
-        self.validate_certs = module_params.get("validate_certs", False)
+        self.validate_certs = module_params.get("validate_certs", True)
         self.ca_path = module_params.get("ca_path")
         self.timeout = module_params.get("timeout", 30)
         self.use_proxy = module_params.get("use_proxy", True)
