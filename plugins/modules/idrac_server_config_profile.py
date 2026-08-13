@@ -575,7 +575,7 @@ import re
 import json
 from datetime import datetime
 from os.path import exists
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking, \
