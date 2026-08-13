@@ -65,7 +65,7 @@ class iDRACConnection:
             raise ValueError("hostname, username and password required")
         self.handle = None
         self.creds = UserCredentials(self.idrac_user, self.idrac_pwd)
-        self.validate_certs = module_params.get("validate_certs", False)
+        self.validate_certs = module_params.get("validate_certs", True)
         self.ca_path = module_params.get("ca_path")
         verify_ssl = False
         if self.validate_certs is True:
