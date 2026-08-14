@@ -302,6 +302,7 @@ error_info:
 
 import json
 import re
+from xml.sax.saxutils import escape, quoteattr
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
@@ -321,14 +322,13 @@ JOB_URI = "/redfish/v1/Managers/{manager_id}/Jobs/{job_id}"
 
 
 def xml_data_conversion(attrbite, fqdd=None):
-    component = """<Component FQDD="{0}">{1}</Component>"""
     attr = ""
     json_data = {}
     for k, v in attrbite.items():
         key = re.sub(r"\.(?!\d)", "#", k)
-        attr += '<Attribute Name="{0}">{1}</Attribute>'.format(key, v)
+        attr += '<Attribute Name={0}>{1}</Attribute>'.format(quoteattr(key), escape(str(v)))
         json_data[key] = str(v)
-    root = component.format(fqdd, attr)
+    root = '<Component FQDD={0}>{1}</Component>'.format(quoteattr(str(fqdd)), attr)
     return root, json_data
 
 

@@ -64,6 +64,7 @@ import time
 from datetime import datetime
 from inspect import getfullargspec
 import re
+from xml.sax.saxutils import escape, quoteattr
 from ansible.module_utils.six.moves.urllib.error import HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -540,14 +541,13 @@ def get_current_time(redfish_obj):
 
 
 def xml_data_conversion(attr_dict, fqdd=None, custom_payload_to_add=None):
-    component = """<Component FQDD="{0}">{1}</Component>"""
     attr = ""
     for k, v in attr_dict.items():
         key = re.sub(r"\.(?!\d)", "#", k)
-        attr += '<Attribute Name="{0}">{1}</Attribute>'.format(key, v)
+        attr += '<Attribute Name={0}>{1}</Attribute>'.format(quoteattr(key), escape(str(v)))
     if custom_payload_to_add:
         attr += custom_payload_to_add
-    root = component.format(fqdd, attr)
+    root = '<Component FQDD={0}>{1}</Component>'.format(quoteattr(str(fqdd)), attr)
     return root
 
 
