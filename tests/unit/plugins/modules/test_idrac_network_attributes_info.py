@@ -56,7 +56,11 @@ MOCK_NDF_DETAIL = {
         'Oem': {
             'Dell': {
                 'DellNetworkAttributes': {
-                    '@odata.id': '/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Embedded.1/NetworkDeviceFunctions/NIC.Embedded.1-1-1/Oem/Dell/DellNetworkAttributes/NIC.Embedded.1-1-1'
+                    '@odata.id': (
+                        '/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/'
+                        'NIC.Embedded.1/NetworkDeviceFunctions/NIC.Embedded.1-1-1/'
+                        'Oem/Dell/DellNetworkAttributes/NIC.Embedded.1-1-1'
+                    )
                 }
             }
         }
@@ -168,7 +172,9 @@ FULL_URI_MAP = {
     '/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Embedded.1': MOCK_ADAPTER_DETAIL,
     '/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Embedded.1/NetworkDeviceFunctions': MOCK_NDF_RESP,
     '/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Embedded.1/NetworkDeviceFunctions/NIC.Embedded.1-1-1': MOCK_NDF_DETAIL,
-    '/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Embedded.1/NetworkDeviceFunctions/NIC.Embedded.1-1-1/Oem/Dell/DellNetworkAttributes/NIC.Embedded.1-1-1': MOCK_OEM_ATTRS_RESP,
+    ('/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Embedded.1/'
+     'NetworkDeviceFunctions/NIC.Embedded.1-1-1/Oem/Dell/DellNetworkAttributes/'
+     'NIC.Embedded.1-1-1'): MOCK_OEM_ATTRS_RESP,
     '/redfish/v1/Registries': MOCK_REGISTRIES_RESP,
     '/redfish/v1/Registries/NetworkAttributeRegistry_NIC.Embedded.1-1-1': MOCK_REGISTRY_DETAIL,
     '/redfish/v1/Registries/NetworkAttributeRegistry_NIC.Embedded.1-1-1/NetworkAttributeRegistry_NIC.Embedded.1-1-1.json': MOCK_REGISTRY_FULL,
@@ -417,7 +423,6 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
         for attr in attrs:
             assert attr['is_oem'] is True
             assert attr['name'].startswith('VLan')
-
 
     # --- Validation Tests ---
 
