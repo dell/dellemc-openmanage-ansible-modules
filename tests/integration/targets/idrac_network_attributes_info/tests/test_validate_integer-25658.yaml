@@ -1,0 +1,61 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user,
+     idrac_password, network_device_function_id, valid_int_attr, valid_int_value, invalid_int_value.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined or network_device_function_id is not defined or
+   valid_int_attr is not defined or valid_int_value is not defined or
+   invalid_int_value is not defined
+
+- name: Check iDRAC firmware version
+  ansible.builtin.include_tasks: _check_idrac_version.yml
+
+- block:
+    - name: Validate an integer within bounds
+      dellemc.openmanage.idrac_network_attributes_info:
+        network_device_function_id: "{{ network_device_function_id }}"
+        validate: true
+        attributes: "{{ {valid_int_attr: valid_int_value} }}"
+      register: valid_int_result
+
+    - name: Verify valid integer validation
+      ansible.builtin.assert:
+        that:
+          - valid_int_result is not failed
+          - valid_int_result.valid is true
+          - valid_int_result.validation_results[0].status == 'valid'
+
+    - name: Validate an integer out of bounds
+      dellemc.openmanage.idrac_network_attributes_info:
+        network_device_function_id: "{{ network_device_function_id }}"
+        validate: true
+        attributes: "{{ {valid_int_attr: invalid_int_value} }}"
+      register: invalid_int_result
+
+    - name: Verify invalid integer validation
+      ansible.builtin.assert:
+        that:
+          - invalid_int_result is not failed
+          - invalid_int_result.valid is false
+          - invalid_int_result.validation_results[0].status == 'invalid'
+          - "'out of range' in invalid_int_result.validation_results[0].reason"
+
+    - name: Display integer validation summary
+      ansible.builtin.debug:
+        msg: >
+          Valid int test: {{ valid_int_result.valid }},
+          Invalid int test: {{ invalid_int_result.valid }}
+
+  module_defaults:
+    dellemc.openmanage.idrac_network_attributes_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port | default(443) }}"
+      validate_certs: false

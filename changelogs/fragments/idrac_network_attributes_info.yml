@@ -1,0 +1,13 @@
+---
+minor_changes:
+  - >
+    idrac_network_attributes_info - New module to query the iDRAC Network Attribute
+    Registry for a specific NIC, with support for name pattern filtering and
+    OEM/standard attribute classification
+    (https://github.com/dell/dellemc-openmanage-ansible-modules).
+  - >
+    idrac_network_attributes_info - Added ``validate`` mode to validate attribute
+    name-value pairs against the registry with enumeration, integer range, and string
+    constraint checks, fuzzy match suggestions for misspelled attribute names, and batch
+    validation with consolidated reporting
+    (https://github.com/dell/dellemc-openmanage-ansible-modules).

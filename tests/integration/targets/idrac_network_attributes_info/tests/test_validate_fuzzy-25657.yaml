@@ -1,0 +1,64 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user,
+     idrac_password, network_device_function_id, misspelled_attr.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined or network_device_function_id is not defined or
+   misspelled_attr is not defined
+
+- name: Check iDRAC firmware version
+  ansible.builtin.include_tasks: _check_idrac_version.yml
+
+- block:
+    - name: Validate a misspelled attribute name (fuzzy suggestions)
+      dellemc.openmanage.idrac_network_attributes_info:
+        network_device_function_id: "{{ network_device_function_id }}"
+        validate: true
+        attributes: "{{ {misspelled_attr: 'some_value'} }}"
+      register: fuzzy_result
+
+    - name: Verify fuzzy match suggestions
+      ansible.builtin.assert:
+        that:
+          - fuzzy_result is not failed
+          - fuzzy_result.valid is false
+          - fuzzy_result.validation_results[0].status == 'invalid'
+          - fuzzy_result.validation_results[0].reason == 'Attribute not found.'
+          - fuzzy_result.validation_results[0].suggestions | length > 0
+          - fuzzy_result.validation_results[0].suggestions | length <= 3
+
+    - name: Validate a completely unrelated attribute name
+      dellemc.openmanage.idrac_network_attributes_info:
+        network_device_function_id: "{{ network_device_function_id }}"
+        validate: true
+        attributes:
+          NotAnAttribute123: "value"
+      register: unrelated_result
+
+    - name: Verify no suggestions for unrelated name
+      ansible.builtin.assert:
+        that:
+          - unrelated_result is not failed
+          - unrelated_result.valid is false
+          - unrelated_result.validation_results[0].status == 'invalid'
+          - unrelated_result.validation_results[0].suggestions | length == 0
+
+    - name: Display fuzzy match summary
+      ansible.builtin.debug:
+        msg: >
+          Misspelled suggestions: {{ fuzzy_result.validation_results[0].suggestions }},
+          Unrelated suggestions: {{ unrelated_result.validation_results[0].suggestions }}
+
+  module_defaults:
+    dellemc.openmanage.idrac_network_attributes_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port | default(443) }}"
+      validate_certs: false
