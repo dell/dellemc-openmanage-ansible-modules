@@ -397,9 +397,11 @@ error_info:
 
 import json
 import os
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.\
+    dellemc_idrac import idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
+from ansible_collections.dellemc.openmanage.plugins.module_utils.\
+    idrac_redfish import iDRACRedfishAPI
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
@@ -412,7 +414,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
     idrac_log_exporter import IDRACLogExporter
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
     idrac_message_registry import IDRACMessageRegistry
-EXPORT_LC_LOGS = '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.ExportLCLog'
+EXPORT_LC_LOGS = ('/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/'
+                 'DellLCService/Actions/DellLCService.ExportLCLog')
 SUCCESS_MSG = "Successfully exported the lifecycle controller logs."
 SCHEDULE_MSG = "The export lifecycle controller log job is submitted successfully."
 NO_CHANGES_FOUND_MSG = "No changes found to be applied."
@@ -423,21 +426,27 @@ def main():
     specs = {
         "share_name": {"required": False, "type": 'str'},
         "share_user": {"required": False, "type": 'str'},
-        "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
+        "share_password": {"required": False, "type": 'str',
+                         "aliases": ['share_pwd'], "no_log": True},
         "job_wait": {"required": False, "type": 'bool', "default": True},
-        "export_format": {"required": False, "type": 'str', "choices": ['json', 'csv', 'text'], "default": 'json'},
+        "export_format": {"required": False, "type": 'str',
+                         "choices": ['json', 'csv', 'text'], "default": 'json'},
         "date_start": {"required": False, "type": 'str'},
         "date_end": {"required": False, "type": 'str'},
-        "severity": {"required": False, "type": 'list', "elements": 'str', "choices": ['Critical', 'Warning', 'OK']},
+        "severity": {"required": False, "type": 'list', "elements": 'str',
+                    "choices": ['Critical', 'Warning', 'OK']},
         "category": {"required": False, "type": 'list', "elements": 'str'},
         "message_pattern": {"required": False, "type": 'str'},
         "max_entries": {"required": False, "type": 'int'},
         "force": {"required": False, "type": 'bool', "default": False},
-        "fetch_metadata_only": {"required": False, "type": 'bool', "default": False},
+        "fetch_metadata_only": {"required": False, "type": 'bool',
+                              "default": False},
         "enrich_messages": {"required": False, "type": 'bool', "default": False},
         "verify_export": {"required": False, "type": 'bool', "default": False},
-        "filter_optimization": {"required": False, "type": 'bool', "default": True},
-        "storage_threshold_pct": {"required": False, "type": 'int', "default": 80},
+        "filter_optimization": {"required": False, "type": 'bool',
+                              "default": True},
+        "storage_threshold_pct": {"required": False, "type": 'int',
+                                  "default": 80},
         "insert_comment": {"required": False, "type": 'str'},
     }
     specs.update(idrac_auth_params)
@@ -647,16 +656,19 @@ def main():
                 if module.params.get('enrich_messages'):
                     try:
                         message_registry = IDRACMessageRegistry(idrac)
-                        filtered_entries = message_registry.enrich_log_entries(filtered_entries)
+                        filtered_entries = message_registry.enrich_log_entries(
+                            filtered_entries)
                     except Exception as e:
                         # Log warning but continue without enrichment
-                        module.warn(f"Failed to enrich messages with MessageRegistry: {str(e)}")
+                        module.warn(
+                            f"Failed to enrich messages with MessageRegistry: {str(e)}")
 
                 # Check if file exists and handle force parameter
                 force = module.params.get('force', False)
                 if os.path.exists(share_name) and not force:
                     module.exit_json(
-                        msg=f"Export file {share_name} already exists. Use force=true to overwrite.",
+                        msg=(f"Export file {share_name} already exists. "
+                             f"Use force=true to overwrite."),
                         failed=True
                     )
 
@@ -700,8 +712,8 @@ def main():
                     if not verification_status["verification_passed"]:
                         module.warn(
                             f"Export verification failed: expected {expected_count} "
-                            f"entries, but exported {count} entries. This may be due "
-                            f"to applied filters."
+                            f"entries, but exported {count} entries. This may be "
+                            f"due to applied filters."
                         )
 
                 # Check storage utilization and threshold (AC-008)
@@ -709,11 +721,13 @@ def main():
                 storage_threshold_pct = module.params.get('storage_threshold_pct', 80)
                 if storage_threshold_pct > 0:
                     try:
-                        lclog_service_uri = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog"
+                        lclog_service_uri = ("/redfish/v1/Managers/iDRAC.Embedded.1/"
+                                             "LogServices/Lclog")
                         response = idrac.invoke_request(lclog_service_uri, 'GET')
                         service_data = response.json_data
                         max_records = service_data.get('MaxNumberOfRecords', 0)
-                        overwrite_policy = service_data.get('OverWritePolicy', 'Unknown')
+                        overwrite_policy = service_data.get('OverWritePolicy',
+                                                         'Unknown')
 
                         if max_records > 0:
                             # Get current total entries
@@ -722,16 +736,19 @@ def main():
 
                             if storage_utilization > storage_threshold_pct:
                                 storage_warning = (
-                                    f"LC log storage at {round(storage_utilization, 2)}% capacity "
+                                    f"LC log storage at "
+                                    f"{round(storage_utilization, 2)}% capacity "
                                     f"(threshold: {storage_threshold_pct}%). "
-                                    f"Consider exporting and archiving logs before iDRAC's automatic "
-                                    f"wrap-around overwrites oldest entries. "
+                                    f"Consider exporting and archiving logs "
+                                    f"before iDRAC's automatic wrap-around "
+                                    f"overwrites oldest entries. "
                                     f"Overwrite policy: {overwrite_policy}"
                                 )
                     except Exception as e:
                         module.warn(f"Failed to check storage utilization: {str(e)}")
 
-                msg = f"Successfully exported {count} lifecycle controller log entries to {share_name}."
+                msg = (f"Successfully exported {count} lifecycle controller log "
+                       f"entries to {share_name}.")
                 result = {
                     "msg": msg,
                     "lc_logs_status": {"exported_entries": count, "file": share_name},
@@ -748,7 +765,9 @@ def main():
             else:
                 # Use existing network share export functionality
                 lifecycle_controller_logs_obj = IDRACLifecycleControllerLogs(idrac)
-                msg, job_dict, changed = lifecycle_controller_logs_obj.lifecycle_controller_logs_operation(idrac, module)
+                msg, job_dict, changed = (
+                    lifecycle_controller_logs_obj.lifecycle_controller_logs_operation(
+                        idrac, module))
                 module.exit_json(msg=msg, lc_logs_status=job_dict, changed=changed)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
