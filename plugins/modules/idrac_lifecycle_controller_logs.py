@@ -404,11 +404,16 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
     idrac_lifecycle_controller_logs_utils import IDRACLifecycleControllerLogs
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.idrac_log_pagination import IDRACLogPagination
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.idrac_log_filters import IDRACLogFilter
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.idrac_log_exporter import IDRACLogExporter
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.idrac_message_registry import IDRACMessageRegistry
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import MINIMUM_FIRMWARE_VERSION_IDRAC9, MINIMUM_FIRMWARE_VERSION_IDRAC10
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
+    idrac_log_pagination import IDRACLogPagination
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
+    idrac_log_filters import IDRACLogFilter
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
+    idrac_log_exporter import IDRACLogExporter
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
+    idrac_message_registry import IDRACMessageRegistry
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
+    MINIMUM_FIRMWARE_VERSION_IDRAC9, MINIMUM_FIRMWARE_VERSION_IDRAC10)
 EXPORT_LC_LOGS = '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.ExportLCLog'
 SUCCESS_MSG = "Successfully exported the lifecycle controller logs."
 SCHEDULE_MSG = "The export lifecycle controller log job is submitted successfully."
@@ -445,7 +450,8 @@ def main():
     # Check if this is a local file export (new filtering/export functionality)
     share_name = module.params.get('share_name')
     # Network shares: \\server\share (CIFS) or server:/path (NFS)
-    is_network_share = share_name.startswith('\\\\') or (':' in share_name and not share_name[1] == ':')
+    is_network_share = (share_name.startswith('\\\\') or
+                       (':' in share_name and not share_name[1] == ':'))
     is_local_export = not is_network_share
 
     try:
@@ -456,8 +462,9 @@ def main():
                 idrac_model = gen_details[2] if len(gen_details) > 2 else 'iDRAC 9'
                 firmware_version = gen_details[1] if len(gen_details) > 1 else '0.0.0.0'
 
-                is_compliant, minimum_required, error_msg = iDRACRedfishAPI.check_minimum_firmware_requirement(
-                    idrac_model, firmware_version)
+                is_compliant, minimum_required, error_msg = (
+                    iDRACRedfishAPI.check_minimum_firmware_requirement(
+                        idrac_model, firmware_version))
 
                 if not is_compliant:
                     module.exit_json(msg=error_msg, failed=True)
@@ -470,8 +477,9 @@ def main():
 
                     if not service_data.get('ServiceEnabled', True):
                         module.exit_json(
-                            msg="Lifecycle Controller Log service is not enabled on this iDRAC. "
-                                "Please enable LC Log service in iDRAC settings.",
+                            msg=("Lifecycle Controller Log service is not enabled "
+                                 "on this iDRAC. Please enable LC Log service in "
+                                 "iDRAC settings."),
                             failed=True
                         )
                 except Exception as e:
@@ -488,24 +496,28 @@ def main():
                     # Validate comment length
                     if len(insert_comment) > 256:
                         module.exit_json(
-                            msg=f"Comment exceeds maximum length of 256 characters (provided: {len(insert_comment)})",
+                            msg=(f"Comment exceeds maximum length of 256 characters "
+                                 f"(provided: {len(insert_comment)})"),
                             failed=True
                         )
-                    
+
                     # Validate for control characters
                     if any(ord(c) < 32 and c not in '\t\n\r' for c in insert_comment):
                         module.exit_json(
                             msg="Comment contains invalid control characters",
                             failed=True
                         )
-                    
+
                     # Invoke DellLCService.InsertCommentInLCLog action
                     try:
-                        comment_action_uri = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.InsertCommentInLCLog"
+                        comment_action_uri = ("/redfish/v1/Managers/iDRAC.Embedded.1/"
+                                             "Oem/Dell/DellLCService/Actions/"
+                                             "DellLCService.InsertCommentInLCLog")
                         comment_payload = {"Comment": insert_comment}
-                        response = idrac.invoke_request(comment_action_uri, 'POST', data=comment_payload)
+                        response = idrac.invoke_request(comment_action_uri, 'POST',
+                                                         data=comment_payload)
                         result = response.json_data if response.json_data else {}
-                        
+
                         module.exit_json(
                             msg=f"Successfully inserted comment into LC logs: {insert_comment}",
                             inserted_entry_id=result.get('EntryId', 'Unknown'),
@@ -541,14 +553,13 @@ def main():
 
                     storage_threshold_pct = module.params.get('storage_threshold_pct', 80)
                     storage_warning = None
-                    
+
                     if storage_threshold_pct > 0 and storage_utilization > storage_threshold_pct:
                         storage_warning = (
                             f"LC log storage at {round(storage_utilization, 2)}% capacity "
-                            f"(threshold: {storage_threshold_pct}%). "
-                            f"Consider exporting and archiving logs before iDRAC's automatic "
-                            f"wrap-around overwrites oldest entries. "
-                            f"Overwrite policy: {overwrite_policy}"
+                            f"(threshold: {storage_threshold_pct}%). Consider exporting "
+                            f"and archiving logs before iDRAC's automatic wrap-around "
+                            f"overwrites oldest entries. Overwrite policy: {overwrite_policy}"
                         )
 
                     metadata = {
@@ -566,10 +577,10 @@ def main():
                         "lc_logs_metadata": metadata,
                         "changed": False
                     }
-                    
+
                     if storage_warning:
                         result["storage_warning"] = storage_warning
-                    
+
                     module.exit_json(**result)
 
                 # Initialize pagination with circuit breaker
@@ -589,20 +600,24 @@ def main():
                 # Apply filters with optimization (AC-007)
                 log_filter = IDRACLogFilter()
                 filter_optimization = module.params.get('filter_optimization', True)
-                
+
                 if filter_optimization:
                     # Combined filter optimization - apply all filters at once
                     # Note: Server-side filtering is already handled in pagination
                     # This is for client-side filters that can't be done server-side
                     if module.params.get('date_end'):
-                        log_filter.add_date_filter(date_end=module.params.get('date_end'))
+                        log_filter.add_date_filter(
+                            date_end=module.params.get('date_end'))
                     if module.params.get('severity'):
-                        log_filter.add_severity_filter(module.params.get('severity'))
+                        log_filter.add_severity_filter(
+                            module.params.get('severity'))
                     if module.params.get('category'):
-                        log_filter.add_category_filter(module.params.get('category'))
+                        log_filter.add_category_filter(
+                            module.params.get('category'))
                     if module.params.get('message_pattern'):
-                        log_filter.add_message_filter(module.params.get('message_pattern'))
-                    
+                        log_filter.add_message_filter(
+                            module.params.get('message_pattern'))
+
                     filtered_entries = log_filter.apply(entries)
                 else:
                     # Sequential filter application for debugging
@@ -610,21 +625,24 @@ def main():
                         log_filter.add_date_filter(date_end=module.params.get('date_end'))
                         entries = log_filter.apply(entries)
                         log_filter = IDRACLogFilter()  # Reset for next filter
-                    
+
                     if module.params.get('severity'):
-                        log_filter.add_severity_filter(module.params.get('severity'))
+                        log_filter.add_severity_filter(
+                            module.params.get('severity'))
                         entries = log_filter.apply(entries)
                         log_filter = IDRACLogFilter()
-                    
+
                     if module.params.get('category'):
-                        log_filter.add_category_filter(module.params.get('category'))
+                        log_filter.add_category_filter(
+                            module.params.get('category'))
                         entries = log_filter.apply(entries)
                         log_filter = IDRACLogFilter()
-                    
+
                     if module.params.get('message_pattern'):
-                        log_filter.add_message_filter(module.params.get('message_pattern'))
+                        log_filter.add_message_filter(
+                            module.params.get('message_pattern'))
                         entries = log_filter.apply(entries)
-                    
+
                     filtered_entries = entries
 
                 # Enrich entries with MessageRegistry if requested
@@ -645,12 +663,21 @@ def main():
                     )
 
                 # Export to file
-                exporter = IDRACLogExporter(share_name, module.params.get('export_format'))
+                exporter = IDRACLogExporter(share_name,
+                                          module.params.get('export_format'))
                 metadata = {
-                    "server_model": idrac.get_system_model() if hasattr(idrac, 'get_system_model') else "Unknown",
-                    "service_tag": idrac.get_service_tag() if hasattr(idrac, 'get_service_tag') else "Unknown",
-                    "idrac_version": idrac.get_idrac_version() if hasattr(idrac, 'get_idrac_version') else "Unknown",
-                    "export_timestamp": idrac.get_current_time() if hasattr(idrac, 'get_current_time') else "Unknown",
+                    "server_model": (idrac.get_system_model()
+                                    if hasattr(idrac, 'get_system_model')
+                                    else "Unknown"),
+                    "service_tag": (idrac.get_service_tag()
+                                   if hasattr(idrac, 'get_service_tag')
+                                   else "Unknown"),
+                    "idrac_version": (idrac.get_idrac_version()
+                                      if hasattr(idrac, 'get_idrac_version')
+                                      else "Unknown"),
+                    "export_timestamp": (idrac.get_current_time()
+                                         if hasattr(idrac, 'get_current_time')
+                                         else "Unknown"),
                     "filters_applied": {
                         "date_start": module.params.get('date_start'),
                         "date_end": module.params.get('date_end'),
@@ -663,7 +690,7 @@ def main():
                 }
 
                 count = exporter.export(filtered_entries, metadata)
-                
+
                 # Verify export if requested (AC-006)
                 verification_status = None
                 if verify_export:
@@ -674,8 +701,9 @@ def main():
                     }
                     if not verification_status["verification_passed"]:
                         module.warn(
-                            f"Export verification failed: expected {expected_count} entries, "
-                            f"but exported {count} entries. This may be due to applied filters."
+                            f"Export verification failed: expected {expected_count} "
+                            f"entries, but exported {count} entries. This may be due "
+                            f"to applied filters."
                         )
 
                 # Check storage utilization and threshold (AC-008)
@@ -688,12 +716,12 @@ def main():
                         service_data = response.json_data
                         max_records = service_data.get('MaxNumberOfRecords', 0)
                         overwrite_policy = service_data.get('OverWritePolicy', 'Unknown')
-                        
+
                         if max_records > 0:
                             # Get current total entries
                             total_entries = pagination.get_total_entries_count(base_uri)
                             storage_utilization = (total_entries / max_records) * 100
-                            
+
                             if storage_utilization > storage_threshold_pct:
                                 storage_warning = (
                                     f"LC log storage at {round(storage_utilization, 2)}% capacity "
@@ -711,13 +739,13 @@ def main():
                     "lc_logs_status": {"exported_entries": count, "file": share_name},
                     "changed": True
                 }
-                
+
                 if verification_status:
                     result["export_verification"] = verification_status
-                
+
                 if storage_warning:
                     result["storage_warning"] = storage_warning
-                
+
                 module.exit_json(**result)
             else:
                 # Use existing network share export functionality
