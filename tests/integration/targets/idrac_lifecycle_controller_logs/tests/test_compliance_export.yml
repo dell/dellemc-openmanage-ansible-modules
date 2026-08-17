@@ -1,0 +1,27 @@
+---
+# Test AC-006: Compliance Export with Verification
+
+- name: Test compliance export with verification enabled
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    validate_certs: false
+    share_name: "/tmp/test_compliance_export.json"
+    export_format: "json"
+    verify_export: true
+    max_entries: 10
+  register: compliance_result
+
+- name: Verify export verification is returned
+  ansible.builtin.assert:
+    that:
+      - compliance_result.export_verification is defined
+      - compliance_result.export_verification.expected_count is defined
+      - compliance_result.export_verification.actual_count is defined
+      - compliance_result.export_verification.verification_passed is defined
+
+- name: Clean up test file
+  ansible.builtin.file:
+    path: "/tmp/test_compliance_export.json"
+    state: absent

@@ -4,6 +4,32 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v10.0.5
+=======
+
+Release Summary
+---------------
+
+This release adds advanced features to the idrac_lifecycle_controller_logs module including compliance export verification, filter optimization, storage overflow monitoring, and comment insertion capabilities.
+
+Minor Changes
+-------------
+
+- idrac_lifecycle_controller_logs - Add verify_export parameter for compliance export verification with entry count comparison.
+- idrac_lifecycle_controller_logs - Add filter_optimization parameter for combined filter optimization (single-query vs sequential mode).
+- idrac_lifecycle_controller_logs - Add storage_threshold_pct parameter for configurable storage overflow monitoring (default 80%).
+- idrac_lifecycle_controller_logs - Add insert_comment parameter for inserting custom comments into LC logs during automation workflows.
+- idrac_lifecycle_controller_logs - Add storage_warning field with actionable recommendations when threshold exceeded.
+- idrac_lifecycle_controller_logs - Add overwrite_policy metadata to storage monitoring results.
+- idrac_lifecycle_controller_logs - Add export_verification field with expected vs actual entry count comparison.
+- idrac_lifecycle_controller_logs - Add troubleshooting section for verification failures and comment insertion errors.
+- idrac_lifecycle_controller_logs - Add examples for compliance export, filter optimization, storage monitoring, and comment insertion.
+
+Bugfixes
+--------
+
+- idrac_lifecycle_controller_logs - Fix comment insertion privilege requirement documentation (requires ConfigureManager or Login+TestAlerts privilege).
+
 v10.0.4
 =======
 
