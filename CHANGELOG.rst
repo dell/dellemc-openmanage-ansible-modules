@@ -4,6 +4,32 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v10.0.4
+=======
+
+Release Summary
+---------------
+
+This release adds advanced filtering, multi-format export, and metadata query capabilities to the idrac_lifecycle_controller_logs module for enhanced log management and analysis.
+
+Minor Changes
+-------------
+
+- idrac_lifecycle_controller_logs - Add filtering parameters (date_start, date_end, severity, category, message_pattern) for targeted log queries.
+- idrac_lifecycle_controller_logs - Add multi-format export support (JSON, CSV, text) for local file exports.
+- idrac_lifecycle_controller_logs - Add fetch_metadata_only parameter for log service statistics without retrieving entries.
+- idrac_lifecycle_controller_logs - Add enrich_messages parameter for MessageRegistry enrichment with descriptions and resolutions.
+- idrac_lifecycle_controller_logs - Add force parameter for overwriting existing export files.
+- idrac_lifecycle_controller_logs - Add firmware version validation (iDRAC9 ≥ 7.10.90.00, iDRAC10 ≥ 1.20.50.50) for new features.
+- idrac_lifecycle_controller_logs - Add LC Log Service availability check with ServiceEnabled validation.
+- idrac_lifecycle_controller_logs - Add streaming pagination with circuit breaker and exponential backoff retry for large log sets.
+- idrac_lifecycle_controller_logs - Add comprehensive troubleshooting section in module documentation.
+
+Bugfixes
+--------
+
+- idrac_lifecycle_controller_logs - Fix invoke_request API calls to use correct parameter order (uri, method) for Redfish API compatibility.
+
 v10.0.3
 =======
 
