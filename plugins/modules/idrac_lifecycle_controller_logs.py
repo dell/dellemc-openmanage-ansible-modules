@@ -92,6 +92,21 @@ options:
       - Only applicable when using local file path.
     type: int
     version_added: "10.0.4"
+  force:
+    description:
+      - Force overwrite of existing export file.
+      - Only applicable when using local file path.
+    type: bool
+    default: false
+    version_added: "10.0.4"
+  fetch_metadata_only:
+    description:
+      - Fetch only log service metadata without retrieving log entries.
+      - Returns statistics like total entries, oldest/newest timestamps, severity breakdown.
+      - Only applicable when using local file path.
+    type: bool
+    default: false
+    version_added: "10.0.4"
 
 requirements:
   - "python >= 3.9.6"
@@ -182,6 +197,15 @@ EXAMPLES = r'''
     severity:
       - Critical
     max_entries: 100
+
+- name: Fetch LC log metadata only (no entries).
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "/tmp/lc_logs.json"
+    fetch_metadata_only: true
 '''
 
 RETURN = """
@@ -234,6 +258,7 @@ error_info:
 
 
 import json
+import os
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
@@ -244,6 +269,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.idrac_log_pagination import IDRACLogPagination
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.idrac_log_filters import IDRACLogFilter
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.idrac_log_exporter import IDRACLogExporter
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import MINIMUM_FIRMWARE_VERSION_IDRAC9, MINIMUM_FIRMWARE_VERSION_IDRAC10
 EXPORT_LC_LOGS = '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.ExportLCLog'
 SUCCESS_MSG = "Successfully exported the lifecycle controller logs."
 SCHEDULE_MSG = "The export lifecycle controller log job is submitted successfully."
@@ -253,7 +279,7 @@ CHANGES_FOUND_MSG = "Changes found to be applied."
 
 def main():
     specs = {
-        "share_name": {"required": True, "type": 'str'},
+        "share_name": {"required": False, "type": 'str'},
         "share_user": {"required": False, "type": 'str'},
         "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
         "job_wait": {"required": False, "type": 'bool', "default": True},
@@ -264,6 +290,8 @@ def main():
         "category": {"required": False, "type": 'list', "elements": 'str'},
         "message_pattern": {"required": False, "type": 'str'},
         "max_entries": {"required": False, "type": 'int'},
+        "force": {"required": False, "type": 'bool', "default": False},
+        "fetch_metadata_only": {"required": False, "type": 'bool', "default": False},
     }
     specs.update(idrac_auth_params)
     module = AnsibleModule(
@@ -278,8 +306,73 @@ def main():
 
     try:
         with iDRACRedfishAPI(module.params) as idrac:
+            # Validate firmware version for local export (new functionality)
+            if is_local_export:
+                gen_details = idrac.get_server_generation
+                idrac_model = gen_details[2] if len(gen_details) > 2 else 'iDRAC 9'
+                firmware_version = gen_details[1] if len(gen_details) > 1 else '0.0.0.0'
+
+                is_compliant, minimum_required, error_msg = iDRACRedfishAPI.check_minimum_firmware_requirement(
+                    idrac_model, firmware_version)
+
+                if not is_compliant:
+                    module.exit_json(msg=error_msg, failed=True)
+
+                # Check LC Log Service availability
+                try:
+                    lclog_service_uri = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog"
+                    response = idrac.invoke_request(lclog_service_uri, 'GET')
+                    service_data = response.json_data
+
+                    if not service_data.get('ServiceEnabled', True):
+                        module.exit_json(
+                            msg="Lifecycle Controller Log service is not enabled on this iDRAC. "
+                                "Please enable LC Log service in iDRAC settings.",
+                            failed=True
+                        )
+                except Exception as e:
+                    module.exit_json(
+                        msg=f"Failed to query Lifecycle Controller Log service: {str(e)}",
+                        failed=True
+                    )
+
             # Use new filtering/export functionality for local file exports
             if is_local_export:
+                # Check if metadata-only mode is requested
+                if module.params.get('fetch_metadata_only'):
+                    pagination = IDRACLogPagination(idrac)
+                    base_uri = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries"
+
+                    total_entries = pagination.get_total_entries_count(base_uri)
+                    oldest_timestamp = pagination.get_oldest_entry_timestamp(base_uri)
+                    newest_timestamp = pagination.get_newest_entry_timestamp(base_uri)
+                    severity_breakdown = pagination.get_severity_breakdown(base_uri)
+
+                    # Calculate storage utilization
+                    lclog_service_uri = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog"
+                    response = idrac.invoke_request(lclog_service_uri, 'GET')
+                    service_data = response.json_data
+                    max_records = service_data.get('MaxNumberOfRecords', 0)
+
+                    storage_utilization = 0
+                    if max_records > 0:
+                        storage_utilization = (total_entries / max_records) * 100
+
+                    metadata = {
+                        "total_entries": total_entries,
+                        "oldest_entry_timestamp": oldest_timestamp,
+                        "newest_entry_timestamp": newest_timestamp,
+                        "severity_breakdown": severity_breakdown,
+                        "storage_utilization_percentage": round(storage_utilization, 2),
+                        "max_records": max_records
+                    }
+
+                    module.exit_json(
+                        msg="Successfully retrieved Lifecycle Controller log metadata.",
+                        lc_logs_metadata=metadata,
+                        changed=False
+                    )
+
                 # Initialize pagination with circuit breaker
                 pagination = IDRACLogPagination(idrac, max_entries=module.params.get('max_entries'))
                 base_uri = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries"
@@ -300,6 +393,14 @@ def main():
                     log_filter.add_message_filter(module.params.get('message_pattern'))
 
                 filtered_entries = log_filter.apply(entries)
+
+                # Check if file exists and handle force parameter
+                force = module.params.get('force', False)
+                if os.path.exists(share_name) and not force:
+                    module.exit_json(
+                        msg=f"Export file {share_name} already exists. Use force=true to overwrite.",
+                        failed=True
+                    )
 
                 # Export to file
                 exporter = IDRACLogExporter(share_name, module.params.get('export_format'))
