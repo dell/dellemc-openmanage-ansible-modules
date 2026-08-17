@@ -1,0 +1,61 @@
+---
+# Test AC-002: Multi-format export (JSON, CSV, text)
+
+- name: Test multi-format export
+  block:
+    - name: Export LC logs to JSON format
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        share_name: "/tmp/test_logs.json"
+        export_format: "json"
+        max_entries: 5
+      register: json_result
+
+    - name: Verify JSON export succeeded
+      ansible.builtin.assert:
+        that:
+          - json_result.changed is true
+        fail_msg: "JSON export failed"
+
+    - name: Export LC logs to CSV format
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        share_name: "/tmp/test_logs.csv"
+        export_format: "csv"
+        max_entries: 5
+      register: csv_result
+
+    - name: Verify CSV export succeeded
+      ansible.builtin.assert:
+        that:
+          - csv_result.changed is true
+        fail_msg: "CSV export failed"
+
+    - name: Export LC logs to text format
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        share_name: "/tmp/test_logs.txt"
+        export_format: "text"
+        max_entries: 5
+      register: text_result
+
+    - name: Verify text export succeeded
+      ansible.builtin.assert:
+        that:
+          - text_result.changed is true
+        fail_msg: "Text export failed"
+
+    - name: Clean up test files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/test_logs.json
+        - /tmp/test_logs.csv
+        - /tmp/test_logs.txt

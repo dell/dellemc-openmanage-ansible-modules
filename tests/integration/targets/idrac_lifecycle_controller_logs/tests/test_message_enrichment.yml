@@ -1,0 +1,45 @@
+---
+# Test AC-004: MessageRegistry enrichment
+
+- name: Test MessageRegistry enrichment
+  block:
+    - name: Export LC logs with MessageRegistry enrichment
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        share_name: "/tmp/test_enriched_logs.json"
+        export_format: "json"
+        enrich_messages: true
+        max_entries: 5
+      register: result
+
+    - name: Verify enrichment export succeeded
+      ansible.builtin.assert:
+        that:
+          - result.changed is true
+          - result.lc_logs_status.exported_entries is defined
+        fail_msg: "Enrichment export failed"
+
+    - name: Read exported file
+      ansible.builtin.slurp:
+        src: /tmp/test_enriched_logs.json
+      register: file_content
+
+    - name: Parse JSON content
+      ansible.builtin.set_fact:
+        exported_data: "{{ file_content.content | b64decode | from_json }}"
+
+    - name: Verify enrichment fields in entries
+      ansible.builtin.assert:
+        that:
+          - exported_data.entries is defined
+          - exported_data.entries | length > 0
+          - exported_data.metadata.messages_enriched is true
+        fail_msg: "Enrichment fields missing"
+        success_msg: "Enrichment fields present"
+
+    - name: Clean up test file
+      ansible.builtin.file:
+        path: /tmp/test_enriched_logs.json
+        state: absent

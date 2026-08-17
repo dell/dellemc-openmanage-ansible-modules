@@ -1,0 +1,33 @@
+---
+# Test AC-003: Metadata-only query without fetching entries
+
+- name: Test metadata-only query
+  block:
+    - name: Fetch LC log metadata only
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        share_name: "/tmp/lc_logs.json"
+        fetch_metadata_only: true
+      register: result
+
+    - name: Verify metadata query succeeded
+      ansible.builtin.assert:
+        that:
+          - result is defined
+          - result.changed is false  # Metadata query should not report changed
+          - result.lc_logs_metadata is defined
+        fail_msg: "Metadata query failed"
+        success_msg: "Metadata query succeeded"
+
+    - name: Verify metadata fields
+      ansible.builtin.assert:
+        that:
+          - result.lc_logs_metadata.total_entries is defined
+          - result.lc_logs_metadata.oldest_entry_timestamp is defined
+          - result.lc_logs_metadata.newest_entry_timestamp is defined
+          - result.lc_logs_metadata.severity_breakdown is defined
+          - result.lc_logs_metadata.storage_utilization_percentage is defined
+        fail_msg: "Metadata fields missing"
+        success_msg: "All metadata fields present"
