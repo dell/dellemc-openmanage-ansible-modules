@@ -3,7 +3,7 @@
 #
 # Dell OpenManage Ansible Module
 # Version 10.0.5
-# Copyright (C) 2018-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2018-2026 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
