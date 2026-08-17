@@ -69,7 +69,7 @@ class IDRACLogPagination:
 
             # Fetch current page with retry logic
             try:
-                response = self.idrac_client.invoke_request(method='GET', uri=current_uri)
+                response = self.idrac_client.invoke_request(current_uri, 'GET')
                 response_data = response.json_data
 
                 # Process entries
@@ -125,7 +125,7 @@ class IDRACLogPagination:
         try:
             # Use $top=0 to get count without entries
             uri = f"{base_uri}?$top=0"
-            response = self.idrac_client.invoke_request(method='GET', uri=uri)
+            response = self.idrac_client.invoke_request(uri, 'GET')
             response_data = response.json_data
 
             return response_data.get('Members@odata.count', 0)
@@ -145,7 +145,7 @@ class IDRACLogPagination:
         try:
             # Use $top=1 with ascending order
             uri = f"{base_uri}?$top=1&$orderby=Created asc"
-            response = self.idrac_client.invoke_request(method='GET', uri=uri)
+            response = self.idrac_client.invoke_request(uri, 'GET')
             response_data = response.json_data
 
             entries = response_data.get('Members', [])
@@ -169,7 +169,7 @@ class IDRACLogPagination:
         try:
             # Use $top=1 (default is descending)
             uri = f"{base_uri}?$top=1"
-            response = self.idrac_client.invoke_request(method='GET', uri=uri)
+            response = self.idrac_client.invoke_request(uri, 'GET')
             response_data = response.json_data
 
             entries = response_data.get('Members', [])
@@ -199,7 +199,7 @@ class IDRACLogPagination:
         try:
             for severity in ['Critical', 'Warning', 'OK']:
                 uri = f"{base_uri}?$top=0&$filter=Severity eq '{severity}'"
-                response = self.idrac_client.invoke_request(method='GET', uri=uri)
+                response = self.idrac_client.invoke_request(uri, 'GET')
                 response_data = response.json_data
                 count = response_data.get('Members@odata.count', 0)
                 severity_counts[severity] = count
