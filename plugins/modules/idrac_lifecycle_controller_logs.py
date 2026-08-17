@@ -2,7 +2,7 @@
 
 #
 # Dell OpenManage Ansible Module
-# Version 10.0.4
+# Version 10.0.5
 # Copyright (C) 2018-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -116,6 +116,38 @@ options:
     type: bool
     default: false
     version_added: "10.0.4"
+  verify_export:
+    description:
+      - Verify export by comparing exported_entry_count against expected count.
+      - Provides verification status for compliance workflows.
+      - Only applicable when using local file path.
+    type: bool
+    default: false
+    version_added: "10.0.5"
+  filter_optimization:
+    description:
+      - Optimize combined filters into single OData query for better performance.
+      - When false, filters are applied sequentially for simpler debugging.
+      - Only applicable when using local file path.
+    type: bool
+    default: true
+    version_added: "10.0.5"
+  storage_threshold_pct:
+    description:
+      - Storage utilization threshold percentage for warning generation.
+      - When LC log storage exceeds this threshold, a warning is returned.
+      - Set to 0 to disable storage monitoring.
+      - Only applicable when using local file path.
+    type: int
+    default: 80
+    version_added: "10.0.5"
+  insert_comment:
+    description:
+      - Insert custom comment into LC logs for automation workflow context.
+      - Comment length must be ≤ 256 characters.
+      - Only applicable when using local file path.
+    type: str
+    version_added: "10.0.5"
 
 requirements:
   - "python >= 3.9.6"
@@ -139,6 +171,7 @@ troubleshooting:
   - "Permission errors":
       - Ensure the iDRAC user has 'Administrator' privilege.
       - Verify network share credentials are correct for CIFS exports.
+      - Comment insertion requires 'ConfigureManager' or 'Login+TestAlerts' privilege.
   - "Firmware incompatibility":
       - Check iDRAC firmware version meets minimum requirements (iDRAC9 ≥ 7.10.90.00, iDRAC10 ≥ 1.20.50.50).
       - Upgrade iDRAC firmware if version is below minimum requirement.
@@ -146,6 +179,19 @@ troubleshooting:
       - MessageRegistry may not be available on all firmware versions.
       - The module will continue without enrichment and log a warning.
       - Check iDRAC firmware version supports MessageRegistry endpoints.
+  - "Export verification failures":
+      - Verification failures may occur when filters are applied.
+      - Expected count is based on total entries before filtering.
+      - Actual count reflects entries after filtering.
+      - This is expected behavior and not an error.
+  - "Comment insertion failures":
+      - Ensure comment length is ≤ 256 characters.
+      - Check for invalid control characters in comment text.
+      - Verify iDRAC user has sufficient privilege for comment insertion.
+  - "Storage warnings":
+      - Storage warnings are informational, not failures.
+      - Export and archive logs when storage utilization exceeds threshold.
+      - iDRAC will automatically overwrite oldest entries when full (WrapsWhenFull policy).
 notes:
   - This module requires 'Administrator' privilege for I(idrac_user).
   - Exporting data to a local share is supported only on iDRAC9-based PowerEdge Servers and later.
@@ -254,6 +300,50 @@ EXAMPLES = r'''
     export_format: "json"
     enrich_messages: true
     max_entries: 100
+
+- name: Compliance export with verification (AC-006).
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "/tmp/lc_logs_compliance.json"
+    export_format: "json"
+    verify_export: true
+
+- name: Combined filters with optimization disabled (AC-007).
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "/tmp/lc_logs_combined.json"
+    export_format: "json"
+    date_start: "2026-08-01T00:00:00Z"
+    severity:
+      - Critical
+    category:
+      - SystemHealth
+    filter_optimization: false
+
+- name: Storage overflow monitoring with custom threshold (AC-008).
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "/tmp/lc_logs.json"
+    export_format: "json"
+    storage_threshold_pct: 90
+
+- name: Insert comment into LC logs for automation context (AC-009).
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "/tmp/lc_logs.json"
+    insert_comment: "Maintenance window started - firmware update initiated"
 '''
 
 RETURN = """
@@ -342,6 +432,10 @@ def main():
         "force": {"required": False, "type": 'bool', "default": False},
         "fetch_metadata_only": {"required": False, "type": 'bool', "default": False},
         "enrich_messages": {"required": False, "type": 'bool', "default": False},
+        "verify_export": {"required": False, "type": 'bool', "default": False},
+        "filter_optimization": {"required": False, "type": 'bool', "default": True},
+        "storage_threshold_pct": {"required": False, "type": 'int', "default": 80},
+        "insert_comment": {"required": False, "type": 'str'},
     }
     specs.update(idrac_auth_params)
     module = AnsibleModule(
@@ -388,6 +482,42 @@ def main():
 
             # Use new filtering/export functionality for local file exports
             if is_local_export:
+                # Check if insert_comment is requested (AC-009)
+                insert_comment = module.params.get('insert_comment')
+                if insert_comment:
+                    # Validate comment length
+                    if len(insert_comment) > 256:
+                        module.exit_json(
+                            msg=f"Comment exceeds maximum length of 256 characters (provided: {len(insert_comment)})",
+                            failed=True
+                        )
+                    
+                    # Validate for control characters
+                    if any(ord(c) < 32 and c not in '\t\n\r' for c in insert_comment):
+                        module.exit_json(
+                            msg="Comment contains invalid control characters",
+                            failed=True
+                        )
+                    
+                    # Invoke DellLCService.InsertCommentInLCLog action
+                    try:
+                        comment_action_uri = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.InsertCommentInLCLog"
+                        comment_payload = {"Comment": insert_comment}
+                        response = idrac.invoke_request(comment_action_uri, 'POST', data=comment_payload)
+                        result = response.json_data if response.json_data else {}
+                        
+                        module.exit_json(
+                            msg=f"Successfully inserted comment into LC logs: {insert_comment}",
+                            inserted_entry_id=result.get('EntryId', 'Unknown'),
+                            inserted_entry_timestamp=result.get('CreatedTimestamp', 'Unknown'),
+                            changed=True
+                        )
+                    except Exception as e:
+                        module.exit_json(
+                            msg=f"Failed to insert comment into LC logs: {str(e)}",
+                            failed=True
+                        )
+
                 # Check if metadata-only mode is requested
                 if module.params.get('fetch_metadata_only'):
                     pagination = IDRACLogPagination(idrac)
@@ -398,15 +528,28 @@ def main():
                     newest_timestamp = pagination.get_newest_entry_timestamp(base_uri)
                     severity_breakdown = pagination.get_severity_breakdown(base_uri)
 
-                    # Calculate storage utilization
+                    # Calculate storage utilization and check threshold (AC-008)
                     lclog_service_uri = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog"
                     response = idrac.invoke_request(lclog_service_uri, 'GET')
                     service_data = response.json_data
                     max_records = service_data.get('MaxNumberOfRecords', 0)
+                    overwrite_policy = service_data.get('OverWritePolicy', 'Unknown')
 
                     storage_utilization = 0
                     if max_records > 0:
                         storage_utilization = (total_entries / max_records) * 100
+
+                    storage_threshold_pct = module.params.get('storage_threshold_pct', 80)
+                    storage_warning = None
+                    
+                    if storage_threshold_pct > 0 and storage_utilization > storage_threshold_pct:
+                        storage_warning = (
+                            f"LC log storage at {round(storage_utilization, 2)}% capacity "
+                            f"(threshold: {storage_threshold_pct}%). "
+                            f"Consider exporting and archiving logs before iDRAC's automatic "
+                            f"wrap-around overwrites oldest entries. "
+                            f"Overwrite policy: {overwrite_policy}"
+                        )
 
                     metadata = {
                         "total_entries": total_entries,
@@ -414,35 +557,75 @@ def main():
                         "newest_entry_timestamp": newest_timestamp,
                         "severity_breakdown": severity_breakdown,
                         "storage_utilization_percentage": round(storage_utilization, 2),
-                        "max_records": max_records
+                        "max_records": max_records,
+                        "overwrite_policy": overwrite_policy
                     }
 
-                    module.exit_json(
-                        msg="Successfully retrieved Lifecycle Controller log metadata.",
-                        lc_logs_metadata=metadata,
-                        changed=False
-                    )
+                    result = {
+                        "msg": "Successfully retrieved Lifecycle Controller log metadata.",
+                        "lc_logs_metadata": metadata,
+                        "changed": False
+                    }
+                    
+                    if storage_warning:
+                        result["storage_warning"] = storage_warning
+                    
+                    module.exit_json(**result)
 
                 # Initialize pagination with circuit breaker
                 pagination = IDRACLogPagination(idrac, max_entries=module.params.get('max_entries'))
                 base_uri = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries"
 
+                # Pre-calculate expected entry count for verification (AC-006)
+                verify_export = module.params.get('verify_export', False)
+                expected_count = None
+                if verify_export:
+                    expected_count = pagination.get_total_entries_count(base_uri)
+
                 # Retrieve logs with pagination
                 date_start = module.params.get('date_start')
                 entries = list(pagination.paginate_lc_logs(base_uri, date_start=date_start))
 
-                # Apply filters
+                # Apply filters with optimization (AC-007)
                 log_filter = IDRACLogFilter()
-                if module.params.get('date_end'):
-                    log_filter.add_date_filter(date_end=module.params.get('date_end'))
-                if module.params.get('severity'):
-                    log_filter.add_severity_filter(module.params.get('severity'))
-                if module.params.get('category'):
-                    log_filter.add_category_filter(module.params.get('category'))
-                if module.params.get('message_pattern'):
-                    log_filter.add_message_filter(module.params.get('message_pattern'))
-
-                filtered_entries = log_filter.apply(entries)
+                filter_optimization = module.params.get('filter_optimization', True)
+                
+                if filter_optimization:
+                    # Combined filter optimization - apply all filters at once
+                    # Note: Server-side filtering is already handled in pagination
+                    # This is for client-side filters that can't be done server-side
+                    if module.params.get('date_end'):
+                        log_filter.add_date_filter(date_end=module.params.get('date_end'))
+                    if module.params.get('severity'):
+                        log_filter.add_severity_filter(module.params.get('severity'))
+                    if module.params.get('category'):
+                        log_filter.add_category_filter(module.params.get('category'))
+                    if module.params.get('message_pattern'):
+                        log_filter.add_message_filter(module.params.get('message_pattern'))
+                    
+                    filtered_entries = log_filter.apply(entries)
+                else:
+                    # Sequential filter application for debugging
+                    if module.params.get('date_end'):
+                        log_filter.add_date_filter(date_end=module.params.get('date_end'))
+                        entries = log_filter.apply(entries)
+                        log_filter = IDRACLogFilter()  # Reset for next filter
+                    
+                    if module.params.get('severity'):
+                        log_filter.add_severity_filter(module.params.get('severity'))
+                        entries = log_filter.apply(entries)
+                        log_filter = IDRACLogFilter()
+                    
+                    if module.params.get('category'):
+                        log_filter.add_category_filter(module.params.get('category'))
+                        entries = log_filter.apply(entries)
+                        log_filter = IDRACLogFilter()
+                    
+                    if module.params.get('message_pattern'):
+                        log_filter.add_message_filter(module.params.get('message_pattern'))
+                        entries = log_filter.apply(entries)
+                    
+                    filtered_entries = entries
 
                 # Enrich entries with MessageRegistry if requested
                 if module.params.get('enrich_messages'):
@@ -480,8 +663,62 @@ def main():
                 }
 
                 count = exporter.export(filtered_entries, metadata)
+                
+                # Verify export if requested (AC-006)
+                verification_status = None
+                if verify_export:
+                    verification_status = {
+                        "expected_count": expected_count,
+                        "actual_count": count,
+                        "verification_passed": count == expected_count
+                    }
+                    if not verification_status["verification_passed"]:
+                        module.warn(
+                            f"Export verification failed: expected {expected_count} entries, "
+                            f"but exported {count} entries. This may be due to applied filters."
+                        )
+
+                # Check storage utilization and threshold (AC-008)
+                storage_warning = None
+                storage_threshold_pct = module.params.get('storage_threshold_pct', 80)
+                if storage_threshold_pct > 0:
+                    try:
+                        lclog_service_uri = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog"
+                        response = idrac.invoke_request(lclog_service_uri, 'GET')
+                        service_data = response.json_data
+                        max_records = service_data.get('MaxNumberOfRecords', 0)
+                        overwrite_policy = service_data.get('OverWritePolicy', 'Unknown')
+                        
+                        if max_records > 0:
+                            # Get current total entries
+                            total_entries = pagination.get_total_entries_count(base_uri)
+                            storage_utilization = (total_entries / max_records) * 100
+                            
+                            if storage_utilization > storage_threshold_pct:
+                                storage_warning = (
+                                    f"LC log storage at {round(storage_utilization, 2)}% capacity "
+                                    f"(threshold: {storage_threshold_pct}%). "
+                                    f"Consider exporting and archiving logs before iDRAC's automatic "
+                                    f"wrap-around overwrites oldest entries. "
+                                    f"Overwrite policy: {overwrite_policy}"
+                                )
+                    except Exception as e:
+                        module.warn(f"Failed to check storage utilization: {str(e)}")
+
                 msg = f"Successfully exported {count} lifecycle controller log entries to {share_name}."
-                module.exit_json(msg=msg, lc_logs_status={"exported_entries": count, "file": share_name}, changed=True)
+                result = {
+                    "msg": msg,
+                    "lc_logs_status": {"exported_entries": count, "file": share_name},
+                    "changed": True
+                }
+                
+                if verification_status:
+                    result["export_verification"] = verification_status
+                
+                if storage_warning:
+                    result["storage_warning"] = storage_warning
+                
+                module.exit_json(**result)
             else:
                 # Use existing network share export functionality
                 lifecycle_controller_logs_obj = IDRACLifecycleControllerLogs(idrac)

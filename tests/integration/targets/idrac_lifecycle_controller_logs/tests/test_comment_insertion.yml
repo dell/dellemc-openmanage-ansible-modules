@@ -1,0 +1,53 @@
+---
+# Test AC-009: Comment Insertion
+
+- name: Test comment insertion with valid comment
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    validate_certs: false
+    share_name: "/tmp/lc_logs.json"
+    insert_comment: "Test comment from Ansible automation"
+  register: comment_result
+
+- name: Verify comment insertion result
+  ansible.builtin.assert:
+    that:
+      - comment_result.changed is defined
+      - comment_result.inserted_entry_id is defined
+      - comment_result.inserted_entry_timestamp is defined
+
+- name: Test comment insertion with invalid length (>256 characters)
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    validate_certs: false
+    share_name: "/tmp/lc_logs.json"
+    insert_comment: "This is a very long comment that exceeds the maximum allowed length of 256 characters and should fail validation before being sent to the iDRAC API to prevent unnecessary API calls and provide clear feedback to the user about the validation error"
+  register: long_comment_result
+  ignore_errors: true
+
+- name: Verify long comment validation fails
+  ansible.builtin.assert:
+    that:
+      - long_comment_result.failed is defined
+      - "'256 characters' in long_comment_result.msg"
+
+- name: Test comment insertion with control characters
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    validate_certs: false
+    share_name: "/tmp/lc_logs.json"
+    insert_comment: "Test comment with\x00control character"
+  register: control_char_result
+  ignore_errors: true
+
+- name: Verify control character validation fails
+  ansible.builtin.assert:
+    that:
+      - control_char_result.failed is defined
+      - "'control characters' in control_char_result.msg"
