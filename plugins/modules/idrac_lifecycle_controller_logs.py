@@ -412,8 +412,6 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
     idrac_log_exporter import IDRACLogExporter
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
     idrac_message_registry import IDRACMessageRegistry
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
-    MINIMUM_FIRMWARE_VERSION_IDRAC9, MINIMUM_FIRMWARE_VERSION_IDRAC10)
 EXPORT_LC_LOGS = '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.ExportLCLog'
 SUCCESS_MSG = "Successfully exported the lifecycle controller logs."
 SCHEDULE_MSG = "The export lifecycle controller log job is submitted successfully."
