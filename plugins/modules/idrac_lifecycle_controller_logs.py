@@ -123,6 +123,29 @@ author:
   - "Rajeev Arakkal (@rajeevarakkal)"
   - "Anooja Vardhineni (@anooja-vardhineni)"
   - "Trisha Datta (@trisha-dell)"
+troubleshooting:
+  - "No logs returned with filters applied":
+      - Verify the filter criteria match actual log entries in the LC log.
+      - Check the date format is ISO 8601 (e.g., 2026-08-01T00:00:00Z).
+      - Use fetch_metadata_only to check available log entries and their timestamps.
+  - "Filter syntax errors":
+      - Ensure severity values are exactly 'Critical', 'Warning', or 'OK'.
+      - For message_pattern, use valid regex syntax.
+      - Date filters require ISO 8601 format with timezone information.
+  - "Export failures":
+      - Verify the export path has write permissions.
+      - Use force=true to overwrite existing export files.
+      - Check disk space is available for the export file.
+  - "Permission errors":
+      - Ensure the iDRAC user has 'Administrator' privilege.
+      - Verify network share credentials are correct for CIFS exports.
+  - "Firmware incompatibility":
+      - Check iDRAC firmware version meets minimum requirements (iDRAC9 ≥ 7.10.90.00, iDRAC10 ≥ 1.20.50.50).
+      - Upgrade iDRAC firmware if version is below minimum requirement.
+  - "MessageRegistry enrichment not working":
+      - MessageRegistry may not be available on all firmware versions.
+      - The module will continue without enrichment and log a warning.
+      - Check iDRAC firmware version supports MessageRegistry endpoints.
 notes:
   - This module requires 'Administrator' privilege for I(idrac_user).
   - Exporting data to a local share is supported only on iDRAC9-based PowerEdge Servers and later.
@@ -131,6 +154,11 @@ notes:
   - This module does not support C(check_mode).
   - No job will be created when exporting data to a local share in iDRAC9 and iDRAC 10.
   - Filtering and format options are only available for local file exports.
+  - The minimum firmware version for iDRAC9 is 7.10.90.00 and for iDRAC10 is 1.20.50.50.
+  - MessageRegistry enrichment may not be available on all iDRAC firmware versions.
+    When unavailable, the module will continue without enrichment and log a warning.
+  - For network share exports, the module uses the existing DellLCService.ExportLCLog action.
+  - For local file exports, the module uses Redfish API to query and filter LC logs directly.
 """
 
 EXAMPLES = r'''
