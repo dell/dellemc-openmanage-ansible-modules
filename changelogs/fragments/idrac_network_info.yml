@@ -1,0 +1,7 @@
+---
+minor_changes:
+  - >
+    idrac_network_info - New module to discover all network device functions (NICs) on an
+    iDRAC via the chassis-scoped Redfish NetworkAdapters endpoint, returning rich metadata
+    per NIC
+    (https://github.com/dell/dellemc-openmanage-ansible-modules).

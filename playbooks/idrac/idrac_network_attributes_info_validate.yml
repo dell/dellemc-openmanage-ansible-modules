@@ -1,0 +1,103 @@
+---
+- name: Validate Network Attributes Against Registry
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Validate a single enumeration attribute
+      dellemc.openmanage.idrac_network_attributes_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        network_device_function_id: "{{ network_device_function_id | default('NIC.Embedded.1-1-1') }}"
+        validate: true
+        attributes:
+          VLanMode: "Enabled"
+      register: enum_result
+      tags:
+        - validate_enum
+      delegate_to: localhost
+
+    - name: Show enumeration validation result
+      ansible.builtin.debug:
+        msg: "Valid: {{ enum_result.valid }}, Results: {{ enum_result.validation_results }}"
+      tags:
+        - validate_enum
+      delegate_to: localhost
+
+    - name: Validate an integer attribute within range
+      dellemc.openmanage.idrac_network_attributes_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        network_device_function_id: "{{ network_device_function_id | default('NIC.Embedded.1-1-1') }}"
+        validate: true
+        attributes:
+          VLanId: "100"
+      register: int_result
+      tags:
+        - validate_int
+      delegate_to: localhost
+
+    - name: Show integer validation result
+      ansible.builtin.debug:
+        msg: "Valid: {{ int_result.valid }}, Results: {{ int_result.validation_results }}"
+      tags:
+        - validate_int
+      delegate_to: localhost
+
+    - name: Validate with a misspelled attribute name (fuzzy suggestions)
+      dellemc.openmanage.idrac_network_attributes_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        network_device_function_id: "{{ network_device_function_id | default('NIC.Embedded.1-1-1') }}"
+        validate: true
+        attributes:
+          VLanMoed: "Enabled"
+      register: fuzzy_result
+      tags:
+        - validate_fuzzy
+      delegate_to: localhost
+
+    - name: Show fuzzy match suggestions
+      ansible.builtin.debug:
+        msg: "Valid: {{ fuzzy_result.valid }}, Suggestions: {{ fuzzy_result.validation_results[0].suggestions }}"
+      tags:
+        - validate_fuzzy
+      delegate_to: localhost
+
+    - name: Batch validation with mixed valid and invalid attributes
+      dellemc.openmanage.idrac_network_attributes_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        network_device_function_id: "{{ network_device_function_id | default('NIC.Embedded.1-1-1') }}"
+        validate: true
+        attributes: "{{ validate_attributes | default({'VLanMode': 'Enabled', 'VLanId': '99999', 'VLanMoed': 'Enabled'}) }}"
+      register: batch_result
+      tags:
+        - validate_batch
+      delegate_to: localhost
+
+    - name: Show batch validation summary
+      ansible.builtin.debug:
+        msg: >-
+          Overall Valid: {{ batch_result.valid }},
+          Valid Count: {{ batch_result.valid_count }},
+          Invalid Count: {{ batch_result.invalid_count }}
+      tags:
+        - validate_batch
+      delegate_to: localhost
+
+    - name: Show per-attribute results
+      ansible.builtin.debug:
+        msg: "{{ item.attribute }}: {{ item.status }} - {{ item.reason }}"
+      loop: "{{ batch_result.validation_results }}"
+      tags:
+        - validate_batch
+      delegate_to: localhost
