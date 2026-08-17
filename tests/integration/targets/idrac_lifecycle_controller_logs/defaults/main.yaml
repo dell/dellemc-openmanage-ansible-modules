@@ -1,3 +1,4 @@
 ---
-testcase: '[^_].*'
-test_items: []
+# Default variables for idrac_lifecycle_controller_logs integration tests
+
+testcase_pattern: "test_*.yml"
