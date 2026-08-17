@@ -107,6 +107,15 @@ options:
     type: bool
     default: false
     version_added: "10.0.4"
+  enrich_messages:
+    description:
+      - Enrich log entries with MessageRegistry descriptions and resolutions.
+      - Adds MessageDescription and MessageResolution fields to each entry.
+      - Only applicable when using local file path.
+      - May increase processing time for large log sets.
+    type: bool
+    default: false
+    version_added: "10.0.4"
 
 requirements:
   - "python >= 3.9.6"
@@ -206,6 +215,17 @@ EXAMPLES = r'''
     ca_path: "/path/to/ca_cert.pem"
     share_name: "/tmp/lc_logs.json"
     fetch_metadata_only: true
+
+- name: Export LC logs with MessageRegistry enrichment.
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "/tmp/lc_logs_enriched.json"
+    export_format: "json"
+    enrich_messages: true
+    max_entries: 100
 '''
 
 RETURN = """
@@ -269,6 +289,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.idrac_log_pagination import IDRACLogPagination
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.idrac_log_filters import IDRACLogFilter
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.idrac_log_exporter import IDRACLogExporter
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.idrac_message_registry import IDRACMessageRegistry
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import MINIMUM_FIRMWARE_VERSION_IDRAC9, MINIMUM_FIRMWARE_VERSION_IDRAC10
 EXPORT_LC_LOGS = '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.ExportLCLog'
 SUCCESS_MSG = "Successfully exported the lifecycle controller logs."
@@ -292,6 +313,7 @@ def main():
         "max_entries": {"required": False, "type": 'int'},
         "force": {"required": False, "type": 'bool', "default": False},
         "fetch_metadata_only": {"required": False, "type": 'bool', "default": False},
+        "enrich_messages": {"required": False, "type": 'bool', "default": False},
     }
     specs.update(idrac_auth_params)
     module = AnsibleModule(
@@ -394,6 +416,15 @@ def main():
 
                 filtered_entries = log_filter.apply(entries)
 
+                # Enrich entries with MessageRegistry if requested
+                if module.params.get('enrich_messages'):
+                    try:
+                        message_registry = IDRACMessageRegistry(idrac)
+                        filtered_entries = message_registry.enrich_log_entries(filtered_entries)
+                    except Exception as e:
+                        # Log warning but continue without enrichment
+                        module.warn(f"Failed to enrich messages with MessageRegistry: {str(e)}")
+
                 # Check if file exists and handle force parameter
                 force = module.params.get('force', False)
                 if os.path.exists(share_name) and not force:
@@ -416,7 +447,8 @@ def main():
                         "category": module.params.get('category'),
                         "message_pattern": module.params.get('message_pattern'),
                     },
-                    "exported_entry_count": len(filtered_entries)
+                    "exported_entry_count": len(filtered_entries),
+                    "messages_enriched": module.params.get('enrich_messages', False)
                 }
 
                 count = exporter.export(filtered_entries, metadata)
