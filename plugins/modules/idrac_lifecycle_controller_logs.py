@@ -14,10 +14,12 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: idrac_lifecycle_controller_logs
-short_description: Export Lifecycle Controller logs to a network share or local path.
+short_description: Export Lifecycle Controller logs to a network share or local path with filtering support.
 version_added: "2.1.0"
 description:
   - Export Lifecycle Controller logs to a given network share or local path.
+  - Support for filtering logs by date range, severity, category, and message pattern.
+  - Support for multiple export formats (JSON, CSV, text).
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 options:
@@ -39,6 +41,57 @@ options:
     description: Whether to wait for the running job completion or not.
     type: bool
     default: true
+  export_format:
+    description:
+      - Format for log export when using local file path.
+      - Only applicable when share_name is a local file path.
+      - For network shares, logs are exported in the default format.
+    type: str
+    choices: ['json', 'csv', 'text']
+    default: 'json'
+    version_added: "10.0.4"
+  date_start:
+    description:
+      - Filter logs to include only entries on or after this date.
+      - Format: ISO 8601 (e.g., 2026-08-01T00:00:00Z).
+      - Only applicable when using local file path.
+    type: str
+    version_added: "10.0.4"
+  date_end:
+    description:
+      - Filter logs to include only entries before this date.
+      - Format: ISO 8601 (e.g., 2026-08-31T23:59:59Z).
+      - Only applicable when using local file path.
+    type: str
+    version_added: "10.0.4"
+  severity:
+    description:
+      - Filter logs by severity level.
+      - Only applicable when using local file path.
+    type: list
+    elements: str
+    choices: ['Critical', 'Warning', 'OK']
+    version_added: "10.0.4"
+  category:
+    description:
+      - Filter logs by category.
+      - Only applicable when using local file path.
+    type: list
+    elements: str
+    version_added: "10.0.4"
+  message_pattern:
+    description:
+      - Filter logs by message pattern (regex supported).
+      - Only applicable when using local file path.
+    type: str
+    version_added: "10.0.4"
+  max_entries:
+    description:
+      - Maximum number of log entries to retrieve.
+      - Useful for limiting export size.
+      - Only applicable when using local file path.
+    type: int
+    version_added: "10.0.4"
 
 requirements:
   - "python >= 3.9.6"
@@ -53,6 +106,7 @@ notes:
   - This module supports both IPv4 and IPv6 address for I(idrac_ip).
   - This module does not support C(check_mode).
   - No job will be created when exporting data to a local share in iDRAC9 and iDRAC 10.
+  - Filtering and format options are only available for local file exports.
 """
 
 EXAMPLES = r'''
@@ -82,6 +136,52 @@ EXAMPLES = r'''
     idrac_password: "user_password"
     ca_path: "/path/to/ca_cert.pem"
     share_name: "/example/export_lc"
+
+- name: Export lifecycle controller logs to local JSON file with date filter.
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "/tmp/lc_logs.json"
+    export_format: "json"
+    date_start: "2026-08-01T00:00:00Z"
+    date_end: "2026-08-31T23:59:59Z"
+
+- name: Export lifecycle controller logs to local CSV file with severity filter.
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "/tmp/lc_logs.csv"
+    export_format: "csv"
+    severity:
+      - Critical
+      - Warning
+
+- name: Export lifecycle controller logs with message pattern filter.
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "/tmp/lc_logs.json"
+    export_format: "json"
+    message_pattern: "temperature|power"
+
+- name: Export lifecycle controller logs with combined filters and max entries limit.
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "/tmp/lc_logs.json"
+    export_format: "json"
+    date_start: "2026-08-01T00:00:00Z"
+    severity:
+      - Critical
+    max_entries: 100
 '''
 
 RETURN = """
@@ -141,6 +241,9 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
     idrac_lifecycle_controller_logs_utils import IDRACLifecycleControllerLogs
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.idrac_log_pagination import IDRACLogPagination
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.idrac_log_filters import IDRACLogFilter
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.idrac_log_exporter import IDRACLogExporter
 EXPORT_LC_LOGS = '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.ExportLCLog'
 SUCCESS_MSG = "Successfully exported the lifecycle controller logs."
 SCHEDULE_MSG = "The export lifecycle controller log job is submitted successfully."
@@ -154,17 +257,75 @@ def main():
         "share_user": {"required": False, "type": 'str'},
         "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
         "job_wait": {"required": False, "type": 'bool', "default": True},
+        "export_format": {"required": False, "type": 'str', "choices": ['json', 'csv', 'text'], "default": 'json'},
+        "date_start": {"required": False, "type": 'str'},
+        "date_end": {"required": False, "type": 'str'},
+        "severity": {"required": False, "type": 'list', "elements": 'str', "choices": ['Critical', 'Warning', 'OK']},
+        "category": {"required": False, "type": 'list', "elements": 'str'},
+        "message_pattern": {"required": False, "type": 'str'},
+        "max_entries": {"required": False, "type": 'int'},
     }
     specs.update(idrac_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
         supports_check_mode=False)
 
+    # Check if this is a local file export (new filtering/export functionality)
+    share_name = module.params.get('share_name')
+    # Network shares: \\server\share (CIFS) or server:/path (NFS)
+    is_network_share = share_name.startswith('\\\\') or (':' in share_name and not share_name[1] == ':')
+    is_local_export = not is_network_share
+
     try:
         with iDRACRedfishAPI(module.params) as idrac:
-            lifecycle_controller_logs_obj = IDRACLifecycleControllerLogs(idrac)
-            msg, job_dict, changed = lifecycle_controller_logs_obj.lifecycle_controller_logs_operation(idrac, module)
-            module.exit_json(msg=msg, lc_logs_status=job_dict, changed=changed)
+            # Use new filtering/export functionality for local file exports
+            if is_local_export:
+                # Initialize pagination with circuit breaker
+                pagination = IDRACLogPagination(idrac, max_entries=module.params.get('max_entries'))
+                base_uri = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries"
+
+                # Retrieve logs with pagination
+                date_start = module.params.get('date_start')
+                entries = list(pagination.paginate_lc_logs(base_uri, date_start=date_start))
+
+                # Apply filters
+                log_filter = IDRACLogFilter()
+                if module.params.get('date_end'):
+                    log_filter.add_date_filter(date_end=module.params.get('date_end'))
+                if module.params.get('severity'):
+                    log_filter.add_severity_filter(module.params.get('severity'))
+                if module.params.get('category'):
+                    log_filter.add_category_filter(module.params.get('category'))
+                if module.params.get('message_pattern'):
+                    log_filter.add_message_filter(module.params.get('message_pattern'))
+
+                filtered_entries = log_filter.apply(entries)
+
+                # Export to file
+                exporter = IDRACLogExporter(share_name, module.params.get('export_format'))
+                metadata = {
+                    "server_model": idrac.get_system_model() if hasattr(idrac, 'get_system_model') else "Unknown",
+                    "service_tag": idrac.get_service_tag() if hasattr(idrac, 'get_service_tag') else "Unknown",
+                    "idrac_version": idrac.get_idrac_version() if hasattr(idrac, 'get_idrac_version') else "Unknown",
+                    "export_timestamp": idrac.get_current_time() if hasattr(idrac, 'get_current_time') else "Unknown",
+                    "filters_applied": {
+                        "date_start": module.params.get('date_start'),
+                        "date_end": module.params.get('date_end'),
+                        "severity": module.params.get('severity'),
+                        "category": module.params.get('category'),
+                        "message_pattern": module.params.get('message_pattern'),
+                    },
+                    "exported_entry_count": len(filtered_entries)
+                }
+
+                count = exporter.export(filtered_entries, metadata)
+                msg = f"Successfully exported {count} lifecycle controller log entries to {share_name}."
+                module.exit_json(msg=msg, lc_logs_status={"exported_entries": count, "file": share_name}, changed=True)
+            else:
+                # Use existing network share export functionality
+                lifecycle_controller_logs_obj = IDRACLifecycleControllerLogs(idrac)
+                msg, job_dict, changed = lifecycle_controller_logs_obj.lifecycle_controller_logs_operation(idrac, module)
+                module.exit_json(msg=msg, lc_logs_status=job_dict, changed=changed)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
