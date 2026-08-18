@@ -34,7 +34,7 @@
       ansible.builtin.assert:
         that:
           - no_force_result.failed is true
-          - "already exists" in no_force_result.msg
+          - "'already exists' in no_force_result.msg"
         fail_msg: "No-force export should have failed"
         success_msg: "No-force export failed as expected"
 

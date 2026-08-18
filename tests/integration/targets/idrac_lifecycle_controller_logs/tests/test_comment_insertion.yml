@@ -25,7 +25,11 @@
     idrac_password: "{{ idrac_password }}"
     validate_certs: false
     share_name: "/tmp/lc_logs.json"
-    insert_comment: "This is a very long comment that exceeds the maximum allowed length of 256 characters and should fail validation before being sent to the iDRAC API to prevent unnecessary API calls and provide clear feedback to the user about the validation error"
+    insert_comment: >-
+      This is a very long comment that exceeds the maximum allowed length
+      of 256 characters and should fail validation before being sent to
+      the iDRAC API to prevent unnecessary API calls and provide clear
+      feedback to the user about the validation error
   register: long_comment_result
   ignore_errors: true
 
