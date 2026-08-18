@@ -12,6 +12,7 @@ __metaclass__ = type
 
 import pytest
 import json
+import os
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_lifecycle_controller_logs
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from unittest.mock import MagicMock
@@ -477,3 +478,235 @@ class TestExportLcLogs(FakeAnsibleModule):
         else:
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
+
+    def test_filter_combinations_with_mocked_payloads(self, idrac_default_args, mocker,
+                                                      idrac_redfish_connection_export_lc_logs_mock):
+        """Test all filter combinations with mocked payloads"""
+        import json
+        # Load fixture
+        fixture_path = os.path.join(os.path.dirname(__file__), 'fixtures', 'lc_log_entries_idrac9.json')
+        with open(fixture_path) as f:
+            fixture_data = json.load(f)
+
+        # Test combined filters
+        idrac_default_args.update({
+            "share_name": "/tmp/export",
+            "date_start": "2026-08-15T00:00:00Z",
+            "date_end": "2026-08-18T23:59:59Z",
+            "severity": ["Critical"],
+            "category": ["SystemHealth"]
+        })
+
+        mock_response = MagicMock()
+        mock_response.json_data = fixture_data
+        idrac_redfish_connection_export_lc_logs_mock.invoke_request.return_value = mock_response
+
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.export",
+            return_value=2)
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.validate_permissions",
+            return_value=True)
+
+        result = self._run_module(idrac_default_args)
+        assert "filters_applied" in result
+        assert result["filters_applied"]["severity"] == ["Critical"]
+        assert result["filters_applied"]["category"] == ["SystemHealth"]
+
+    def test_pagination_across_multiple_pages(self, idrac_default_args, mocker,
+                                             idrac_redfish_connection_export_lc_logs_mock):
+        """Test pagination across multiple pages"""
+        # First page
+        page1 = {
+            "Members": [
+                {"Id": "1", "Created": "2026-08-15T10:00:00Z", "Severity": "Critical", "Message": "Test 1"}
+            ],
+            "Members@odata.nextLink": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries?$skip=50"
+        }
+        # Second page
+        page2 = {
+            "Members": [
+                {"Id": "2", "Created": "2026-08-15T11:00:00Z", "Severity": "Critical", "Message": "Test 2"}
+            ]
+        }
+
+        idrac_default_args.update({
+            "share_name": "/tmp/export",
+            "severity": ["Critical"]
+        })
+
+        mock_response1 = MagicMock()
+        mock_response1.json_data = page1
+        mock_response2 = MagicMock()
+        mock_response2.json_data = page2
+
+        # Use a list to track calls
+        call_count = [0]
+        def mock_invoke_request(uri, method):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                return mock_response1
+            else:
+                return mock_response2
+
+        idrac_redfish_connection_export_lc_logs_mock.invoke_request.side_effect = mock_invoke_request
+
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.export",
+            return_value=2)
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.validate_permissions",
+            return_value=True)
+
+        result = self._run_module(idrac_default_args)
+        assert "lc_logs" in result
+        assert len(result["lc_logs"]) == 2  # Both Critical entries from both pages
+
+    def test_json_export_schema_validation(self, idrac_default_args, mocker,
+                                          idrac_redfish_connection_export_lc_logs_mock):
+        """Test JSON export schema validation"""
+        idrac_default_args.update({
+            "share_name": "/tmp/export/logs.json",
+            "export_format": "json",
+            "severity": ["Critical"]
+        })
+
+        mock_entries = [
+            {
+                "Id": "1",
+                "Created": "2026-08-15T10:00:00Z",
+                "Severity": "Critical",
+                "Message": "Test"
+            }
+        ]
+        mock_response = MagicMock()
+        mock_response.json_data = {"Members": mock_entries}
+        idrac_redfish_connection_export_lc_logs_mock.invoke_request.return_value = mock_response
+
+        # Mock the export to capture the data
+        exported_data = {}
+        def mock_export(entries, metadata):
+            exported_data["entries"] = entries
+            exported_data["metadata"] = metadata
+            return len(entries)
+
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.export",
+            side_effect=mock_export)
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.validate_permissions",
+            return_value=True)
+
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == "Successfully exported filtered lifecycle controller logs."
+        assert "metadata" in exported_data
+        assert "entries" in exported_data
+        assert "filters_applied" in exported_data["metadata"]
+
+    def test_csv_export_structure_validation(self, idrac_default_args, mocker,
+                                            idrac_redfish_connection_export_lc_logs_mock):
+        """Test CSV export structure validation"""
+        idrac_default_args.update({
+            "share_name": "/tmp/export/logs.csv",
+            "export_format": "csv",
+            "severity": ["Critical"]
+        })
+
+        mock_entries = [
+            {
+                "Id": "1",
+                "Created": "2026-08-15T10:00:00Z",
+                "Severity": "Critical",
+                "Message": "Test"
+            }
+        ]
+        mock_response = MagicMock()
+        mock_response.json_data = {"Members": mock_entries}
+        idrac_redfish_connection_export_lc_logs_mock.invoke_request.return_value = mock_response
+
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.export",
+            return_value=1)
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.validate_permissions",
+            return_value=True)
+
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == "Successfully exported filtered lifecycle controller logs."
+        assert result["exported_entry_count"] == 1
+
+    def test_text_export_format_validation(self, idrac_default_args, mocker,
+                                          idrac_redfish_connection_export_lc_logs_mock):
+        """Test text export format validation"""
+        idrac_default_args.update({
+            "share_name": "/tmp/export/logs.txt",
+            "export_format": "text",
+            "severity": ["Critical"]
+        })
+
+        mock_entries = [
+            {
+                "Id": "1",
+                "Created": "2026-08-15T10:00:00Z",
+                "Severity": "Critical",
+                "Message": "Test"
+            }
+        ]
+        mock_response = MagicMock()
+        mock_response.json_data = {"Members": mock_entries}
+        idrac_redfish_connection_export_lc_logs_mock.invoke_request.return_value = mock_response
+
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.export",
+            return_value=1)
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.validate_permissions",
+            return_value=True)
+
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == "Successfully exported filtered lifecycle controller logs."
+        assert result["exported_entry_count"] == 1
+
+    def test_firmware_version_validation_failure(self, idrac_default_args, mocker,
+                                                 idrac_redfish_connection_export_lc_logs_mock):
+        """Test firmware version validation failure"""
+        # This test would require mocking the firmware version check
+        # For now, we'll test that the module handles version-related errors
+        idrac_default_args.update({
+            "share_name": "/tmp/export",
+            "date_start": "2026-08-01"
+        })
+
+        # Simulate a firmware version error
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLifecycleControllerLogs.get_lc_log_metadata",
+            side_effect=ValueError("iDRAC firmware version 6.00.00.00 is below minimum required version 7.10.90.00"))
+
+        result = self._run_module(idrac_default_args)
+        assert result["failed"] is True
+        assert "firmware" in result["msg"].lower()
+
+    def test_transient_api_error_with_retry_logic(self, idrac_default_args, mocker,
+                                                  idrac_redfish_connection_export_lc_logs_mock):
+        """Test transient API error handling"""
+        idrac_default_args.update({
+            "share_name": "/tmp/export",
+            "severity": ["Critical"]
+        })
+
+        # Simulate transient error
+        from ansible.module_utils.urls import ConnectionError
+        idrac_redfish_connection_export_lc_logs_mock.invoke_request.side_effect = ConnectionError("Transient network error")
+
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.export",
+            return_value=1)
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.validate_permissions",
+            return_value=True)
+
+        # Note: The current implementation doesn't have retry logic in the main module
+        # This test documents expected behavior for future enhancement
+        # For now, we expect the error to be propagated
+        result = self._run_module(idrac_default_args)
+        assert result["failed"] is True

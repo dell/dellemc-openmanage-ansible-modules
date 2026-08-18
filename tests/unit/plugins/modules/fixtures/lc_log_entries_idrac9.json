@@ -1,0 +1,205 @@
+{
+  "Members": [
+    {
+      "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries/1",
+      "@odata.type": "#LogEntry.v1_4_0.LogEntry",
+      "Id": "1",
+      "Name": "Log Entry 1",
+      "Created": "2026-08-15T10:00:00Z",
+      "EntryType": "Oem",
+      "Severity": "Critical",
+      "Message": "System temperature exceeded threshold",
+      "MessageId": "LC001",
+      "Oem": {
+        "Dell": {
+          "DellLCLogEntry": {
+            "Category": "SystemHealth",
+            "Component": "Temperature Sensor",
+            "InstanceID": "LC001"
+          }
+        }
+      }
+    },
+    {
+      "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries/2",
+      "@odata.type": "#LogEntry.v1_4_0.LogEntry",
+      "Id": "2",
+      "Name": "Log Entry 2",
+      "Created": "2026-08-15T11:00:00Z",
+      "EntryType": "Oem",
+      "Severity": "Warning",
+      "Message": "Power supply redundancy lost",
+      "MessageId": "LC002",
+      "Oem": {
+        "Dell": {
+          "DellLCLogEntry": {
+            "Category": "Power",
+            "Component": "Power Supply 1",
+            "InstanceID": "LC002"
+          }
+        }
+      }
+    },
+    {
+      "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries/3",
+      "@odata.type": "#LogEntry.v1_4_0.LogEntry",
+      "Id": "3",
+      "Name": "Log Entry 3",
+      "Created": "2026-08-15T12:00:00Z",
+      "EntryType": "Oem",
+      "Severity": "OK",
+      "Message": "Firmware update completed successfully",
+      "MessageId": "LC003",
+      "Oem": {
+        "Dell": {
+          "DellLCLogEntry": {
+            "Category": "Updates",
+            "Component": "BIOS",
+            "InstanceID": "LC003"
+          }
+        }
+      }
+    },
+    {
+      "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries/4",
+      "@odata.type": "#LogEntry.v1_4_0.LogEntry",
+      "Id": "4",
+      "Name": "Log Entry 4",
+      "Created": "2026-08-16T09:00:00Z",
+      "EntryType": "Oem",
+      "Severity": "Warning",
+      "Message": "Storage controller battery low",
+      "MessageId": "LC004",
+      "Oem": {
+        "Dell": {
+          "DellLCLogEntry": {
+            "Category": "Storage",
+            "Component": "PERC H740P",
+            "InstanceID": "LC004"
+          }
+        }
+      }
+    },
+    {
+      "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries/5",
+      "@odata.type": "#LogEntry.v1_4_0.LogEntry",
+      "Id": "5",
+      "Name": "Log Entry 5",
+      "Created": "2026-08-16T10:00:00Z",
+      "EntryType": "Oem",
+      "Severity": "OK",
+      "Message": "Configuration change: IP address updated",
+      "MessageId": "LC005",
+      "Oem": {
+        "Dell": {
+          "DellLCLogEntry": {
+            "Category": "Audit",
+            "Component": "Network",
+            "InstanceID": "LC005"
+          }
+        }
+      }
+    },
+    {
+      "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries/6",
+      "@odata.type": "#LogEntry.v1_4_0.LogEntry",
+      "Id": "6",
+      "Name": "Log Entry 6",
+      "Created": "2026-08-17T08:00:00Z",
+      "EntryType": "Oem",
+      "Severity": "Critical",
+      "Message": "Fan failure detected",
+      "MessageId": "LC006",
+      "Oem": {
+        "Dell": {
+          "DellLCLogEntry": {
+            "Category": "SystemHealth",
+            "Component": "Fan 1",
+            "InstanceID": "LC006"
+          }
+        }
+      }
+    },
+    {
+      "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries/7",
+      "@odata.type": "#LogEntry.v1_4_0.LogEntry",
+      "Id": "7",
+      "Name": "Log Entry 7",
+      "Created": "2026-08-17T09:00:00Z",
+      "EntryType": "Oem",
+      "Severity": "OK",
+      "Message": "System restarted successfully",
+      "MessageId": "LC007",
+      "Oem": {
+        "Dell": {
+          "DellLCLogEntry": {
+            "Category": "SystemHealth",
+            "Component": "System",
+            "InstanceID": "LC007"
+          }
+        }
+      }
+    },
+    {
+      "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries/8",
+      "@odata.type": "#LogEntry.v1_4_0.LogEntry",
+      "Id": "8",
+      "Name": "Log Entry 8",
+      "Created": "2026-08-18T07:00:00Z",
+      "EntryType": "Oem",
+      "Severity": "Warning",
+      "Message": "Memory ECC error detected",
+      "MessageId": "LC008",
+      "Oem": {
+        "Dell": {
+          "DellLCLogEntry": {
+            "Category": "SystemHealth",
+            "Component": "DIMM A1",
+            "InstanceID": "LC008"
+          }
+        }
+      }
+    },
+    {
+      "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries/9",
+      "@odata.type": "#LogEntry.v1_4_0.LogEntry",
+      "Id": "9",
+      "Name": "Log Entry 9",
+      "Created": "2026-08-18T08:00:00Z",
+      "EntryType": "Oem",
+      "Severity": "OK",
+      "Message": "User login: admin from 192.168.1.100",
+      "MessageId": "LC009",
+      "Oem": {
+        "Dell": {
+          "DellLCLogEntry": {
+            "Category": "Audit",
+            "Component": "iDRAC",
+            "InstanceID": "LC009"
+          }
+        }
+      }
+    },
+    {
+      "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries/10",
+      "@odata.type": "#LogEntry.v1_4_0.LogEntry",
+      "Id": "10",
+      "Name": "Log Entry 10",
+      "Created": "2026-08-18T09:00:00Z",
+      "EntryType": "Oem",
+      "Severity": "Critical",
+      "Message": "Disk failure detected in RAID array",
+      "MessageId": "LC010",
+      "Oem": {
+        "Dell": {
+          "DellLCLogEntry": {
+            "Category": "Storage",
+            "Component": "Physical Disk 0:0:0",
+            "InstanceID": "LC010"
+          }
+        }
+      }
+    }
+  ],
+  "Members@odata.count": 10
+}
