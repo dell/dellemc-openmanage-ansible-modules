@@ -33,6 +33,8 @@ MANAGER_URI = '/redfish/v1/Managers'
 
 import copy
 import datetime
+import time
+from typing import Optional, Dict, Any
 
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     remove_key, idrac_redfish_job_tracking, get_dynamic_uri)
@@ -216,3 +218,120 @@ class IDRACLifecycleControllerLogs(object):
             ip_address=ip_address,
             file_path=file_path)
         return msg, job_dict, changed
+
+    def get_lc_log_metadata(self, idrac, module):
+        """
+        Get LC log service metadata including statistics.
+
+        Args:
+            idrac: iDRAC Redfish API client
+            module: Ansible module instance
+
+        Returns:
+            dict: Metadata including total entries, timestamps, severity breakdown
+        """
+        metadata = {}
+
+        try:
+            # Get LC log service URI
+            managers_details = get_dynamic_uri(
+                self.idrac, MANAGER_URI, search_label='Members')
+            if len(managers_details) > 0:
+                manager_uri = managers_details[0].get("@odata.id", "")
+                manager_data = idrac.invoke_request(method='GET', uri=manager_uri).json_data
+                lc_service_uri = manager_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("DellLCService", {}).get("@odata.id", "")
+                lc_service_data = idrac.invoke_request(method='GET', uri=lc_service_uri).json_data
+
+                # Get log entries URI
+                log_services_uri = manager_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("DellLCLogService", {}).get("@odata.id", "")
+                if log_services_uri:
+                    log_service_data = idrac.invoke_request(method='GET', uri=log_services_uri).json_data
+                    entries_uri = log_service_data.get("Entries", {}).get("@odata.id", "")
+
+                    if entries_uri:
+                        # Get total entries count
+                        total_entries = self._get_total_entries_count(idrac, entries_uri)
+                        metadata["total_entries"] = total_entries
+
+                        # Get oldest and newest timestamps
+                        metadata["oldest_timestamp"] = self._get_oldest_entry_timestamp(idrac, entries_uri)
+                        metadata["newest_timestamp"] = self._get_newest_entry_timestamp(idrac, entries_uri)
+
+                        # Get severity breakdown
+                        metadata["severity_breakdown"] = self._get_severity_breakdown(idrac, entries_uri)
+
+                        # Get storage utilization
+                        max_records = log_service_data.get('MaxNumberOfRecords', 0)
+                        overwrite_policy = log_service_data.get('OverWritePolicy', 'Unknown')
+
+                        storage_utilization = 0
+                        if max_records > 0:
+                            storage_utilization = (total_entries / max_records) * 100
+
+                        metadata["storage_utilization_pct"] = round(storage_utilization, 2)
+                        metadata["max_records"] = max_records
+                        metadata["overwrite_policy"] = overwrite_policy
+
+        except Exception as e:
+            metadata["error"] = str(e)
+
+        return metadata
+
+    def _get_total_entries_count(self, idrac, entries_uri: str) -> int:
+        """Get total number of LC log entries without fetching all entries."""
+        try:
+            uri = f"{entries_uri}?$top=0"
+            response = idrac.invoke_request(uri, 'GET')
+            response_data = response.json_data
+            return response_data.get('Members@odata.count', 0)
+        except Exception:
+            return 0
+
+    def _get_oldest_entry_timestamp(self, idrac, entries_uri: str) -> Optional[str]:
+        """Get the oldest entry timestamp."""
+        try:
+            uri = f"{entries_uri}?$top=1&$orderby=Created asc"
+            response = idrac.invoke_request(uri, 'GET')
+            response_data = response.json_data
+            entries = response_data.get('Members', [])
+            if entries:
+                return entries[0].get('Created')
+        except Exception:
+            pass
+        return None
+
+    def _get_newest_entry_timestamp(self, idrac, entries_uri: str) -> Optional[str]:
+        """Get the newest entry timestamp."""
+        try:
+            uri = f"{entries_uri}?$top=1&$orderby=Created desc"
+            response = idrac.invoke_request(uri, 'GET')
+            response_data = response.json_data
+            entries = response_data.get('Members', [])
+            if entries:
+                return entries[0].get('Created')
+        except Exception:
+            pass
+        return None
+
+    def _get_severity_breakdown(self, idrac, entries_uri: str) -> Dict[str, int]:
+        """Get severity breakdown of log entries."""
+        severity_counts = {"Critical": 0, "Warning": 0, "OK": 0, "Other": 0}
+
+        try:
+            # Fetch all entries (limit to 1000 for performance)
+            uri = f"{entries_uri}?$top=1000"
+            response = idrac.invoke_request(uri, 'GET')
+            response_data = response.json_data
+            entries = response_data.get('Members', [])
+
+            for entry in entries:
+                severity = entry.get('Severity', 'Other')
+                if severity in severity_counts:
+                    severity_counts[severity] += 1
+                else:
+                    severity_counts["Other"] += 1
+
+        except Exception:
+            pass
+
+        return severity_counts

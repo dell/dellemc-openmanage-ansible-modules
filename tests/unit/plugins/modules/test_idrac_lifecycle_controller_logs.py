@@ -50,6 +50,32 @@ class TestExportLcLogs(FakeAnsibleModule):
         result = self._run_module(idrac_default_args)
         assert result["msg"] == "Successfully exported the lifecycle controller logs."
 
+    def test_fetch_metadata_only(self, idrac_default_args, mocker,
+                                   idrac_redfish_connection_export_lc_logs_mock):
+        """Test fetch_metadata_only mode returning log service statistics"""
+        idrac_default_args.update({"share_name": "/tmp", "fetch_metadata_only": True})
+        mock_metadata = {
+            "total_entries": 150,
+            "oldest_timestamp": "2026-01-01T00:00:00Z",
+            "newest_timestamp": "2026-08-18T12:00:00Z",
+            "severity_breakdown": {
+                "Critical": 5,
+                "Warning": 20,
+                "OK": 100,
+                "Other": 25
+            },
+            "storage_utilization_pct": 75.0,
+            "max_records": 200,
+            "overwrite_policy": "WrapsWhenFull"
+        }
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLifecycleControllerLogs.get_lc_log_metadata",
+            return_value=mock_metadata)
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == "Successfully retrieved LC log metadata."
+        assert result["log_metadata"] == mock_metadata
+        assert result["changed"] is False
+
     @pytest.mark.parametrize("exc_type", [RuntimeError, SSLValidationError, ConnectionError, KeyError,
                                           ImportError, ValueError, TypeError, HTTPError, URLError])
     def test_main_export_lc_logs_exception_handling_case(self, exc_type, mocker,

@@ -10,7 +10,7 @@ v10.0.5
 Release Summary
 ---------------
 
-This release adds advanced features to the idrac_lifecycle_controller_logs module including compliance export verification, filter optimization, storage overflow monitoring, and comment insertion capabilities.
+This release adds advanced features to the idrac_lifecycle_controller_logs module including compliance export verification, filter optimization, storage overflow monitoring, and comment insertion capabilities. Also adds metadata-only mode for log service statistics.
 
 Minor Changes
 -------------
@@ -24,6 +24,9 @@ Minor Changes
 - idrac_lifecycle_controller_logs - Add export_verification field with expected vs actual entry count comparison.
 - idrac_lifecycle_controller_logs - Add troubleshooting section for verification failures and comment insertion errors.
 - idrac_lifecycle_controller_logs - Add examples for compliance export, filter optimization, storage monitoring, and comment insertion.
+- idrac_lifecycle_controller_logs - Add fetch_metadata_only parameter for log service statistics without retrieving entries.
+- idrac_lifecycle_controller_logs - Add metadata retrieval including total entries, oldest/newest timestamps, severity breakdown.
+- idrac_lifecycle_controller_logs - Add storage utilization percentage calculation and severity breakdown analysis.
 
 Bugfixes
 --------
