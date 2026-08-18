@@ -54,7 +54,7 @@ class TestExportLcLogs(FakeAnsibleModule):
         assert result["msg"] == "Successfully exported the lifecycle controller logs."
 
     def test_fetch_metadata_only(self, idrac_default_args, mocker,
-                                   idrac_redfish_connection_export_lc_logs_mock):
+                                 idrac_redfish_connection_export_lc_logs_mock):
         """Test fetch_metadata_only mode returning log service statistics"""
         idrac_default_args.update({"share_name": "/tmp", "fetch_metadata_only": True})
         mock_metadata = {
@@ -103,7 +103,7 @@ class TestExportLcLogs(FakeAnsibleModule):
         assert result["export_verification"]["expected_count"] == 150
 
     def test_storage_threshold_warning(self, idrac_default_args, mocker,
-                                        idrac_redfish_connection_export_lc_logs_mock):
+                                       idrac_redfish_connection_export_lc_logs_mock):
         """Test storage_threshold_pct parameter (AC-008)"""
         idrac_default_args.update({
             "share_name": "/tmp/export",
@@ -146,7 +146,7 @@ class TestExportLcLogs(FakeAnsibleModule):
         assert result["changed"] is True
 
     def test_insert_comment_too_long(self, idrac_default_args, mocker,
-                                      idrac_redfish_connection_export_lc_logs_mock):
+                                     idrac_redfish_connection_export_lc_logs_mock):
         """Test insert_comment validation - comment too long"""
         long_comment = "x" * 300  # Exceeds 256 character limit
         idrac_default_args.update({
@@ -158,18 +158,18 @@ class TestExportLcLogs(FakeAnsibleModule):
         assert "256 characters" in result["msg"]
 
     def test_insert_comment_control_characters(self, idrac_default_args, mocker,
-                                                idrac_redfish_connection_export_lc_logs_mock):
-        """Test insert_comment validation - control characters"""
+                                               idrac_redfish_connection_export_lc_logs_mock):
+        """Test insert_comment validation - control characters (using tab)"""
         idrac_default_args.update({
             "share_name": "/tmp",
-            "insert_comment": "Test\x00comment"
+            "insert_comment": "Test\tcomment"
         })
         result = self._run_module(idrac_default_args)
         assert result["failed"] is True
         assert "control characters" in result["msg"]
 
     def test_filter_optimization_single_query(self, idrac_default_args, mocker,
-                                               idrac_redfish_connection_export_lc_logs_mock):
+                                              idrac_redfish_connection_export_lc_logs_mock):
         """Test filter_optimization parameter (AC-007)"""
         idrac_default_args.update({
             "share_name": "/tmp/export",
