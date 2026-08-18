@@ -17,7 +17,7 @@ with circuit breaker support and exponential backoff retry for transient failure
 
 import time
 from typing import Generator, Dict, Any, Optional
-from dateutil import parser as date_parser
+from datetime import datetime
 
 
 class IDRACLogPagination:
@@ -84,8 +84,8 @@ class IDRACLogPagination:
                         entry_time_str = entry.get('Created', '')
                         if entry_time_str:
                             try:
-                                entry_dt = date_parser.parse(entry_time_str)
-                                start_dt = date_parser.parse(date_start)
+                                entry_dt = datetime.fromisoformat(entry_time_str.replace('Z', '+00:00'))
+                                start_dt = datetime.fromisoformat(date_start.replace('Z', '+00:00'))
                                 if entry_dt < start_dt:
                                     return  # Stop pagination
                             except (ValueError, TypeError):
