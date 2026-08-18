@@ -33,7 +33,6 @@ MANAGER_URI = '/redfish/v1/Managers'
 
 import copy
 import datetime
-import time
 from typing import Optional, Dict, Any
 
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
