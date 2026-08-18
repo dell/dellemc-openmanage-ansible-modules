@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Module
-# Version 10.1.0
-# Copyright (C) 2018-2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 10.0.3
+# Copyright (C) 2018-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
@@ -47,7 +47,6 @@ options:
       - Only applicable when using local file path.
     type: bool
     default: false
-    version_added: "10.1.0"
   verify_export:
     description:
       - Enable compliance export verification with entry count comparison.
@@ -55,7 +54,6 @@ options:
       - Returns export_verification field with verification results.
     type: bool
     default: false
-    version_added: "10.1.0"
   filter_optimization:
     description:
       - Filter optimization mode for combined filter operations.
@@ -65,7 +63,6 @@ options:
     type: str
     choices: ['single_query', 'sequential', 'auto']
     default: 'auto'
-    version_added: "10.1.0"
   storage_threshold_pct:
     description:
       - Storage overflow monitoring threshold percentage.
@@ -74,7 +71,6 @@ options:
       - Default is 80 percent.
     type: int
     default: 80
-    version_added: "10.1.0"
   insert_comment:
     description:
       - Insert a custom comment into the LC logs during automation workflows.
@@ -82,7 +78,6 @@ options:
       - Requires ConfigureManager or Login+TestAlerts privilege.
       - Returns inserted_entry_id and inserted_entry_timestamp on success.
     type: str
-    version_added: "10.1.0"
 
 requirements:
   - "python >= 3.9.6"
