@@ -185,6 +185,269 @@ class TestExportLcLogs(FakeAnsibleModule):
         result = self._run_module(idrac_default_args)
         assert result["msg"] == "Successfully exported the lifecycle controller logs."
 
+    def test_date_range_filter(self, idrac_default_args, mocker,
+                               idrac_redfish_connection_export_lc_logs_mock):
+        """Test date_start and date_end parameters (AC-001)"""
+        idrac_default_args.update({
+            "share_name": "/tmp/export",
+            "date_start": "2026-08-01T00:00:00Z",
+            "date_end": "2026-08-31T23:59:59Z"
+        })
+        mock_entries = [
+            {
+                "Id": "1",
+                "Created": "2026-08-15T10:00:00Z",
+                "Severity": "Warning",
+                "Message": "Test log entry"
+            }
+        ]
+        mock_response = MagicMock()
+        mock_response.json_data = {"Members": mock_entries}
+        idrac_redfish_connection_export_lc_logs_mock.invoke_request.return_value = mock_response
+
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.export",
+            return_value=1)
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.validate_permissions",
+            return_value=True)
+
+        result = self._run_module(idrac_default_args)
+        assert "filters_applied" in result
+        assert result["filters_applied"]["date_start"] == "2026-08-01T00:00:00Z"
+        assert result["filters_applied"]["date_end"] == "2026-08-31T23:59:59Z"
+
+    def test_severity_filter(self, idrac_default_args, mocker,
+                             idrac_redfish_connection_export_lc_logs_mock):
+        """Test severity parameter (AC-002)"""
+        idrac_default_args.update({
+            "share_name": "/tmp/export",
+            "severity": ["Critical", "Warning"]
+        })
+        mock_entries = [
+            {
+                "Id": "1",
+                "Created": "2026-08-15T10:00:00Z",
+                "Severity": "Critical",
+                "Message": "Critical error occurred"
+            },
+            {
+                "Id": "2",
+                "Created": "2026-08-15T11:00:00Z",
+                "Severity": "Warning",
+                "Message": "Warning message"
+            }
+        ]
+        mock_response = MagicMock()
+        mock_response.json_data = {"Members": mock_entries}
+        idrac_redfish_connection_export_lc_logs_mock.invoke_request.return_value = mock_response
+
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.export",
+            return_value=2)
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.validate_permissions",
+            return_value=True)
+
+        result = self._run_module(idrac_default_args)
+        assert "filters_applied" in result
+        assert result["filters_applied"]["severity"] == ["Critical", "Warning"]
+
+    def test_export_format_csv(self, idrac_default_args, mocker,
+                               idrac_redfish_connection_export_lc_logs_mock):
+        """Test export_format parameter with CSV (AC-003)"""
+        idrac_default_args.update({
+            "share_name": "/tmp/export/logs.csv",
+            "export_format": "csv",
+            "severity": ["Critical"]
+        })
+        mock_entries = [
+            {
+                "Id": "1",
+                "Created": "2026-08-15T10:00:00Z",
+                "Severity": "Critical",
+                "Message": "Critical error"
+            }
+        ]
+        mock_response = MagicMock()
+        mock_response.json_data = {"Members": mock_entries}
+        idrac_redfish_connection_export_lc_logs_mock.invoke_request.return_value = mock_response
+
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.export",
+            return_value=1)
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.validate_permissions",
+            return_value=True)
+
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == "Successfully exported filtered lifecycle controller logs."
+
+    def test_export_format_json_with_metadata(self, idrac_default_args, mocker,
+                                              idrac_redfish_connection_export_lc_logs_mock):
+        """Test export_format JSON with metadata envelope (AC-005)"""
+        idrac_default_args.update({
+            "share_name": "/tmp/export/logs.json",
+            "export_format": "json",
+            "date_start": "2026-08-01",
+            "severity": ["Critical"]
+        })
+        mock_entries = [
+            {
+                "Id": "1",
+                "Created": "2026-08-15T10:00:00Z",
+                "Severity": "Critical",
+                "Message": "Critical error"
+            }
+        ]
+        mock_response = MagicMock()
+        mock_response.json_data = {"Members": mock_entries}
+        idrac_redfish_connection_export_lc_logs_mock.invoke_request.return_value = mock_response
+
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.export",
+            return_value=1)
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.validate_permissions",
+            return_value=True)
+
+        result = self._run_module(idrac_default_args)
+        assert "filters_applied" in result
+        assert "exported_entry_count" in result
+
+    def test_category_filter(self, idrac_default_args, mocker,
+                             idrac_redfish_connection_export_lc_logs_mock):
+        """Test category parameter"""
+        idrac_default_args.update({
+            "share_name": "/tmp/export",
+            "category": ["Audit", "Configuration"]
+        })
+        mock_entries = [
+            {
+                "Id": "1",
+                "Created": "2026-08-15T10:00:00Z",
+                "Severity": "OK",
+                "Message": "Configuration changed",
+                "Oem": {"Dell": {"DellLCLogEntry": {"Category": "Configuration"}}}
+            }
+        ]
+        mock_response = MagicMock()
+        mock_response.json_data = {"Members": mock_entries}
+        idrac_redfish_connection_export_lc_logs_mock.invoke_request.return_value = mock_response
+
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.export",
+            return_value=1)
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.validate_permissions",
+            return_value=True)
+
+        result = self._run_module(idrac_default_args)
+        assert "filters_applied" in result
+        assert result["filters_applied"]["category"] == ["Audit", "Configuration"]
+
+    def test_message_contains_filter(self, idrac_default_args, mocker,
+                                     idrac_redfish_connection_export_lc_logs_mock):
+        """Test message_contains parameter (client-side filter)"""
+        idrac_default_args.update({
+            "share_name": "/tmp/export",
+            "message_contains": "firmware"
+        })
+        mock_entries = [
+            {
+                "Id": "1",
+                "Created": "2026-08-15T10:00:00Z",
+                "Severity": "OK",
+                "Message": "Firmware update completed successfully"
+            },
+            {
+                "Id": "2",
+                "Created": "2026-08-15T11:00:00Z",
+                "Severity": "OK",
+                "Message": "System restarted"
+            }
+        ]
+        mock_response = MagicMock()
+        mock_response.json_data = {"Members": mock_entries}
+        idrac_redfish_connection_export_lc_logs_mock.invoke_request.return_value = mock_response
+
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.export",
+            return_value=1)
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.validate_permissions",
+            return_value=True)
+
+        result = self._run_module(idrac_default_args)
+        assert "filters_applied" in result
+        assert result["filters_applied"]["message_contains"] == "firmware"
+        # Only the entry with "firmware" should be in the result
+        assert len(result.get("lc_logs", [])) == 1
+
+    def test_combined_filters(self, idrac_default_args, mocker,
+                              idrac_redfish_connection_export_lc_logs_mock):
+        """Test combined filters (AC-007 - filter optimization)"""
+        idrac_default_args.update({
+            "share_name": "/tmp/export",
+            "date_start": "2026-08-01",
+            "severity": ["Critical"],
+            "category": ["SystemHealth"],
+            "filter_optimization": "single_query"
+        })
+        mock_entries = [
+            {
+                "Id": "1",
+                "Created": "2026-08-15T10:00:00Z",
+                "Severity": "Critical",
+                "Message": "System health critical",
+                "Oem": {"Dell": {"DellLCLogEntry": {"Category": "SystemHealth"}}}
+            }
+        ]
+        mock_response = MagicMock()
+        mock_response.json_data = {"Members": mock_entries}
+        idrac_redfish_connection_export_lc_logs_mock.invoke_request.return_value = mock_response
+
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.export",
+            return_value=1)
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.IDRACLogExporter.validate_permissions",
+            return_value=True)
+
+        result = self._run_module(idrac_default_args)
+        assert "filters_applied" in result
+        assert result["filters_applied"]["date_start"] == "2026-08-01"
+        assert result["filters_applied"]["severity"] == ["Critical"]
+        assert result["filters_applied"]["category"] == ["SystemHealth"]
+
+    def test_no_matching_entries(self, idrac_default_args, mocker,
+                                 idrac_redfish_connection_export_lc_logs_mock):
+        """Test when filters produce no matching entries"""
+        idrac_default_args.update({
+            "share_name": "/tmp/export",
+            "severity": ["Critical"]
+        })
+        mock_response = MagicMock()
+        mock_response.json_data = {"Members": []}
+        idrac_redfish_connection_export_lc_logs_mock.invoke_request.return_value = mock_response
+
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == "No log entries matched the specified filters."
+        assert result["lc_logs"] == []
+        assert result["changed"] is False
+
+    def test_invalid_date_range(self, idrac_default_args, mocker,
+                                idrac_redfish_connection_export_lc_logs_mock):
+        """Test validation when date_end is before date_start"""
+        idrac_default_args.update({
+            "share_name": "/tmp/export",
+            "date_start": "2026-08-31T00:00:00Z",
+            "date_end": "2026-08-01T00:00:00Z"
+        })
+        result = self._run_module(idrac_default_args)
+        assert result["failed"] is True
+        assert "date_end must not be earlier than date_start" in result["msg"]
+
     @pytest.mark.parametrize("exc_type", [RuntimeError, SSLValidationError, ConnectionError, KeyError,
                                           ImportError, ValueError, TypeError, HTTPError, URLError])
     def test_main_export_lc_logs_exception_handling_case(self, exc_type, mocker,
