@@ -49,21 +49,21 @@ options:
     type: str
     choices: ['json', 'csv', 'text']
     default: 'json'
-    version_added: "10.0"
+    version_added: "10.0.0"
   date_start:
     description:
       - Filter logs to include only entries on or after this date.
       - Format is ISO 8601 (e.g., 2026-08-01T00:00:00Z).
       - Only applicable when using local file path.
     type: str
-    version_added: "10.0"
+    version_added: "10.0.0"
   date_end:
     description:
       - Filter logs to include only entries before this date.
       - Format is ISO 8601 (e.g., 2026-08-31T23:59:59Z).
       - Only applicable when using local file path.
     type: str
-    version_added: "10.0"
+    version_added: "10.0.0"
   severity:
     description:
       - Filter logs by severity level.
@@ -71,34 +71,34 @@ options:
     type: list
     elements: str
     choices: ['Critical', 'Warning', 'OK']
-    version_added: "10.0"
+    version_added: "10.0.0"
   category:
     description:
       - Filter logs by category.
       - Only applicable when using local file path.
     type: list
     elements: str
-    version_added: "10.0"
+    version_added: "10.0.0"
   message_pattern:
     description:
       - Filter logs by message pattern (regex supported).
       - Only applicable when using local file path.
     type: str
-    version_added: "10.0"
+    version_added: "10.0.0"
   max_entries:
     description:
       - Maximum number of log entries to retrieve.
       - Useful for limiting export size.
       - Only applicable when using local file path.
     type: int
-    version_added: "10.0"
+    version_added: "10.0.0"
   force:
     description:
       - Force overwrite of existing export file.
       - Only applicable when using local file path.
     type: bool
     default: false
-    version_added: "10.0"
+    version_added: "10.0.0"
   fetch_metadata_only:
     description:
       - Fetch only log service metadata without retrieving log entries.
@@ -106,7 +106,7 @@ options:
       - Only applicable when using local file path.
     type: bool
     default: false
-    version_added: "10.0"
+    version_added: "10.0.0"
   enrich_messages:
     description:
       - Enrich log entries with MessageRegistry descriptions and resolutions.
@@ -115,7 +115,7 @@ options:
       - May increase processing time for large log sets.
     type: bool
     default: false
-    version_added: "10.0"
+    version_added: "10.0.0"
   verify_export:
     description:
       - Verify export by comparing exported_entry_count against expected count.
@@ -123,7 +123,7 @@ options:
       - Only applicable when using local file path.
     type: bool
     default: false
-    version_added: "10.0"
+    version_added: "10.0.0"
   filter_optimization:
     description:
       - Optimize combined filters into single OData query for better performance.
@@ -131,7 +131,7 @@ options:
       - Only applicable when using local file path.
     type: bool
     default: true
-    version_added: "10.0"
+    version_added: "10.0.0"
   storage_threshold_pct:
     description:
       - Storage utilization threshold percentage for warning generation.
@@ -140,14 +140,14 @@ options:
       - Only applicable when using local file path.
     type: int
     default: 80
-    version_added: "10.0"
+    version_added: "10.0.0"
   insert_comment:
     description:
       - Insert custom comment into LC logs for automation workflow context.
       - Comment length must be ≤ 256 characters.
       - Only applicable when using local file path.
     type: str
-    version_added: "10.0"
+    version_added: "10.0.0"
 
 requirements:
   - "python >= 3.9.6"
@@ -155,16 +155,7 @@ author:
   - "Rajeev Arakkal (@rajeevarakkal)"
   - "Anooja Vardhineni (@anooja-vardhineni)"
   - "Trisha Datta (@trisha-dell)"
-troubleshooting:
-  - "No logs returned with filters applied: Verify the filter criteria match actual log entries in the LC log. Check the date format is ISO 8601 (e.g., 2026-08-01T00:00:00Z). Use fetch_metadata_only to check available log entries and their timestamps."
-  - "Filter syntax errors: Ensure severity values are exactly 'Critical', 'Warning', or 'OK'. For message_pattern, use valid regex syntax. Date filters require ISO 8601 format with timezone information."
-  - "Export failures: Verify the export path has write permissions. Use force=true to overwrite existing export files. Check disk space is available for the export file."
-  - "Permission errors: Ensure the iDRAC user has 'Administrator' privilege. Verify network share credentials are correct for CIFS exports. Comment insertion requires 'ConfigureManager' or 'Login+TestAlerts' privilege."
-  - "Firmware incompatibility: Check iDRAC firmware version meets minimum requirements (iDRAC9 ≥ 7.10.90.00, iDRAC10 ≥ 1.20.50.50). Upgrade iDRAC firmware if version is below minimum requirement."
-  - "MessageRegistry enrichment not working: MessageRegistry may not be available on all firmware versions. The module will continue without enrichment and log a warning. Check iDRAC firmware version supports MessageRegistry endpoints."
-  - "Export verification failures: Verification failures may occur when filters are applied. Expected count is based on total entries before filtering. Actual count reflects entries after filtering. This is expected behavior and not an error."
-  - "Comment insertion failures: Ensure comment length is ≤ 256 characters. Check for invalid control characters in comment text. Verify iDRAC user has sufficient privilege for comment insertion."
-  - "Storage warnings: Storage warnings are informational, not failures. Export and archive logs when storage utilization exceeds threshold. iDRAC will automatically overwrite oldest entries when full (WrapsWhenFull policy)."
+
 notes:
   - This module requires 'Administrator' privilege for I(idrac_user).
   - Exporting data to a local share is supported only on iDRAC9-based PowerEdge Servers and later.
