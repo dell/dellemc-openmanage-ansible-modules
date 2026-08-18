@@ -514,7 +514,7 @@ class TestExportLcLogs(FakeAnsibleModule):
         assert result["filters_applied"]["category"] == ["SystemHealth"]
 
     def test_pagination_across_multiple_pages(self, idrac_default_args, mocker,
-                                             idrac_redfish_connection_export_lc_logs_mock):
+                                              idrac_redfish_connection_export_lc_logs_mock):
         """Test pagination across multiple pages"""
         # First page
         page1 = {
@@ -542,6 +542,7 @@ class TestExportLcLogs(FakeAnsibleModule):
 
         # Use a list to track calls
         call_count = [0]
+
         def mock_invoke_request(uri, method):
             call_count[0] += 1
             if call_count[0] == 1:
@@ -563,7 +564,7 @@ class TestExportLcLogs(FakeAnsibleModule):
         assert len(result["lc_logs"]) == 2  # Both Critical entries from both pages
 
     def test_json_export_schema_validation(self, idrac_default_args, mocker,
-                                          idrac_redfish_connection_export_lc_logs_mock):
+                                           idrac_redfish_connection_export_lc_logs_mock):
         """Test JSON export schema validation"""
         idrac_default_args.update({
             "share_name": "/tmp/export/logs.json",
@@ -585,6 +586,7 @@ class TestExportLcLogs(FakeAnsibleModule):
 
         # Mock the export to capture the data
         exported_data = {}
+
         def mock_export(entries, metadata):
             exported_data["entries"] = entries
             exported_data["metadata"] = metadata
@@ -604,7 +606,7 @@ class TestExportLcLogs(FakeAnsibleModule):
         assert "filters_applied" in exported_data["metadata"]
 
     def test_csv_export_structure_validation(self, idrac_default_args, mocker,
-                                            idrac_redfish_connection_export_lc_logs_mock):
+                                             idrac_redfish_connection_export_lc_logs_mock):
         """Test CSV export structure validation"""
         idrac_default_args.update({
             "share_name": "/tmp/export/logs.csv",
@@ -636,7 +638,7 @@ class TestExportLcLogs(FakeAnsibleModule):
         assert result["exported_entry_count"] == 1
 
     def test_text_export_format_validation(self, idrac_default_args, mocker,
-                                          idrac_redfish_connection_export_lc_logs_mock):
+                                           idrac_redfish_connection_export_lc_logs_mock):
         """Test text export format validation"""
         idrac_default_args.update({
             "share_name": "/tmp/export/logs.txt",
