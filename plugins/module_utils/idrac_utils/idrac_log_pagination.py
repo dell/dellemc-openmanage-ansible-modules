@@ -16,8 +16,7 @@ with circuit breaker support and exponential backoff retry for transient failure
 """
 
 import time
-from typing import Generator, Dict, Any, Optional, Callable
-from datetime import datetime
+from typing import Generator, Dict, Any, Optional
 from dateutil import parser as date_parser
 
 
