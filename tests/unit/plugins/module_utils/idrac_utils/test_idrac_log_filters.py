@@ -17,7 +17,6 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../../..', 'plugins/module_utils'))
 from idrac_utils.idrac_log_filters import IDRACLogFilter
-from datetime import datetime
 
 
 class TestIDRACLogFilter:

@@ -15,7 +15,6 @@ This module provides chainable filter functions for iDRAC Lifecycle Controller l
 with support for date range, severity, category, and message content filtering.
 """
 
-from datetime import datetime
 from typing import List, Dict, Any, Callable, Optional
 from dateutil import parser as date_parser
 

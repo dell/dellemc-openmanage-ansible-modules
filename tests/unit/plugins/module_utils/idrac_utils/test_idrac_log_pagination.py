@@ -17,8 +17,7 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../../..', 'plugins/module_utils'))
 from idrac_utils.idrac_log_pagination import IDRACLogPagination
-from unittest.mock import MagicMock, Mock
-from datetime import datetime
+from unittest.mock import MagicMock
 
 
 class TestIDRACLogPagination:
