@@ -335,3 +335,64 @@ class IDRACLifecycleControllerLogs(object):
             pass
 
         return severity_counts
+
+    def insert_lc_comment(self, idrac, module, comment: str) -> Dict[str, Any]:
+        """
+        Insert a custom comment into the LC logs.
+
+        Args:
+            idrac: iDRAC Redfish API client
+            module: Ansible module instance
+            comment: Comment text to insert (max 256 characters)
+
+        Returns:
+            dict: Result containing entry_id and timestamp
+        """
+        result = {
+            'entry_id': None,
+            'timestamp': None
+        }
+
+        try:
+            # Get LC log service URI
+            managers_details = get_dynamic_uri(
+                self.idrac, MANAGER_URI, search_label='Members')
+            if len(managers_details) > 0:
+                manager_uri = managers_details[0].get("@odata.id", "")
+                manager_data = idrac.invoke_request(method='GET', uri=manager_uri).json_data
+
+                # Get DellLCService URI for InsertComment action
+                lc_service_uri = manager_data.get("Links", {}).get("Oem", {}).get(
+                    "Dell", {}).get("DellLCService", {}).get("@odata.id", "")
+
+                if lc_service_uri:
+                    lc_service_data = idrac.invoke_request(method='GET', uri=lc_service_uri).json_data
+
+                    # Get InsertComment action target
+                    insert_comment_uri = lc_service_data.get("Actions", {}).get(
+                        "#DellLCService.InsertComment", {}).get("target", "")
+
+                    if insert_comment_uri:
+                        # Invoke InsertComment action
+                        payload = {"Comment": comment}
+                        response = idrac.invoke_request(
+                            method='POST',
+                            uri=insert_comment_uri,
+                            data=payload
+                        )
+
+                        # Get the inserted entry details
+                        if response.status_code in [200, 201, 202]:
+                            response_data = response.json_data if hasattr(response, 'json_data') else {}
+                            result['entry_id'] = response_data.get('Id', 'LC_COMMENT')
+                            result['timestamp'] = datetime.datetime.now().isoformat() + 'Z'
+                    else:
+                        raise RuntimeError(
+                            "InsertComment action not available on this iDRAC. "
+                            "Requires ConfigureManager or Login+TestAlerts privilege."
+                        )
+
+        except Exception as e:
+            raise RuntimeError(f"Failed to insert comment into LC logs: {str(e)}")
+
+        return result
