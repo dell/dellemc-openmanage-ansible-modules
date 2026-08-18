@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Module
-# Version 10.0.1
-# Copyright (C) 2018-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 10.0.5
+# Copyright (C) 2018-2026 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
@@ -39,6 +39,14 @@ options:
     description: Whether to wait for the running job completion or not.
     type: bool
     default: true
+  fetch_metadata_only:
+    description:
+      - Fetch only log service metadata without retrieving log entries.
+      - Returns statistics like total entries, oldest/newest timestamps, severity breakdown.
+      - Only applicable when using local file path.
+    type: bool
+    default: false
+    version_added: "10.0.5"
 
 requirements:
   - "python >= 3.9.6"
@@ -82,6 +90,15 @@ EXAMPLES = r'''
     idrac_password: "user_password"
     ca_path: "/path/to/ca_cert.pem"
     share_name: "/example/export_lc"
+
+- name: Fetch LC log metadata only.
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "/tmp"
+    fetch_metadata_only: true
 '''
 
 RETURN = """
@@ -109,6 +126,24 @@ lc_logs_status:
     "Status": "Success",
     "file": "192.168.0.0:/nfsfileshare/190.168.0.1_20210728_133437_LC_Log.log",
     "retval": true
+  }
+log_metadata:
+  description: Log service metadata when fetch_metadata_only is true.
+  returned: when fetch_metadata_only is true
+  type: dict
+  sample: {
+    "total_entries": 150,
+    "oldest_timestamp": "2026-01-01T00:00:00Z",
+    "newest_timestamp": "2026-08-18T12:00:00Z",
+    "severity_breakdown": {
+      "Critical": 5,
+      "Warning": 20,
+      "OK": 100,
+      "Other": 25
+    },
+    "storage_utilization_pct": 75.0,
+    "max_records": 200,
+    "overwrite_policy": "WrapsWhenFull"
   }
 error_info:
   description: Details of the HTTP Error.
@@ -154,6 +189,7 @@ def main():
         "share_user": {"required": False, "type": 'str'},
         "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
         "job_wait": {"required": False, "type": 'bool', "default": True},
+        "fetch_metadata_only": {"required": False, "type": 'bool', "default": False},
     }
     specs.update(idrac_auth_params)
     module = AnsibleModule(
@@ -163,6 +199,16 @@ def main():
     try:
         with iDRACRedfishAPI(module.params) as idrac:
             lifecycle_controller_logs_obj = IDRACLifecycleControllerLogs(idrac)
+
+            # Handle fetch_metadata_only mode
+            if module.params.get('fetch_metadata_only'):
+                metadata = lifecycle_controller_logs_obj.get_lc_log_metadata(idrac, module)
+                module.exit_json(
+                    msg="Successfully retrieved LC log metadata.",
+                    log_metadata=metadata,
+                    changed=False
+                )
+
             msg, job_dict, changed = lifecycle_controller_logs_obj.lifecycle_controller_logs_operation(idrac, module)
             module.exit_json(msg=msg, lc_logs_status=job_dict, changed=changed)
     except HTTPError as err:

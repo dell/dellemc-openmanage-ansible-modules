@@ -349,3 +349,151 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
         idrac_mock.invoke_request.return_value = self.mock_get_dynamic_idrac_invoke_request_lc_log()
         result = logs_info.get_export_lc_logs_uri(idrac=idrac_mock)
         assert result == EXPORT_LC_LOGS
+
+    def test_get_lc_log_metadata(self, idrac_mock, mocker):
+        """Test fetching LC log metadata with statistics"""
+        module_mock = MagicMock()
+        logs_info = IDRACLifecycleControllerLogs(idrac_mock)
+
+        # Mock responses
+        manager_response = {
+            "Links": {
+                "Oem": {
+                    "Dell": {
+                        "DellLCService": {
+                            "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService"
+                        },
+                        "DellLCLogService": {
+                            "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog"
+                        }
+                    }
+                }
+            }
+        }
+
+        lc_service_response = {
+            "Entries": {
+                "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries"
+            },
+            "MaxNumberOfRecords": 200,
+            "OverWritePolicy": "WrapsWhenFull"
+        }
+
+        entries_count_response = {
+            "Members@odata.count": 150
+        }
+
+        entries_oldest_response = {
+            "Members": [
+                {"Created": "2026-01-01T00:00:00Z"}
+            ]
+        }
+
+        entries_newest_response = {
+            "Members": [
+                {"Created": "2026-08-18T12:00:00Z"}
+            ]
+        }
+
+        entries_severity_response = {
+            "Members": [
+                {"Severity": "Critical"},
+                {"Severity": "Warning"},
+                {"Severity": "OK"},
+                {"Severity": "Other"}
+            ]
+        }
+
+        # Setup mock to return different responses based on URI
+        def mock_invoke_request(*args, **kwargs):
+            obj = MagicMock()
+            obj.status_code = 200
+            uri = kwargs.get('uri', '')
+            if 'Managers/iDRAC.Embedded.1' in uri and 'LogServices' not in uri:
+                obj.json_data = manager_response
+            elif 'LogServices/Lclog' in uri and 'Entries' not in uri:
+                obj.json_data = lc_service_response
+            elif '?$top=0' in uri:
+                obj.json_data = entries_count_response
+            elif '?$top=1&$orderby=Created asc' in uri:
+                obj.json_data = entries_oldest_response
+            elif '?$top=1&$orderby=Created desc' in uri:
+                obj.json_data = entries_newest_response
+            elif '?$top=1000' in uri:
+                obj.json_data = entries_severity_response
+            return obj
+
+        idrac_mock.invoke_request.side_effect = mock_invoke_request
+
+        mocker.patch(UTILS_PATH + "idrac_lifecycle_controller_logs_utils.get_dynamic_uri",
+                     return_value=[{'@odata.id': '/redfish/v1/Managers/iDRAC.Embedded.1'}])
+
+        result = logs_info.get_lc_log_metadata(idrac=idrac_mock, module=module_mock)
+
+        assert result["total_entries"] == 150
+        assert result["oldest_timestamp"] == "2026-01-01T00:00:00Z"
+        assert result["newest_timestamp"] == "2026-08-18T12:00:00Z"
+        assert result["storage_utilization_pct"] == 75.0
+        assert result["max_records"] == 200
+        assert result["overwrite_policy"] == "WrapsWhenFull"
+        assert result["severity_breakdown"]["Critical"] == 1
+        assert result["severity_breakdown"]["Warning"] == 1
+        assert result["severity_breakdown"]["OK"] == 1
+        assert result["severity_breakdown"]["Other"] == 1
+
+    def test_get_total_entries_count(self, idrac_mock):
+        """Test getting total entries count"""
+        logs_info = IDRACLifecycleControllerLogs(idrac_mock)
+        obj = MagicMock()
+        obj.json_data = {"Members@odata.count": 150}
+        idrac_mock.invoke_request.return_value = obj
+        result = logs_info._get_total_entries_count(idrac_mock, "/redfish/v1/LogServices/Lclog/Entries")
+        assert result == 150
+
+    def test_get_oldest_entry_timestamp(self, idrac_mock):
+        """Test getting oldest entry timestamp"""
+        logs_info = IDRACLifecycleControllerLogs(idrac_mock)
+        obj = MagicMock()
+        obj.json_data = {
+            "Members": [
+                {"Created": "2026-01-01T00:00:00Z"}
+            ]
+        }
+        idrac_mock.invoke_request.return_value = obj
+        result = logs_info._get_oldest_entry_timestamp(idrac_mock, "/redfish/v1/LogServices/Lclog/Entries")
+        assert result == "2026-01-01T00:00:00Z"
+
+    def test_get_newest_entry_timestamp(self, idrac_mock):
+        """Test getting newest entry timestamp"""
+        logs_info = IDRACLifecycleControllerLogs(idrac_mock)
+        obj = MagicMock()
+        obj.json_data = {
+            "Members": [
+                {"Created": "2026-08-18T12:00:00Z"}
+            ]
+        }
+        idrac_mock.invoke_request.return_value = obj
+        result = logs_info._get_newest_entry_timestamp(idrac_mock, "/redfish/v1/LogServices/Lclog/Entries")
+        assert result == "2026-08-18T12:00:00Z"
+
+    def test_get_severity_breakdown(self, idrac_mock):
+        """Test getting severity breakdown"""
+        logs_info = IDRACLifecycleControllerLogs(idrac_mock)
+        obj = MagicMock()
+        obj.json_data = {
+            "Members": [
+                {"Severity": "Critical"},
+                {"Severity": "Critical"},
+                {"Severity": "Warning"},
+                {"Severity": "OK"},
+                {"Severity": "OK"},
+                {"Severity": "OK"},
+                {"Severity": "Unknown"}
+            ]
+        }
+        idrac_mock.invoke_request.return_value = obj
+        result = logs_info._get_severity_breakdown(idrac_mock, "/redfish/v1/LogServices/Lclog/Entries")
+        assert result["Critical"] == 2
+        assert result["Warning"] == 1
+        assert result["OK"] == 3
+        assert result["Other"] == 1
