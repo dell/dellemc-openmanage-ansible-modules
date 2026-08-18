@@ -214,9 +214,9 @@ class TestIDRACLogFilter:
     def test_filter_chain_method_chaining(self, sample_log_entries):
         """Test method chaining for filter operations"""
         log_filter = (IDRACLogFilter()
-                     .add_date_filter(date_start="2026-08-17T00:00:00Z")
-                     .add_severity_filter(["Critical"])
-                     .add_category_filter(["SystemHealth"]))
+                      .add_date_filter(date_start="2026-08-17T00:00:00Z")
+                      .add_severity_filter(["Critical"])
+                      .add_category_filter(["SystemHealth"]))
 
         filtered = log_filter.apply(sample_log_entries)
 
