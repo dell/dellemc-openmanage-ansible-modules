@@ -1,3 +1,4 @@
+import pytest
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     idrac_utils.idrac_lifecycle_controller_logs_utils \
     import IDRACLifecycleControllerLogs
@@ -355,8 +356,20 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
         module_mock = MagicMock()
         logs_info = IDRACLifecycleControllerLogs(idrac_mock)
 
-        # Mock responses
-        manager_response = {
+        # Mock the helper methods directly
+        logs_info._get_total_entries_count = MagicMock(return_value=150)
+        logs_info._get_oldest_entry_timestamp = MagicMock(return_value="2026-01-01T00:00:00Z")
+        logs_info._get_newest_entry_timestamp = MagicMock(return_value="2026-08-18T12:00:00Z")
+        logs_info._get_severity_breakdown = MagicMock(return_value={
+            "Critical": 1,
+            "Warning": 1,
+            "OK": 1,
+            "Other": 1
+        })
+
+        # Mock responses for manager and LC service
+        manager_response = MagicMock()
+        manager_response.json_data = {
             "Links": {
                 "Oem": {
                     "Dell": {
@@ -371,7 +384,16 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
             }
         }
 
-        lc_service_response = {
+        lc_service_response = MagicMock()
+        lc_service_response.json_data = {
+            "Actions": {},
+            "Entries": {
+                "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries"
+            }
+        }
+
+        log_service_response = MagicMock()
+        log_service_response.json_data = {
             "Entries": {
                 "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries"
             },
@@ -379,49 +401,13 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
             "OverWritePolicy": "WrapsWhenFull"
         }
 
-        entries_count_response = {
-            "Members@odata.count": 150
-        }
-
-        entries_oldest_response = {
-            "Members": [
-                {"Created": "2026-01-01T00:00:00Z"}
-            ]
-        }
-
-        entries_newest_response = {
-            "Members": [
-                {"Created": "2026-08-18T12:00:00Z"}
-            ]
-        }
-
-        entries_severity_response = {
-            "Members": [
-                {"Severity": "Critical"},
-                {"Severity": "Warning"},
-                {"Severity": "OK"},
-                {"Severity": "Other"}
-            ]
-        }
-
-        # Setup mock to return different responses based on URI
         def mock_invoke_request(*args, **kwargs):
-            obj = MagicMock()
-            obj.status_code = 200
             uri = kwargs.get('uri', '')
-            if 'Managers/iDRAC.Embedded.1' in uri and 'LogServices' not in uri:
-                obj.json_data = manager_response
-            elif 'LogServices/Lclog' in uri and 'Entries' not in uri:
-                obj.json_data = lc_service_response
-            elif '?$top=0' in uri:
-                obj.json_data = entries_count_response
-            elif '?$top=1&$orderby=Created asc' in uri:
-                obj.json_data = entries_oldest_response
-            elif '?$top=1&$orderby=Created desc' in uri:
-                obj.json_data = entries_newest_response
-            elif '?$top=1000' in uri:
-                obj.json_data = entries_severity_response
-            return obj
+            if 'LogServices/Lclog' in uri and 'Entries' not in uri:
+                return log_service_response
+            elif 'DellLCService' in uri:
+                return lc_service_response
+            return manager_response
 
         idrac_mock.invoke_request.side_effect = mock_invoke_request
 
@@ -497,3 +483,97 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
         assert result["Warning"] == 1
         assert result["OK"] == 3
         assert result["Other"] == 1
+
+    def test_insert_lc_comment(self, idrac_mock, mocker):
+        """Test inserting a comment into LC logs (AC-009)"""
+        module_mock = MagicMock()
+        logs_info = IDRACLifecycleControllerLogs(idrac_mock)
+
+        # Mock responses
+        manager_response = MagicMock()
+        manager_response.json_data = {
+            "Links": {
+                "Oem": {
+                    "Dell": {
+                        "DellLCService": {
+                            "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService"
+                        }
+                    }
+                }
+            }
+        }
+
+        lc_service_response = MagicMock()
+        lc_service_response.json_data = {
+            "Actions": {
+                "#DellLCService.InsertComment": {
+                    "target": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.InsertComment"
+                }
+            }
+        }
+
+        insert_response = MagicMock()
+        insert_response.status_code = 200
+        insert_response.json_data = {
+            "Id": "LC123456"
+        }
+
+        def mock_invoke_request(*args, **kwargs):
+            uri = kwargs.get('uri', '')
+            if 'DellLCService/Actions' in uri:
+                return insert_response
+            elif 'DellLCService' in uri:
+                return lc_service_response
+            else:
+                return manager_response
+
+        idrac_mock.invoke_request.side_effect = mock_invoke_request
+
+        mocker.patch(UTILS_PATH + "idrac_lifecycle_controller_logs_utils.get_dynamic_uri",
+                     return_value=[{'@odata.id': '/redfish/v1/Managers/iDRAC.Embedded.1'}])
+
+        result = logs_info.insert_lc_comment(idrac_mock, module_mock, "Test automation comment")
+
+        assert result["entry_id"] == "LC123456"
+        assert result["timestamp"] is not None
+
+    def test_insert_lc_comment_action_not_available(self, idrac_mock, mocker):
+        """Test insert_lc_comment when InsertComment action is not available"""
+        module_mock = MagicMock()
+        logs_info = IDRACLifecycleControllerLogs(idrac_mock)
+
+        # Mock responses without InsertComment action
+        manager_response = MagicMock()
+        manager_response.json_data = {
+            "Links": {
+                "Oem": {
+                    "Dell": {
+                        "DellLCService": {
+                            "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService"
+                        }
+                    }
+                }
+            }
+        }
+
+        lc_service_response = MagicMock()
+        lc_service_response.json_data = {
+            "Actions": {}
+        }
+
+        def mock_invoke_request(*args, **kwargs):
+            uri = kwargs.get('uri', '')
+            if 'DellLCService' in uri and 'Actions' not in uri:
+                return lc_service_response
+            else:
+                return manager_response
+
+        idrac_mock.invoke_request.side_effect = mock_invoke_request
+
+        mocker.patch(UTILS_PATH + "idrac_lifecycle_controller_logs_utils.get_dynamic_uri",
+                     return_value=[{'@odata.id': '/redfish/v1/Managers/iDRAC.Embedded.1'}])
+
+        with pytest.raises(RuntimeError) as exc_info:
+            logs_info.insert_lc_comment(idrac_mock, module_mock, "Test comment")
+
+        assert "InsertComment action not available" in str(exc_info.value)

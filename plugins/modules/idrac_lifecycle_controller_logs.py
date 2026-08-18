@@ -14,10 +14,11 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: idrac_lifecycle_controller_logs
-short_description: Export Lifecycle Controller logs to a network share or local path.
+short_description: Export Lifecycle Controller logs to a network share or local path with advanced features.
 version_added: "2.1.0"
 description:
   - Export Lifecycle Controller logs to a given network share or local path.
+  - Support for compliance export verification, filter optimization, storage monitoring, and comment insertion.
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 options:
@@ -47,6 +48,41 @@ options:
     type: bool
     default: false
     version_added: "10.0.5"
+  verify_export:
+    description:
+      - Enable compliance export verification with entry count comparison.
+      - When enabled, compares expected vs actual entry count after export.
+      - Returns export_verification field with verification results.
+    type: bool
+    default: false
+    version_added: "10.0.5"
+  filter_optimization:
+    description:
+      - Filter optimization mode for combined filter operations.
+      - C(single_query) uses server-side filtering with OData query parameters.
+      - C(sequential) applies filters sequentially on client side.
+      - C(auto) automatically selects the best mode based on filter complexity.
+    type: str
+    choices: ['single_query', 'sequential', 'auto']
+    default: 'auto'
+    version_added: "10.0.5"
+  storage_threshold_pct:
+    description:
+      - Storage overflow monitoring threshold percentage.
+      - When storage utilization exceeds this threshold, a warning is returned.
+      - Set to 0 to disable storage monitoring.
+      - Default is 80 percent.
+    type: int
+    default: 80
+    version_added: "10.0.5"
+  insert_comment:
+    description:
+      - Insert a custom comment into the LC logs during automation workflows.
+      - Maximum length is 256 characters.
+      - Requires ConfigureManager or Login+TestAlerts privilege.
+      - Returns inserted_entry_id and inserted_entry_timestamp on success.
+    type: str
+    version_added: "10.0.5"
 
 requirements:
   - "python >= 3.9.6"
@@ -61,6 +97,7 @@ notes:
   - This module supports both IPv4 and IPv6 address for I(idrac_ip).
   - This module does not support C(check_mode).
   - No job will be created when exporting data to a local share in iDRAC9 and iDRAC 10.
+  - The insert_comment parameter requires ConfigureManager or Login+TestAlerts privilege.
 """
 
 EXAMPLES = r'''
@@ -99,6 +136,42 @@ EXAMPLES = r'''
     ca_path: "/path/to/ca_cert.pem"
     share_name: "/tmp"
     fetch_metadata_only: true
+
+- name: Export with compliance verification (AC-006).
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "/example/export_lc"
+    verify_export: true
+
+- name: Export with filter optimization (AC-007).
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "/example/export_lc"
+    filter_optimization: "single_query"
+
+- name: Export with storage overflow monitoring (AC-008).
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "/example/export_lc"
+    storage_threshold_pct: 75
+
+- name: Insert comment into LC logs (AC-009).
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "/tmp"
+    insert_comment: "Automation workflow started - backup initiated"
 '''
 
 RETURN = """
@@ -145,6 +218,31 @@ log_metadata:
     "max_records": 200,
     "overwrite_policy": "WrapsWhenFull"
   }
+export_verification:
+  description: Export verification results when verify_export is true.
+  returned: when verify_export is true
+  type: dict
+  sample: {
+    "expected_count": 150,
+    "actual_count": 150,
+    "verified": true,
+    "message": "Export verification successful"
+  }
+storage_warning:
+  description: Storage overflow warning when utilization exceeds threshold.
+  returned: when storage utilization exceeds storage_threshold_pct
+  type: str
+  sample: "LC log storage at 85.5% capacity (threshold 80%). Consider exporting and archiving."
+inserted_entry_id:
+  description: ID of the inserted comment entry.
+  returned: when insert_comment is provided
+  type: str
+  sample: "LC123456"
+inserted_entry_timestamp:
+  description: Timestamp of the inserted comment entry.
+  returned: when insert_comment is provided
+  type: str
+  sample: "2026-08-18T12:00:00Z"
 error_info:
   description: Details of the HTTP Error.
   returned: on HTTP error
@@ -169,6 +267,7 @@ error_info:
 
 
 import json
+import re
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
@@ -181,6 +280,28 @@ SUCCESS_MSG = "Successfully exported the lifecycle controller logs."
 SCHEDULE_MSG = "The export lifecycle controller log job is submitted successfully."
 NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 CHANGES_FOUND_MSG = "Changes found to be applied."
+COMMENT_INSERT_SUCCESS = "Successfully inserted comment into LC logs."
+COMMENT_MAX_LENGTH = 256
+
+
+def validate_insert_comment(comment):
+    """Validate insert_comment parameter."""
+    if comment is None:
+        return None
+
+    if len(comment) > COMMENT_MAX_LENGTH:
+        raise ValueError(
+            f"insert_comment exceeds maximum length of {COMMENT_MAX_LENGTH} characters. "
+            f"Current length: {len(comment)}"
+        )
+
+    # Check for control characters
+    if re.search(r'[\x00-\x1f\x7f]', comment):
+        raise ValueError(
+            "insert_comment contains control characters which are not allowed"
+        )
+
+    return comment
 
 
 def main():
@@ -190,6 +311,15 @@ def main():
         "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
         "job_wait": {"required": False, "type": 'bool', "default": True},
         "fetch_metadata_only": {"required": False, "type": 'bool', "default": False},
+        "verify_export": {"required": False, "type": 'bool', "default": False},
+        "filter_optimization": {
+            "required": False,
+            "type": 'str',
+            "choices": ['single_query', 'sequential', 'auto'],
+            "default": 'auto'
+        },
+        "storage_threshold_pct": {"required": False, "type": 'int', "default": 80},
+        "insert_comment": {"required": False, "type": 'str'},
     }
     specs.update(idrac_auth_params)
     module = AnsibleModule(
@@ -197,20 +327,94 @@ def main():
         supports_check_mode=False)
 
     try:
+        # Validate insert_comment if provided
+        insert_comment = module.params.get('insert_comment')
+        if insert_comment:
+            validate_insert_comment(insert_comment)
+
         with iDRACRedfishAPI(module.params) as idrac:
             lifecycle_controller_logs_obj = IDRACLifecycleControllerLogs(idrac)
+            result = {}
 
             # Handle fetch_metadata_only mode
             if module.params.get('fetch_metadata_only'):
                 metadata = lifecycle_controller_logs_obj.get_lc_log_metadata(idrac, module)
+
+                # Add storage warning if threshold exceeded
+                storage_threshold = module.params.get('storage_threshold_pct', 80)
+                if storage_threshold > 0:
+                    utilization = metadata.get('storage_utilization_pct', 0)
+                    if utilization > storage_threshold:
+                        result['storage_warning'] = (
+                            f"LC log storage at {utilization}% capacity "
+                            f"(threshold: {storage_threshold}%). "
+                            f"Consider exporting and archiving logs."
+                        )
+
                 module.exit_json(
                     msg="Successfully retrieved LC log metadata.",
                     log_metadata=metadata,
-                    changed=False
+                    changed=False,
+                    **result
                 )
 
-            msg, job_dict, changed = lifecycle_controller_logs_obj.lifecycle_controller_logs_operation(idrac, module)
-            module.exit_json(msg=msg, lc_logs_status=job_dict, changed=changed)
+            # Handle insert_comment
+            if insert_comment:
+                comment_result = lifecycle_controller_logs_obj.insert_lc_comment(
+                    idrac, module, insert_comment
+                )
+                module.exit_json(
+                    msg=COMMENT_INSERT_SUCCESS,
+                    inserted_entry_id=comment_result.get('entry_id'),
+                    inserted_entry_timestamp=comment_result.get('timestamp'),
+                    changed=True
+                )
+
+            # Get metadata for storage monitoring and verification
+            metadata = None
+            if module.params.get('verify_export') or module.params.get('storage_threshold_pct', 80) > 0:
+                metadata = lifecycle_controller_logs_obj.get_lc_log_metadata(idrac, module)
+
+                # Add storage warning if threshold exceeded
+                storage_threshold = module.params.get('storage_threshold_pct', 80)
+                if storage_threshold > 0 and metadata:
+                    utilization = metadata.get('storage_utilization_pct', 0)
+                    if utilization > storage_threshold:
+                        result['storage_warning'] = (
+                            f"LC log storage at {utilization}% capacity "
+                            f"(threshold: {storage_threshold}%). "
+                            f"Consider exporting and archiving logs. "
+                            f"Overwrite policy: {metadata.get('overwrite_policy', 'Unknown')}"
+                        )
+
+            # Store expected count for verification
+            expected_count = metadata.get('total_entries', 0) if metadata else 0
+
+            # Perform export operation
+            msg, job_dict, changed = lifecycle_controller_logs_obj.lifecycle_controller_logs_operation(
+                idrac, module
+            )
+
+            # Handle verify_export
+            if module.params.get('verify_export') and metadata:
+                # Get actual count after export
+                post_metadata = lifecycle_controller_logs_obj.get_lc_log_metadata(idrac, module)
+                actual_count = post_metadata.get('total_entries', 0)
+
+                verified = (expected_count == actual_count)
+                result['export_verification'] = {
+                    'expected_count': expected_count,
+                    'actual_count': actual_count,
+                    'verified': verified,
+                    'message': (
+                        "Export verification successful"
+                        if verified
+                        else f"Export verification failed: expected {expected_count}, got {actual_count}"
+                    )
+                }
+
+            module.exit_json(msg=msg, lc_logs_status=job_dict, changed=changed, **result)
+
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
