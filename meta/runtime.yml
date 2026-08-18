@@ -1,5 +1,8 @@
 ---
 requires_ansible: ">=2.16.0"
+execution_environment:
+  python_dependencies:
+    - python-dateutil>=2.8.0
 plugin_routing:
   modules:
     dellemc_get_firmware_inventory:
