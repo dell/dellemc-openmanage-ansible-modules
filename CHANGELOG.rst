@@ -4,7 +4,7 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
-v10.0.5
+v10.1.0
 =======
 
 Release Summary
