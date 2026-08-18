@@ -4,61 +4,6 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
-v10.1.0
-=======
-
-Release Summary
----------------
-
-This release adds advanced features to the idrac_lifecycle_controller_logs module including compliance export verification, filter optimization, storage overflow monitoring, and comment insertion capabilities. Also adds metadata-only mode for log service statistics.
-
-Minor Changes
--------------
-
-- idrac_lifecycle_controller_logs - Add verify_export parameter for compliance export verification with entry count comparison.
-- idrac_lifecycle_controller_logs - Add filter_optimization parameter for combined filter optimization (single-query vs sequential mode).
-- idrac_lifecycle_controller_logs - Add storage_threshold_pct parameter for configurable storage overflow monitoring (default 80%).
-- idrac_lifecycle_controller_logs - Add insert_comment parameter for inserting custom comments into LC logs during automation workflows.
-- idrac_lifecycle_controller_logs - Add storage_warning field with actionable recommendations when threshold exceeded.
-- idrac_lifecycle_controller_logs - Add overwrite_policy metadata to storage monitoring results.
-- idrac_lifecycle_controller_logs - Add export_verification field with expected vs actual entry count comparison.
-- idrac_lifecycle_controller_logs - Add troubleshooting section for verification failures and comment insertion errors.
-- idrac_lifecycle_controller_logs - Add examples for compliance export, filter optimization, storage monitoring, and comment insertion.
-- idrac_lifecycle_controller_logs - Add fetch_metadata_only parameter for log service statistics without retrieving entries.
-- idrac_lifecycle_controller_logs - Add metadata retrieval including total entries, oldest/newest timestamps, severity breakdown.
-- idrac_lifecycle_controller_logs - Add storage utilization percentage calculation and severity breakdown analysis.
-
-Bugfixes
---------
-
-- idrac_lifecycle_controller_logs - Fix comment insertion privilege requirement documentation (requires ConfigureManager or Login+TestAlerts privilege).
-
-v10.0.4
-=======
-
-Release Summary
----------------
-
-This release adds advanced filtering, multi-format export, and metadata query capabilities to the idrac_lifecycle_controller_logs module for enhanced log management and analysis.
-
-Minor Changes
--------------
-
-- idrac_lifecycle_controller_logs - Add filtering parameters (date_start, date_end, severity, category, message_pattern) for targeted log queries.
-- idrac_lifecycle_controller_logs - Add multi-format export support (JSON, CSV, text) for local file exports.
-- idrac_lifecycle_controller_logs - Add fetch_metadata_only parameter for log service statistics without retrieving entries.
-- idrac_lifecycle_controller_logs - Add enrich_messages parameter for MessageRegistry enrichment with descriptions and resolutions.
-- idrac_lifecycle_controller_logs - Add force parameter for overwriting existing export files.
-- idrac_lifecycle_controller_logs - Add firmware version validation (iDRAC9 ≥ 7.10.90.00, iDRAC10 ≥ 1.20.50.50) for new features.
-- idrac_lifecycle_controller_logs - Add LC Log Service availability check with ServiceEnabled validation.
-- idrac_lifecycle_controller_logs - Add streaming pagination with circuit breaker and exponential backoff retry for large log sets.
-- idrac_lifecycle_controller_logs - Add comprehensive troubleshooting section in module documentation.
-
-Bugfixes
---------
-
-- idrac_lifecycle_controller_logs - Fix invoke_request API calls to use correct parameter order (uri, method) for Redfish API compatibility.
-
 v10.0.3
 =======
 
@@ -70,9 +15,9 @@ This release includes dependency updates and build configuration improvements.
 Minor Changes
 -------------
 
-- Update galaxy.yml to exclude unnecessary files from collection build.
 - Bump pytest from 8.3.5 to 9.0.3.
 - Update README.md.
+- Update galaxy.yml to exclude unnecessary files from collection build.
 
 v10.0.2
 =======
@@ -80,34 +25,34 @@ v10.0.2
 Release Summary
 ---------------
 
-'The OpenManage Enterprise and OpenManage Enterprise Integration for VMware vCenter modules are now compatible with Ansible Core version 2.20. This release also adds support for OpenManage Enterprise version 4.4 and 4.5.'
+The OpenManage Enterprise and OpenManage Enterprise Integration for VMware vCenter modules are now compatible with Ansible Core version 2.20. This release also adds support for OpenManage Enterprise version 4.4 and 4.5.
 
 Minor Changes
 -------------
 
-- The OpenManage Enterprise, OpenManage Enterprise Modular and OpenManage Enterprise Integration for VMware vCenter modules are now compatible with Ansible Core version 2.20.
 - Added support for OpenManage Enterprise version 4.4 and 4.5.
+- The OpenManage Enterprise, OpenManage Enterprise Modular and OpenManage Enterprise Integration for VMware vCenter modules are now compatible with Ansible Core version 2.20.
 
 Bugfixes
 --------
 
-- idrac_system_info - (Issue 1044) - FC section is missing (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1044)
-- idrac_user - (Issue 1059) - Bad User Privileges when creating idrac user using "custom_privilege" (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1059)
 - idrac_job_queue - (Issue 1067) - Fails to find the file in role due to incorrect name (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1067)
+- idrac_system_info - (Issue 1044) - FC section is missing (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1044)
 - idrac_system_info - powersupply.get_red_type_set fails with TypeError due to unhandled None values when joining mapped redundancy types
+- idrac_user - (Issue 1059) - Bad User Privileges when creating idrac user using "custom_privilege" (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1059)
 
 Known Issues
 ------------
 
+- Formal qualification of module ome_smart_fabric_info for Ansible Core version 2.19 is still pending.
 - idrac_diagnostics - This module does not support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
-- idrac_license - The module will give different error messages for iDRAC9 and iDRAC10 when user imports license with invalid share name.
 - idrac_license - Due to API limitation, proxy parameters are ignored during the import operation.
+- idrac_license - The module will give different error messages for iDRAC9 and iDRAC10 when user imports license with invalid share name.
 - idrac_os_deployment - The module continues to return a 200 response and marks the job as completed, even when an outdated date is supplied in the Expose duration.
 - idrac_redfish_storage_controller - PatrolReadRatePercent attribute cannot be set in iDRAC10.
 - idrac_server_config_profile - When attempting to revert iDRAC settings using a previously exported SCP file, the import operation will complete with errors if a new user was created after the export (Instead of restoring the system to its previous state, including the removal of newly added users).
-- Redfish_storage_volume - Encryption type and block_io_size bytes will be read only property in iDRAC 9 and iDRAC 10 and hence the module ignores these parameters.
 - ome_smart_fabric_uplink - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
-- ome_smart_fabric_info - Formal qualification of module for Ansible Core version 2.19 is still pending.
+- redfish_storage_volume - Encryption type and block_io_size bytes will be read only property in iDRAC9 and iDRAC10 and hence the module ignores these parameters.
 
 v10.0.1
 =======
@@ -115,12 +60,12 @@ v10.0.1
 Release Summary
 ---------------
 
-'The OpenManage Enterprise, OpenManage Enterprise Modular and OpenManage Enterprise Integration for VMware vCenter modules are now compatible with Ansible Core version 2.19.'
+The OpenManage Enterprise, OpenManage Enterprise Modular and OpenManage Enterprise Integration for VMware vCenter modules are now compatible with Ansible Core version 2.19.
 
 Major Changes
 -------------
 
-- The OpenManage Enterprise, OpenManage Enterprise Modular and OpenManage Enterprise Integration for VMware vCenter modules are now compatible with Ansible Core version 2.19..
+- The OpenManage Enterprise, OpenManage Enterprise Modular and OpenManage Enterprise Integration for VMware vCenter modules are now compatible with Ansible Core version 2.19.
 
 Minor Changes
 -------------
@@ -130,24 +75,24 @@ Minor Changes
 Bugfixes
 --------
 
+- Fixed the UT test execution through ansible-test - (Issue 1003) - Tests Pass Using Tox But Not Ansible-Test (https://github.com/dell/dellemc-openmanage-ansible-modules)
+- idrac_support_assist - Updated module playbook examples to use the correct casing for protocol names, for CIFS and HTTPS.
 - idrac_system_info - (Issue 1017) - System info not being returned on gen17s with v10.0.0 (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1017)
 - redfish_storage_volume - (Issue 1027) Module fails on force reboot. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1027)
-- idrac_support_assist - Updated module playbook examples to use the correct casing for protocol names, for CIFS and HTTPS.
-- Fixed the UT test execution through ansible-test - (Issue 1003) - Tests Pass Using Tox But Not Ansible-Test (https://github.com/dell/dellemc-openmanage-ansible-modules)
 
 Known Issues
 ------------
 
+- Formal qualification of module ome_smart_fabric_info for Ansible Core version 2.19 is still pending.
 - idrac_diagnostics - This module does not support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
-- idrac_license - The module will give different error messages for iDRAC9 and iDRAC10 when user imports license with invalid share name.
 - idrac_license - Due to API limitation, proxy parameters are ignored during the import operation.
+- idrac_license - The module will give different error messages for iDRAC9 and iDRAC10 when user imports license with invalid share name.
 - idrac_os_deployment - The module continues to return a 200 response and marks the job as completed, even when an outdated date is supplied in the Expose duration.
 - idrac_redfish_storage_controller - PatrolReadRatePercent attribute cannot be set in iDRAC10.
 - idrac_server_config_profile - When attempting to revert iDRAC settings using a previously exported SCP file, the import operation will complete with errors if a new user was created after the export (Instead of restoring the system to its previous state, including the removal of newly added users).
 - idrac_system_info - The module will show empty video list despite having Embedded VIDEO controller.
-- Redfish_storage_volume - Encryption type and block_io_size bytes will be read only property in iDRAC 9 and iDRAC 10 and hence the module ignores these parameters.
 - ome_smart_fabric_uplink - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
-- ome_smart_fabric_info - Formal qualification of module for Ansible Core version 2.19 is still pending.
+- redfish_storage_volume - Encryption type and block_io_size bytes will be read only property in iDRAC9 and iDRAC10 and hence the module ignores these parameters.
 
 v10.0.0
 =======
@@ -155,47 +100,47 @@ v10.0.0
 Release Summary
 ---------------
 
-'The ``idrac_license``, ``idrac_os_deployment``, ``idrac_redfish_storage_controller``, ``idrac_server_config_profile``, ``idrac_storage_volume``, ``redfish_firmware_rollback``, ``redfish_storage_volume`` modules and ``idrac_certificate``, ``idrac_export_server_config_profile``, ``idrac_firmware``, ``idrac_import_server_config_profile``, ``idrac_os_deployment``, ``idrac_storage_controller``, ``redfish_firmware``, ``redfish_storage_volume`` roles are enhanced to support iDRAC10.'
+The ``idrac_license``, ``idrac_os_deployment``, ``idrac_redfish_storage_controller``, ``idrac_server_config_profile``, ``idrac_storage_volume``, ``redfish_firmware_rollback``, ``redfish_storage_volume`` modules and ``idrac_certificate``, ``idrac_export_server_config_profile``, ``idrac_firmware``, ``idrac_import_server_config_profile``, ``idrac_os_deployment``, ``idrac_storage_controller``, ``redfish_firmware``, ``redfish_storage_volume`` roles are enhanced to support iDRAC10.
 
 Major Changes
 -------------
 
-- idrac_license - This module is enhanced to support iDRAC10.
-- idrac_os_deployment - This module is enhanced to support iDRAC10.
-- idrac_redfish_storage_controller - This module is enhanced to support iDRAC10.
-- idrac_server_config_profile - This module is enhanced to support iDRAC10.
-- idrac_storage_volume - This module is enhanced to support iDRAC10.
-- redfish_firmware_rollback - This module is enhanced to support iDRAC10.
-- redfish_storage_volume - This module is enhanced to support iDRAC10.
 - idrac_certificate - This role is enhanced to support iDRAC10.
 - idrac_export_server_config_profile - This role is enhanced to support iDRAC10.
 - idrac_firmware - This role is enhanced to support iDRAC10.
 - idrac_import_server_config_profile - This role is enhanced to support iDRAC10.
+- idrac_license - This module is enhanced to support iDRAC10.
+- idrac_os_deployment - This module is enhanced to support iDRAC10.
 - idrac_os_deployment - This role is enhanced to support iDRAC10.
+- idrac_redfish_storage_controller - This module is enhanced to support iDRAC10.
+- idrac_server_config_profile - This module is enhanced to support iDRAC10.
 - idrac_storage_controller - This role is enhanced to support iDRAC10.
+- idrac_storage_volume - This module is enhanced to support iDRAC10.
 - redfish_firmware - This role is enhanced to support iDRAC10.
+- redfish_firmware_rollback - This module is enhanced to support iDRAC10.
+- redfish_storage_volume - This module is enhanced to support iDRAC10.
 - redfish_storage_volume - This role is enhanced to support iDRAC10.
 
 Bugfixes
 --------
 
-- idrac_system_info - (Issue 967) - idrac_system_info fails oniDRAC10 with GPU. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/967)
 - idrac_server_config_profile - (Issue 959) Can't export SCP (Server configuration profile) on iDRAC 10. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/959)
+- idrac_system_info - (Issue 967) - idrac_system_info fails on iDRAC10 with GPU. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/967)
 
 Known Issues
 ------------
 
 - idrac_attributes - The module accepts both the string as well as integer value for the field "SNMP.1.AgentCommunity" for iDRAC10.
 - idrac_diagnostics - This module does not support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- idrac_license - Due to API limitation, proxy parameters are ignored during the import operation.
 - idrac_license - The module will fail to export license to NFS Share.
 - idrac_license - The module will give different error messages for iDRAC9 and iDRAC10 when user imports license with invalid share name.
-- idrac_license - Due to API limitation, proxy parameters are ignored during the import operation.
 - idrac_os_deployment - The module continues to return a 200 response and marks the job as completed, even when an outdated date is supplied in the Expose duration.
 - idrac_redfish_storage_controller - PatrolReadRatePercent attribute cannot be set in iDRAC10.
 - idrac_server_config_profile - When attempting to revert iDRAC settings using a previously exported SCP file, the import operation will complete with errors if a new user was created after the export (Instead of restoring the system to its previous state, including the removal of newly added users).
 - idrac_system_info - The module will show empty video list despite having Embedded VIDEO controller.
-- Redfish_storage_volume - Encryption type and block_io_size bytes will be read only property in iDRAC 9 and iDRAC 10 and hence the module ignores these parameters.
 - ome_smart_fabric_uplink - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
+- redfish_storage_volume - Encryption type and block_io_size bytes will be read only property in iDRAC 9 and iDRAC 10 and hence the module ignores these parameters.
 
 v9.12.3
 =======
@@ -203,33 +148,33 @@ v9.12.3
 Release Summary
 ---------------
 
-The ``idrac_boot``,``idrac_certificates`` ``idrac_reset``, ``idrac_support_assist``, ``idrac_user``, ``redfish_firmware`` modules and ``idrac_bios``, ``idrac_boot``, ``idrac_reset``, ``idrac_user`` roles are enhanced to support iDRAC10. Furthermore, the ``ome_firmware``, ``ome_firmware_baseline``, ``ome_firmware_catalog``, ``ome_firmware_baseline_compliance_info``, and ``ome_firmware_baseline_info`` modules now support OME 4.5. OpenManage iDRAC Ansible modules are now compatible with Ansible Core version 2.19.
+The ``idrac_boot``,``idrac_certificates`` ``idrac_reset``, ``idrac_support_assist``, ``idrac_user``, ``redfish_firmware`` modules and ``idrac_bios`, ``idrac_boot``, ``idrac_reset``, ``idrac_user`` roles are enhanced to support iDRAC10. Furthermore, the ``ome_firmware``, ``ome_firmware_baseline``, ``ome_firmware_catalog``, ``ome_firmware_baseline_compliance_info``, and ``ome_firmware_baseline_info`` modules now support OME 4.5. OpenManage iDRAC Ansible modules are now compatible with Ansible Core version 2.19.
 
 Major Changes
 -------------
 
+- OpenManage iDRAC Ansible modules are now compatible with Ansible Core version 2.19.
+- idrac_bios - This role is enhanced to support iDRAC10.
 - idrac_boot - This module is enhanced to support iDRAC10.
+- idrac_boot - This role is enhanced to support iDRAC10.
 - idrac_certificates - This module is enhanced to support iDRAC10.
 - idrac_reset - This module is enhanced to support iDRAC10.
+- idrac_reset - This role is enhanced to support iDRAC10.
 - idrac_support_assist - This module is enhanced to support iDRAC10.
 - idrac_user - This module is enhanced to support iDRAC10.
-- redfish_firmware - This module is enhanced to support iDRAC10.
-- idrac_bios - This role is enhanced to support iDRAC10.
-- idrac_boot - This role is enhanced to support iDRAC10.
-- idrac_reset - This role is enhanced to support iDRAC10.
 - idrac_user - This role is enhanced to support iDRAC10.
 - ome_firmware - This module is enhanced to support OME 4.5.
 - ome_firmware_baseline - This module is enhanced to support OME 4.5.
-- ome_firmware_catalog - This module is enhanced to support OME 4.5.
-- ome_firmware_baseline_info - This module is enhanced to support OME 4.5.
 - ome_firmware_baseline_compliance_info - This module is enhanced to support OME 4.5.
-- OpenManage iDRAC Ansible modules are now compatible with Ansible Core version 2.19.
+- ome_firmware_baseline_info - This module is enhanced to support OME 4.5.
+- ome_firmware_catalog - This module is enhanced to support OME 4.5.
+- redfish_firmware - This module is enhanced to support iDRAC10.
 
 Known Issues
 ------------
 
 - idrac_attributes - The module accepts both the string as well as integer value for the field "SNMP.1.AgentCommunity" for iDRAC10.
-- idrac_diagnostics - This module does not support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- idrac_diagnostics - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
 - ome_smart_fabric_uplink - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
 
 v9.12.2
@@ -238,7 +183,7 @@ v9.12.2
 Release Summary
 ---------------
 
-The ``idrac_bios``, ``idrac_diagnostics``, ``idrac_session``, ``idrac_firmware``, ``idrac_secure_boot``, ``idrac_system_erase``, ``idrac_network_attributes``, ``idrac_lifecycle_controller_logs``, ``redfish_power_state``, ``redfish_event_subscription`` modules and ``idrac_server_powerstate``, ``idrac_job_queue`` roles are enhanced to support iDRAC10.
+The ``idrac_bios``,``idrac_diagnostics`` ``idrac_session``, ``idrac_firmware``, ``idrac_secure_boot``, ``idrac_system_erase``, ``idrac_network_attributes``, ``idrac_lifecycle_controller_logs``, ``redfish_power_state``, ``redfish_event_subscription`` modules and ``idrac_server_powerstate``, ``idrac_job_queue`` roles are enhanced to support iDRAC10.
 
 Major Changes
 -------------
@@ -260,7 +205,7 @@ Known Issues
 ------------
 
 - idrac_attributes - The module accepts both the string as well as integer value for the field "SNMP.1.AgentCommunity" for iDRAC10.
-- idrac_diagnostics - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- idrac_diagnostics - This module does not support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
 - ome_smart_fabric_uplink - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
 
 v9.12.1
