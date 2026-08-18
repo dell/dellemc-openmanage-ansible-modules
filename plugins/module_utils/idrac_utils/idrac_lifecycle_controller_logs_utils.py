@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 9.12.2
-# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 10.0.3
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
