@@ -156,8 +156,8 @@ class IDRACLogFilter:
             ValueError: If date_end is earlier than date_start
         """
         if date_start and date_end:
-            start_dt = date_parser.parse(date_start)
-            end_dt = date_parser.parse(date_end)
+            start_dt = datetime.fromisoformat(date_start.replace('Z', '+00:00'))
+            end_dt = datetime.fromisoformat(date_end.replace('Z', '+00:00'))
 
             if end_dt < start_dt:
                 raise ValueError("date_end must not be earlier than date_start")
