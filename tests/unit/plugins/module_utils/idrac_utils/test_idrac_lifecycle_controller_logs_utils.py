@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+
+#
+# Dell OpenManage Ansible Modules
+# Version 10.0.3
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
 import pytest
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     idrac_utils.idrac_lifecycle_controller_logs_utils \
