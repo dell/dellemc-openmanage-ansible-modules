@@ -1,0 +1,61 @@
+---
+# Test AC-005: Force parameter for overwriting existing files
+
+- name: Test force parameter
+  block:
+    - name: Export LC logs to create initial file
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        share_name: "/tmp/test_force_logs.json"
+        export_format: "json"
+        max_entries: 5
+      register: first_result
+
+    - name: Verify first export succeeded
+      ansible.builtin.assert:
+        that:
+          - first_result.changed is true
+        fail_msg: "First export failed"
+
+    - name: Try to export without force (should fail)
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        share_name: "/tmp/test_force_logs.json"
+        export_format: "json"
+        max_entries: 5
+      register: no_force_result
+      ignore_errors: true
+
+    - name: Verify no-force export failed as expected
+      ansible.builtin.assert:
+        that:
+          - no_force_result.failed is true
+          - "'already exists' in no_force_result.msg"
+        fail_msg: "No-force export should have failed"
+        success_msg: "No-force export failed as expected"
+
+    - name: Export with force parameter (should succeed)
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        share_name: "/tmp/test_force_logs.json"
+        export_format: "json"
+        max_entries: 5
+        force: true
+      register: force_result
+
+    - name: Verify force export succeeded
+      ansible.builtin.assert:
+        that:
+          - force_result.changed is true
+        fail_msg: "Force export failed"
+
+    - name: Clean up test file
+      ansible.builtin.file:
+        path: /tmp/test_force_logs.json
+        state: absent

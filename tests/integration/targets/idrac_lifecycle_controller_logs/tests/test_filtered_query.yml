@@ -1,0 +1,44 @@
+---
+# Test AC-001: Filtered LC log query with date range and severity filter
+
+- name: Test filtered LC log query with date range and severity
+  block:
+    - name: Export LC logs with date and severity filters
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        share_name: "/tmp/test_filtered_logs.json"
+        export_format: "json"
+        date_start: "2026-08-01T00:00:00Z"
+        severity:
+          - Critical
+          - Warning
+        max_entries: 10
+      register: result
+
+    - name: Verify export succeeded
+      ansible.builtin.assert:
+        that:
+          - result is defined
+          - result.changed is true
+          - result.lc_logs_status is defined
+          - result.lc_logs_status.exported_entries is defined
+        fail_msg: "Filtered query failed"
+        success_msg: "Filtered query succeeded"
+
+    - name: Verify export file exists
+      ansible.builtin.stat:
+        path: /tmp/test_filtered_logs.json
+      register: file_stat
+
+    - name: Assert file was created
+      ansible.builtin.assert:
+        that:
+          - file_stat.stat.exists
+        fail_msg: "Export file was not created"
+
+    - name: Clean up test file
+      ansible.builtin.file:
+        path: /tmp/test_filtered_logs.json
+        state: absent

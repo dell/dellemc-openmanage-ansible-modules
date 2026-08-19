@@ -1,0 +1,56 @@
+---
+# Test AC-007: Combined Filter Optimization
+
+- name: Test combined filters with optimization enabled (default)
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    validate_certs: false
+    share_name: "/tmp/test_filter_optimized.json"
+    export_format: "json"
+    date_start: "2026-08-01T00:00:00Z"
+    severity:
+      - Critical
+    category:
+      - SystemHealth
+    filter_optimization: true
+    max_entries: 10
+  register: optimized_result
+
+- name: Verify optimized filter result
+  ansible.builtin.assert:
+    that:
+      - optimized_result.changed is defined
+
+- name: Clean up test file
+  ansible.builtin.file:
+    path: "/tmp/test_filter_optimized.json"
+    state: absent
+
+- name: Test combined filters with optimization disabled
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    validate_certs: false
+    share_name: "/tmp/test_filter_sequential.json"
+    export_format: "json"
+    date_start: "2026-08-01T00:00:00Z"
+    severity:
+      - Critical
+    category:
+      - SystemHealth
+    filter_optimization: false
+    max_entries: 10
+  register: sequential_result
+
+- name: Verify sequential filter result
+  ansible.builtin.assert:
+    that:
+      - sequential_result.changed is defined
+
+- name: Clean up test file
+  ansible.builtin.file:
+    path: "/tmp/test_filter_sequential.json"
+    state: absent

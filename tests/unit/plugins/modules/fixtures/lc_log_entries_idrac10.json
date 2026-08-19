@@ -1,0 +1,105 @@
+{
+  "Members": [
+    {
+      "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries/1",
+      "@odata.type": "#LogEntry.v1_4_0.LogEntry",
+      "Id": "1",
+      "Name": "Log Entry 1",
+      "Created": "2026-08-15T10:00:00Z",
+      "EntryType": "Oem",
+      "Severity": "Critical",
+      "Message": "Thermal shutdown imminent",
+      "MessageId": "LC101",
+      "Oem": {
+        "Dell": {
+          "DellLCLogEntry": {
+            "Category": "SystemHealth",
+            "Component": "Temperature Sensor",
+            "InstanceID": "LC101"
+          }
+        }
+      }
+    },
+    {
+      "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries/2",
+      "@odata.type": "#LogEntry.v1_4_0.LogEntry",
+      "Id": "2",
+      "Name": "Log Entry 2",
+      "Created": "2026-08-15T11:00:00Z",
+      "EntryType": "Oem",
+      "Severity": "Warning",
+      "Message": "NIC link flapping detected",
+      "MessageId": "LC102",
+      "Oem": {
+        "Dell": {
+          "DellLCLogEntry": {
+            "Category": "Network",
+            "Component": "NIC 1",
+            "InstanceID": "LC102"
+          }
+        }
+      }
+    },
+    {
+      "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries/3",
+      "@odata.type": "#LogEntry.v1_4_0.LogEntry",
+      "Id": "3",
+      "Name": "Log Entry 3",
+      "Created": "2026-08-15T12:00:00Z",
+      "EntryType": "Oem",
+      "Severity": "OK",
+      "Message": "BIOS update completed",
+      "MessageId": "LC103",
+      "Oem": {
+        "Dell": {
+          "DellLCLogEntry": {
+            "Category": "Updates",
+            "Component": "BIOS",
+            "InstanceID": "LC103"
+          }
+        }
+      }
+    },
+    {
+      "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries/4",
+      "@odata.type": "#LogEntry.v1_4_0.LogEntry",
+      "Id": "4",
+      "Name": "Log Entry 4",
+      "Created": "2026-08-16T09:00:00Z",
+      "EntryType": "Oem",
+      "Severity": "Warning",
+      "Message": "RAID controller battery warning",
+      "MessageId": "LC104",
+      "Oem": {
+        "Dell": {
+          "DellLCLogEntry": {
+            "Category": "Storage",
+            "Component": "PERC H965",
+            "InstanceID": "LC104"
+          }
+        }
+      }
+    },
+    {
+      "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries/5",
+      "@odata.type": "#LogEntry.v1_4_0.LogEntry",
+      "Id": "5",
+      "Name": "Log Entry 5",
+      "Created": "2026-08-16T10:00:00Z",
+      "EntryType": "Oem",
+      "Severity": "OK",
+      "Message": "SSH key added for user admin",
+      "MessageId": "LC105",
+      "Oem": {
+        "Dell": {
+          "DellLCLogEntry": {
+            "Category": "Audit",
+            "Component": "iDRAC",
+            "InstanceID": "LC105"
+          }
+        }
+      }
+    }
+  ],
+  "Members@odata.count": 5
+}
