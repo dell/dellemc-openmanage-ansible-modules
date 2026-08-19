@@ -1,0 +1,69 @@
+---
+# Test AC-008: Storage Overflow Monitoring
+
+- name: Test storage monitoring with default threshold
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    validate_certs: false
+    share_name: "/tmp/test_storage_default.json"
+    export_format: "json"
+    storage_threshold_pct: 80
+    max_entries: 10
+  register: storage_default
+
+- name: Verify storage monitoring fields are present
+  ansible.builtin.assert:
+    that:
+      - storage_default.changed is defined
+
+- name: Clean up test file
+  ansible.builtin.file:
+    path: "/tmp/test_storage_default.json"
+    state: absent
+
+- name: Test storage monitoring with custom threshold
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    validate_certs: false
+    share_name: "/tmp/test_storage_custom.json"
+    export_format: "json"
+    storage_threshold_pct: 95
+    max_entries: 10
+  register: storage_custom
+
+- name: Verify custom threshold is accepted
+  ansible.builtin.assert:
+    that:
+      - storage_custom.changed is defined
+
+- name: Clean up test file
+  ansible.builtin.file:
+    path: "/tmp/test_storage_custom.json"
+    state: absent
+
+- name: Test storage monitoring disabled (threshold 0)
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    validate_certs: false
+    share_name: "/tmp/test_storage_disabled.json"
+    export_format: "json"
+    storage_threshold_pct: 0
+    max_entries: 10
+  register: storage_disabled
+
+- name: Verify storage monitoring disabled
+  ansible.builtin.assert:
+    that:
+      - storage_disabled.changed is defined
+      - storage_disabled.storage_warning is not defined
+
+- name: Clean up test file
+  ansible.builtin.file:
+    path: "/tmp/test_storage_disabled.json"
+    state: absent

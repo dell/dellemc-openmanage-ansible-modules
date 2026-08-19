@@ -1,6 +1,6 @@
 ---
-dependencies:
-  - prepare_mount_shares
-  - prepare_lifecycle_contoller_job_queue
-  - prepare_idrac_lifecycle_controller_status
-  - prepare_lifecycle_controller_job
+# Meta file for idrac_lifecycle_controller_logs integration tests
+
+dependencies: []
+collections:
+  - name: dellemc.openmanage
