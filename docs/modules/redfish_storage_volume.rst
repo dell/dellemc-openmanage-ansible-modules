@@ -166,7 +166,7 @@ Parameters
   reboot_server (optional, bool, False)
     Reboot the server to apply the changes.
 
-    :emphasis:`reboot\_server` is applicable only when :emphasis:`apply\_timeout` is :literal:`OnReset` or when the default value for the apply time of the controller is :literal:`OnReset`.
+    :emphasis:`reboot\_server` is applicable only when :emphasis:`apply\_time` is :literal:`OnReset` or when the default value for the apply time of the controller is :literal:`OnReset`.
 
 
   force_reboot (optional, bool, False)
