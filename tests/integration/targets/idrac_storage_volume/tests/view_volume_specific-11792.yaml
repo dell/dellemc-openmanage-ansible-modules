@@ -38,7 +38,7 @@
     - name: Set the volume Id
       ansible.builtin.set_fact:
         volume_id: "{{ volume_list[0] }}"
-      when: volume_id_list | length > 0
+      when: volume_list | length > 0
 
     - name: Fetch API Output
       ansible.builtin.include_tasks: _view_api_output.yml
@@ -123,4 +123,4 @@
   rescue:
     - name: View VD when both controller and volume information is passed
       ansible.builtin.fail:
-        msg: "{{ view_result.msg }}"
+        msg: "{{ (view_result | default(check_mode_result)).msg }}"

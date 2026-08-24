@@ -112,3 +112,53 @@
       delegate_to: localhost
       tags:
         - view_all_volume
+
+    - name: Modify virtual disk attributes (display name and cache policies).
+      dellemc.openmanage.idrac_storage_volume:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "modify"
+        controller_id: "RAID.Slot.1-1"
+        volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
+        display_name: "prod-data-volume"
+        modify_read_cache_policy: "AdaptiveReadAhead"
+        modify_write_cache_policy: "ProtectedWriteBack"
+        modify_disk_cache_policy: "Enabled"
+      delegate_to: localhost
+      tags:
+        - modify_volume_attributes
+
+    - name: Enable encryption on an existing virtual disk using local key management.
+      dellemc.openmanage.idrac_storage_volume:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "modify"
+        controller_id: "RAID.Slot.1-1"
+        volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
+        enable_encryption: true
+        encryption_mode: "LKM"
+        job_wait: true
+        job_wait_timeout: 3600
+      delegate_to: localhost
+      tags:
+        - enable_encryption
+
+    - name: Perform fast initialization on a virtual disk.
+      dellemc.openmanage.idrac_storage_volume:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "modify"
+        controller_id: "RAID.Slot.1-1"
+        volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
+        initialization_type: "Fast"
+        job_wait: true
+        job_wait_timeout: 3600
+      delegate_to: localhost
+      tags:
+        - initialize_volume

@@ -1,0 +1,40 @@
+---
+- name: Storage information discovery on iDRAC.
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Get all storage controllers.
+      dellemc.openmanage.idrac_storage_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        resource_type: "controller"
+      delegate_to: localhost
+      tags:
+        - get_controllers
+
+    - name: Get all physical disks for a controller.
+      dellemc.openmanage.idrac_storage_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        resource_type: "physical_disk"
+        controller_id: "RAID.Slot.1-1"
+      delegate_to: localhost
+      tags:
+        - get_physical_disks
+
+    - name: Get all virtual disks for a controller.
+      dellemc.openmanage.idrac_storage_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        resource_type: "virtual_disk"
+        controller_id: "RAID.Slot.1-1"
+      delegate_to: localhost
+      tags:
+        - get_virtual_disks
