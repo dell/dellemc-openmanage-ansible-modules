@@ -1,7 +1,9 @@
 ---
-- name: "Ansible Module for Simple Firmware Rollback"
+- name: Ansible Module for Firmware Rollback
   hosts: redfish_hosts
   gather_facts: false
+  connection: local
+
   tasks:
     - name: Rollback firmware components for 17G
       block:
@@ -10,20 +12,20 @@
             url: "{{ 'https://' + baseuri + '/redfish/v1/UpdateService/' +
               'FirmwareInventory?$expand=*($levels=1)' }}"
             method: GET
-            ca_path: "/path/to/ca_cert.pem"
+            ca_path: "{{ ca_path | default(omit) }}"
             url_username: "{{ username }}"
             url_password: "{{ password }}"
             headers:
-              Content-Type: "application/json"
+              Content-Type: application/json
             return_content: true
           register: redfish_response
 
-        - name: Extract all 'Name' attributes from the response
+        - name: Extract all Name attributes from the response
           ansible.builtin.set_fact:
             firmware_names: "{{ redfish_response.json.Members
               | map(attribute='Name') | list }}"
 
-        - name: Find the firmware name that contains 'BIOS'
+        - name: Find the firmware name that contains BIOS
           ansible.builtin.set_fact:
             bios_firmware_name: "{{ firmware_names
               | select('contains', 'BIOS') | first }}"
@@ -33,35 +35,34 @@
             baseuri: "{{ baseuri }}"
             username: "{{ username }}"
             password: "{{ password }}"
-            ca_path: "/path/to/ca_cert.pem"
+            ca_path: "{{ ca_path | default(omit) }}"
             name: "{{ bios_firmware_name }}"
-          delegate_to: localhost
+          register: rollback_result
           tags: rollback-bios-17g
 
-        - name: Find the firmware name that contains 'NIC'
+        - name: Find the firmware name that contains NIC
           ansible.builtin.set_fact:
             network_firmware_name: "{{ firmware_names
               | select('contains', 'NIC') | first }}"
 
-        - name: Rollback all NIC cards with a name starting from 'NIC' for 17G.
+        - name: Rollback all NIC cards with a name starting from NIC for 17G
           dellemc.openmanage.redfish_firmware_rollback:
             baseuri: "{{ baseuri }}"
             username: "{{ username }}"
             password: "{{ password }}"
-            ca_path: "/path/to/ca_cert.pem"
+            ca_path: "{{ ca_path | default(omit) }}"
             name: "{{ network_firmware_name }}"
-          delegate_to: localhost
+          register: rollback_result
           tags: rollback-match-17g
 
-        - name: Rollback all the component firmware except
-            BIOS component for 17G.
+        - name: Rollback all the component firmware except BIOS component for 17G
           dellemc.openmanage.redfish_firmware_rollback:
             baseuri: "{{ baseuri }}"
             username: "{{ username }}"
             password: "{{ password }}"
-            ca_path: "/path/to/ca_cert.pem"
+            ca_path: "{{ ca_path | default(omit) }}"
             name: "(?!{{ bios_firmware_name }}).*"
-          delegate_to: localhost
+          register: rollback_result
           tags: rollback-except-17g
 
     - name: Rollback a BIOS component firmware for 16G
@@ -69,38 +70,37 @@
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
-        ca_path: "/path/to/ca_cert.pem"
-        name: "BIOS"
-      delegate_to: localhost
+        ca_path: "{{ ca_path | default(omit) }}"
+        name: "{{ bios_firmware_name_16g | default('BIOS') }}"
+      register: rollback_result
       tags: rollback-bios
 
-    - name: Rollback all NIC cards with a name starting from '
-        Broadcom Gigabit' for 16G.
+    - name: Rollback all NIC cards with a name starting from Broadcom Gigabit for 16G
       dellemc.openmanage.redfish_firmware_rollback:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
-        ca_path: "/path/to/ca_cert.pem"
-        name: "Broadcom Gigabit Ethernet.*"
-      delegate_to: localhost
+        ca_path: "{{ ca_path | default(omit) }}"
+        name: "{{ nic_firmware_pattern_16g | default('Broadcom Gigabit Ethernet.*') }}"
+      register: rollback_result
       tags: rollback-match
 
-    - name: Rollback all the component firmware except BIOS component for 16G.
+    - name: Rollback all the component firmware except BIOS component for 16G
       dellemc.openmanage.redfish_firmware_rollback:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
-        ca_path: "/path/to/ca_cert.pem"
+        ca_path: "{{ ca_path | default(omit) }}"
         name: "(?!BIOS).*"
-      delegate_to: localhost
+      register: rollback_result
       tags: rollback-except
 
-    - name: Rollback all the available firmware component for 16G and 17G.
+    - name: Rollback all the available firmware component for 16G and 17G
       dellemc.openmanage.redfish_firmware_rollback:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
-        ca_path: "/path/to/ca_cert.pem"
+        ca_path: "{{ ca_path | default(omit) }}"
         name: ".*"
-      delegate_to: localhost
+      register: rollback_result
       tags: rollback-all

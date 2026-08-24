@@ -1,0 +1,85 @@
+---
+- name: Perform storage volume operation
+  dellemc.openmanage.redfish_storage_volume:
+    baseuri: "{{ baseuri }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    state: "{{ volume_state | default('present') }}"
+    name: "{{ volume_name | default(omit) }}"
+    controller_id: "{{ controller_id | default(omit) }}"
+    drives: "{{ drives | default(omit) }}"
+    volume_type: "{{ volume_type | default(omit) }}"
+    raid_type: "{{ raid_type | default(omit) }}"
+    capacity_bytes: "{{ capacity_bytes | default(omit) }}"
+    encryption_types: "{{ encryption_types | default(omit) }}"
+    encrypted: "{{ encrypted | default(omit) }}"
+    volume_id: "{{ volume_id | default(omit) }}"
+    command: "{{ volume_command | default(omit) }}"
+    initialize_type: "{{ initialize_type | default(omit) }}"
+    apply_time: "{{ apply_time | default(omit) }}"
+    reboot_server: "{{ reboot_server | default(omit) }}"
+    force_reboot: "{{ force_reboot | default(omit) }}"
+  register: volume_result
+
+- name: Poll job status until completion or pending
+  ansible.builtin.uri:
+    url: "https://{{ baseuri }}{{ volume_result.task.uri }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    method: GET
+    use_proxy: true
+    status_code: [200, 202]
+    return_content: true
+    validate_certs: "{{ validate_certs | default(false) }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+  register: job_result
+  failed_when: "'json' not in job_result"
+  until: job_result.json.TaskState == 'Completed' or job_result.json.TaskState == 'Pending'
+  retries: "{{ retries_count | default(100) }}"
+  delay: "{{ polling_interval | default(10) }}"
+
+- name: Reboot the system if the job status is pending
+  ansible.builtin.uri:
+    url: "https://{{ baseuri }}{{ reboot_uri | default('/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset') }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    method: POST
+    body_format: raw
+    body: '{"ResetType": "ForceRestart"}'
+    use_proxy: true
+    status_code: 204
+    return_content: false
+    validate_certs: "{{ validate_certs | default(false) }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+  register: reboot_result
+  changed_when: reboot_result.status == 204
+  when:
+    - job_result.json.TaskState == 'Pending'
+    - job_result.json.Messages[0].Message == 'Task successfully scheduled.'
+
+- name: Poll final job status until completed
+  ansible.builtin.uri:
+    url: "https://{{ baseuri }}{{ volume_result.task.uri }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    method: GET
+    use_proxy: true
+    status_code: [200, 202]
+    return_content: true
+    validate_certs: "{{ validate_certs | default(false) }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+  register: final_result
+  failed_when: final_result.json.TaskState == 'Completed' and final_result.json.TaskStatus != 'OK'
+  until: final_result.json.TaskState == 'Completed'
+  retries: "{{ retries_count | default(100) }}"
+  delay: "{{ polling_interval | default(10) }}"
