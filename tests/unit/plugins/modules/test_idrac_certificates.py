@@ -71,6 +71,8 @@ idrac_service_actions = {
     "#DelliDRACCardService.iDRACReset": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.iDRACReset"
 }
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_certificates.'
+DELETE_REJECTED_MSG = "Delete operation is not supported for SCEP_CA_CERT certificate type. See CIT-2606 for the workaround via iDRAC GUI/CLI."
+EXPORT_REJECTED_MSG = "Export operation is not supported for SCEP_CA_CERT certificate type. Use 'command: view' to retrieve certificate metadata via the Attributes API. See CIT-2606 for details."
 
 
 @pytest.fixture
@@ -448,3 +450,58 @@ class TestIdracCertificates(FakeAnsibleModule):
         else:
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
+
+    @pytest.mark.parametrize("params", [
+        {"generation": 17, "firmware_version": "2.00.05.10", "hw_model": "iDRAC 10",
+         "license_members": [{"LicenseType": "DATACENTER", "LicensePrimaryStatus": "OK"}],
+         "expected": (True, "")},
+        {"generation": 17, "firmware_version": "1.20.40.00", "hw_model": "iDRAC 10",
+         "license_members": [{"LicenseType": "DATACENTER", "LicensePrimaryStatus": "OK"}],
+         "expected": (False, "Minimum firmware requirement not met")},
+        {"generation": 17, "firmware_version": "2.00.05.10", "hw_model": "iDRAC 10",
+         "license_members": [{"LicenseType": "ENTERPRISE", "LicensePrimaryStatus": "OK"}],
+         "expected": (False, "SCEP_CA_CERT operations require an active Datacenter license")},
+        {"generation": 14, "firmware_version": "6.00.00.00", "hw_model": "iDRAC 9",
+         "license_members": [{"LicenseType": "DATACENTER", "LicensePrimaryStatus": "OK"}],
+         "expected": (False, "Minimum firmware requirement not met")},
+    ])
+    def test_check_firmware_and_license_for_scep_ca(self, params, idrac_default_args, mocker):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = MagicMock(return_value=(params['generation'], params['firmware_version'], params['hw_model']))
+        idrac_mock.invoke_request = MagicMock(return_value=MagicMock(json_data={"Members": params['license_members']}))
+        f_module = self.get_module_mock(params=idrac_default_args)
+        result = self.module.check_firmware_and_license_for_scep_ca(idrac_mock, f_module)
+        assert result == params['expected']
+
+    @pytest.mark.parametrize("params", [
+        {"attrs": {"SecurityCertificate.7.CertificateType": "SCEP_CA",
+                  "SecurityCertificate.7.SubjectCommonName": "test.example.com",
+                  "SecurityCertificate.7.SerialNumber": "AA:BB:CC:DD:EE:FF"},
+         "expected": {"certificate_type": "SCEP_CA", "subject_common_name": "test.example.com",
+                      "serial_number": "AA:BB:CC:DD:EE:FF"}},
+        {"attrs": {"SecurityCertificate.1.CertificateType": "HTTPS"},
+         "expected": {}},
+    ])
+    def test_view_scep_ca_cert_metadata(self, params, idrac_default_args, mocker):
+        idrac_mock = MagicMock()
+        idrac_mock.invoke_request = MagicMock(return_value=MagicMock(json_data={"Attributes": params['attrs']}))
+        f_module = self.get_module_mock(params=idrac_default_args)
+        result = self.module.view_scep_ca_cert_metadata(idrac_mock, f_module)
+        assert result == params['expected']
+
+    @pytest.mark.parametrize("params", [
+        {"command": "delete", "certificate_type": "SCEP_CA_CERT", "expected_msg": DELETE_REJECTED_MSG},
+        {"command": "export", "certificate_type": "SCEP_CA_CERT", "expected_msg": EXPORT_REJECTED_MSG},
+    ])
+    def test_scep_ca_rejection_messages(self, params, idrac_default_args, mocker):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = MagicMock(return_value=(17, "2.00.05.10", "iDRAC 10"))
+        idrac_mock.invoke_request = MagicMock(return_value=MagicMock(json_data={"Members": [{"LicenseType": "DATACENTER", "LicensePrimaryStatus": "OK"}]}))
+        mocker.patch(MODULE_PATH + 'iDRACRedfishAPI', return_value=idrac_mock)
+        mocker.patch(MODULE_PATH + 'get_res_id', return_value=MANAGER_ID)
+        mocker.patch(MODULE_PATH + 'get_idrac_service', return_value=IDRAC_SERVICE.format(res_id=MANAGER_ID))
+        mocker.patch(MODULE_PATH + 'get_actions_map', return_value=idrac_service_actions)
+        idrac_default_args.update({"command": params['command'], "certificate_type": params['certificate_type']})
+        result = self._run_module(idrac_default_args)
+        assert result['failed'] is True
+        assert params['expected_msg'] in result['msg']
