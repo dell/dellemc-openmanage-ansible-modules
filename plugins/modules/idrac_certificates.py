@@ -489,7 +489,10 @@ def get_actions_map(idrac, idrac_service_uri):
 
 
 def get_cert_url(actions, operation, cert_type, res_id):
-    idrac_key = action_url_map.get(operation).get(cert_type)
+    operation_map = action_url_map.get(operation)
+    if operation_map is None:
+        return None
+    idrac_key = operation_map.get(cert_type)
     dynurl = actions.get(idrac_key)
     if not dynurl:
         dynurl = dflt_url_map.get(operation).get(cert_type)
