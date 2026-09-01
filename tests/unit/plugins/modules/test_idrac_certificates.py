@@ -71,8 +71,8 @@ idrac_service_actions = {
     "#DelliDRACCardService.iDRACReset": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.iDRACReset"
 }
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_certificates.'
-DELETE_REJECTED_MSG = "Delete operation is not supported for SCEP_CA_CERT certificate type. See CIT-2606 for the workaround via iDRAC GUI/CLI."
-EXPORT_REJECTED_MSG = "Export operation is not supported for SCEP_CA_CERT certificate type. Use 'command: view' to retrieve certificate metadata via the Attributes API. See CIT-2606 for details."
+DELETE_REJECTED_MSG = "Delete operation is not supported for SCEP_CA_CERT certificate type. Use the iDRAC GUI or CLI to manage this certificate type."
+EXPORT_REJECTED_MSG = "Export operation is not supported for SCEP_CA_CERT certificate type. Use 'command: view' to retrieve certificate metadata via the Attributes API."
 
 
 @pytest.fixture
