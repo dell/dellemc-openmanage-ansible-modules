@@ -464,6 +464,9 @@ class TestIdracCertificates(FakeAnsibleModule):
         {"generation": 14, "firmware_version": "6.00.00.00", "hw_model": "iDRAC 9",
          "license_members": [{"LicenseType": "DATACENTER", "LicensePrimaryStatus": "OK"}],
          "expected": (False, "Minimum firmware requirement not met")},
+        {"generation": 14, "firmware_version": "7.10.90.00", "hw_model": "iDRAC 9",
+         "license_members": [{"LicenseType": "DATACENTER", "LicensePrimaryStatus": "OK"}],
+         "expected": (True, "")},
     ])
     def test_check_firmware_and_license_for_scep_ca(self, params, idrac_default_args, mocker):
         idrac_mock = MagicMock()
@@ -476,10 +479,19 @@ class TestIdracCertificates(FakeAnsibleModule):
     @pytest.mark.parametrize("params", [
         {"attrs": {"SecurityCertificate.7.CertificateType": "SCEP_CA",
                   "SecurityCertificate.7.SubjectCommonName": "test.example.com",
-                  "SecurityCertificate.7.SerialNumber": "AA:BB:CC:DD:EE:FF"},
+                  "SecurityCertificate.7.SerialNumber": "AA:BB:CC:DD:EE:FF",
+                  "SecurityCertificate.7.IssuerCommonName": "Test CA",
+                  "SecurityCertificate.7.CertValidFrom": "Jan 19 05:43:11 2024 GMT",
+                  "SecurityCertificate.7.CertValidTo": "Jan 19 05:43:11 2025 GMT",
+                  "SecurityCertificate.7.ExpiryState": "Valid"},
          "expected": {"certificate_type": "SCEP_CA", "subject_common_name": "test.example.com",
-                      "serial_number": "AA:BB:CC:DD:EE:FF"}},
+                      "serial_number": "AA:BB:CC:DD:EE:FF", "issuer_common_name": "Test CA",
+                      "cert_valid_from": "Jan 19 05:43:11 2024 GMT",
+                      "cert_valid_to": "Jan 19 05:43:11 2025 GMT",
+                      "expiry_state": "Valid"}},
         {"attrs": {"SecurityCertificate.1.CertificateType": "HTTPS"},
+         "expected": {}},
+        {"attrs": {},
          "expected": {}},
     ])
     def test_view_scep_ca_cert_metadata(self, params, idrac_default_args, mocker):
@@ -505,3 +517,56 @@ class TestIdracCertificates(FakeAnsibleModule):
         result = self._run_module(idrac_default_args)
         assert result['failed'] is True
         assert params['expected_msg'] in result['msg']
+
+    def test_scep_ca_import_idempotency_different_cert(self, idrac_default_args, mocker):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = MagicMock(return_value=(17, "2.00.05.10", "iDRAC 10"))
+        idrac_mock.invoke_request = MagicMock(return_value=MagicMock(json_data={"Members": [{"LicenseType": "DATACENTER", "LicensePrimaryStatus": "OK"}]}))
+        mocker.patch(MODULE_PATH + 'iDRACRedfishAPI', return_value=idrac_mock)
+        mocker.patch(MODULE_PATH + 'get_res_id', return_value=MANAGER_ID)
+        mocker.patch(MODULE_PATH + 'get_idrac_service', return_value=IDRAC_SERVICE.format(res_id=MANAGER_ID))
+        mocker.patch(MODULE_PATH + 'get_actions_map', return_value=idrac_service_actions)
+        mocker.patch(MODULE_PATH + 'view_scep_ca_cert_metadata', return_value={"serial_number": "OLD:SERIAL"})
+        temp_cert = tempfile.NamedTemporaryFile(mode='w', suffix='.pem', delete=False)
+        temp_cert.write("NEW:SERIAL:DifferentContent")
+        temp_cert.close()
+        idrac_default_args.update({"command": "import", "certificate_type": "SCEP_CA_CERT", "certificate_path": temp_cert.name, "reset": False})
+        result = self._run_module(idrac_default_args)
+        os.remove(temp_cert.name)
+        assert result['changed'] is True
+
+    def test_scep_ca_import_idempotency_no_cert(self, idrac_default_args, mocker):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = MagicMock(return_value=(17, "2.00.05.10", "iDRAC 10"))
+        idrac_mock.invoke_request = MagicMock(return_value=MagicMock(json_data={"Members": [{"LicenseType": "DATACENTER", "LicensePrimaryStatus": "OK"}]}))
+        mocker.patch(MODULE_PATH + 'iDRACRedfishAPI', return_value=idrac_mock)
+        mocker.patch(MODULE_PATH + 'get_res_id', return_value=MANAGER_ID)
+        mocker.patch(MODULE_PATH + 'get_idrac_service', return_value=IDRAC_SERVICE.format(res_id=MANAGER_ID))
+        mocker.patch(MODULE_PATH + 'get_actions_map', return_value=idrac_service_actions)
+        mocker.patch(MODULE_PATH + 'view_scep_ca_cert_metadata', return_value={})
+        temp_cert = tempfile.NamedTemporaryFile(mode='w', suffix='.pem', delete=False)
+        temp_cert.write("CERTIFICATE_CONTENT")
+        temp_cert.close()
+        idrac_default_args.update({"command": "import", "certificate_type": "SCEP_CA_CERT", "certificate_path": temp_cert.name, "reset": False})
+        result = self._run_module(idrac_default_args)
+        os.remove(temp_cert.name)
+        assert result['changed'] is True
+
+    def test_scep_ca_check_mode_with_diff(self, idrac_default_args, mocker):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = MagicMock(return_value=(17, "2.00.05.10", "iDRAC 10"))
+        idrac_mock.invoke_request = MagicMock(return_value=MagicMock(json_data={"Members": [{"LicenseType": "DATACENTER", "LicensePrimaryStatus": "OK"}]}))
+        mocker.patch(MODULE_PATH + 'iDRACRedfishAPI', return_value=idrac_mock)
+        mocker.patch(MODULE_PATH + 'get_res_id', return_value=MANAGER_ID)
+        mocker.patch(MODULE_PATH + 'get_idrac_service', return_value=IDRAC_SERVICE.format(res_id=MANAGER_ID))
+        mocker.patch(MODULE_PATH + 'get_actions_map', return_value=idrac_service_actions)
+        mocker.patch(MODULE_PATH + 'view_scep_ca_cert_metadata', return_value={"serial_number": "CURRENT:SERIAL"})
+        temp_cert = tempfile.NamedTemporaryFile(mode='w', suffix='.pem', delete=False)
+        temp_cert.write("DIFFERENT:SERIAL")
+        temp_cert.close()
+        idrac_default_args.update({"command": "import", "certificate_type": "SCEP_CA_CERT", "certificate_path": temp_cert.name, "reset": False})
+        result = self._run_module(idrac_default_args, check_mode=True)
+        os.remove(temp_cert.name)
+        assert result['changed'] is True
+        assert 'diff' in result
+        assert result['diff']['before']['serial_number'] == "CURRENT:SERIAL"
