@@ -30,8 +30,9 @@ options:
       - C(import), import the certificate file. This requires I(certificate_path).
       - C(export), export the certificate. This requires I(certificate_path).
       - C(reset), reset the certificate to default settings. This is applicable only for C(HTTPS).
+      - C(view), view certificate metadata via the iDRAC Attributes API. This is applicable for C(SCEP_CA_CERT).
     type: str
-    choices: [import, export, generate_csr, reset]
+    choices: [import, export, generate_csr, reset, view]
     default: 'generate_csr'
   certificate_type:
     description:
@@ -42,8 +43,9 @@ options:
         and above.
       - C(CSC) The custom signing SSL certificate.
       - C(CLIENT_TRUST_CERTIFICATE) Client trust certificate.
+      - C(SCEP_CA_CERT) The CA certificate for ACME and SCEP enrollment. Supported on iDRAC9 >= 7.00.00.00 and iDRAC10 >= 1.20.50.50 with an active Datacenter license.
     type: str
-    choices: [HTTPS, CA, CUSTOMCERTIFICATE, CSC, CLIENT_TRUST_CERTIFICATE]
+    choices: [HTTPS, CA, CUSTOMCERTIFICATE, CSC, CLIENT_TRUST_CERTIFICATE, SCEP_CA_CERT]
     default: 'HTTPS'
   certificate_path:
     description:
@@ -207,6 +209,26 @@ EXAMPLES = r"""
     command: "export"
     certificate_type: "CLIENT_TRUST_CERTIFICATE"
     certificate_path: "/home/omam/mycert_dir"
+
+- name: Import a SCEP_CA_CERT certificate for ACME/SCEP enrollment.
+  dellemc.openmanage.idrac_certificates:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "import"
+    certificate_type: "SCEP_CA_CERT"
+    certificate_path: "/path/to/scep_ca_cert.pem"
+    reset: false
+
+- name: View SCEP_CA_CERT certificate metadata via Attributes API.
+  dellemc.openmanage.idrac_certificates:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "view"
+    certificate_type: "SCEP_CA_CERT"
 """
 
 RETURN = r'''
@@ -277,6 +299,12 @@ RESET_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.SSLResetCfg"
 IDRAC_RESET = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
 GET_LAST_GENERATED_CSR = "/redfish/v1/CertificateService/Actions/Oem/DellCertificateService.GetLastGeneratedCSR"
 CERT_STATUS = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1?$select=Security.1.ConfigCertStatus"
+IDRAC_ATTRIBUTES_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
+IDRAC_LICENSES_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses?$expand=*($levels=1)"
+DELETE_REJECTED_MSG = "Delete operation is not supported for SCEP_CA_CERT certificate type. See CIT-2606 for the workaround via iDRAC GUI/CLI."
+EXPORT_REJECTED_MSG = "Export operation is not supported for SCEP_CA_CERT certificate type. Use 'command: view' to retrieve certificate metadata via the Attributes API. See CIT-2606 for details."
+MIN_FW_IDRAC9_SCEP_CA = "7.00.00.00"
+MIN_FW_IDRAC10_SCEP_CA = "1.20.50.50"
 
 idrac_service_actions = {
     "#DelliDRACCardService.DeleteCertificate": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.DeleteCertificate",
@@ -301,7 +329,7 @@ rfish_cert_coll = {'Server': {
 }}
 out_file_path = {"CSRString": 'certificate_path',
                  "CertificateFile": 'certificate_path'}
-changed_map = {"generate_csr": False, "import": True, "export": False, "reset": True}
+changed_map = {"generate_csr": False, "import": True, "export": False, "reset": True, "view": False}
 # reset_map = {"generate_csr": False, "import": True, "export": False, "reset": True}
 csr_transform = {"common_name": "CommonName",
                  "organization_unit": "OrganizationalUnit",
@@ -316,28 +344,34 @@ action_url_map = {"generate_csr": {},
                              'CA': IMPORT_SSL_CERTIFICATE,
                              'CustomCertificate': IMPORT_SSL_CERTIFICATE,
                              'CSC': IMPORT_SSL_CERTIFICATE,
-                             'ClientTrustCertificate': IMPORT_SSL_CERTIFICATE},
+                             'ClientTrustCertificate': IMPORT_SSL_CERTIFICATE,
+                             'SCEP_CA_CERT': "#DelliDRACCardService.ImportCertificate"},
                   "export": {'Server': EXPORT_SSL_CERTIFICATE,
                              'CA': EXPORT_SSL_CERTIFICATE,
                              'CustomCertificate': EXPORT_SSL_CERTIFICATE,
                              'CSC': EXPORT_SSL_CERTIFICATE,
-                             'ClientTrustCertificate': EXPORT_SSL_CERTIFICATE},
-                  "reset": {'Server': "#DelliDRACCardService.SSLResetCfg"}}
+                             'ClientTrustCertificate': EXPORT_SSL_CERTIFICATE,
+                             'SCEP_CA_CERT': "#DelliDRACCardService.ExportCertificate"},
+                  "reset": {'Server': "#DelliDRACCardService.SSLResetCfg"},
+                  "view": {'SCEP_CA_CERT': "view"}}
 
 dflt_url_map = {"generate_csr": {'Server': CSR_SSL},
                 "import": {'Server': IMPORT_SSL,
                            'CA': IMPORT_SSL,
                            'CUSTOMCERTIFICATE': IMPORT_SSL,
                            'CSC': IMPORT_SSL,
-                           'ClientTrustCertificate': IMPORT_SSL},
+                           'ClientTrustCertificate': IMPORT_SSL,
+                           'SCEP_CA_CERT': f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.ImportCertificate"},
                 "export": {'Server': EXPORT_SSL,
                            'CA': EXPORT_SSL,
                            'CUSTOMCERTIFICATE': EXPORT_SSL,
                            'CSC': EXPORT_SSL,
-                           'ClientTrustCertificate': EXPORT_SSL},
-                "reset": {'Server': RESET_SSL}}
+                           'ClientTrustCertificate': EXPORT_SSL,
+                           'SCEP_CA_CERT': f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.ExportCertificate"},
+                "reset": {'Server': RESET_SSL},
+                "view": {'SCEP_CA_CERT': "view"}}
 certype_map = {'HTTPS': "Server", 'CA': "CA", 'CUSTOMCERTIFICATE': "CustomCertificate", 'CSC': "CSC",
-               'CLIENT_TRUST_CERTIFICATE': "ClientTrustCertificate"}
+               'CLIENT_TRUST_CERTIFICATE': "ClientTrustCertificate", 'SCEP_CA_CERT': "SCEP_CA_CERT"}
 
 
 def get_ssl_payload(module, operation, cert_type):
@@ -378,6 +412,20 @@ def _build_import_payload(module, cert_type):
     return payload
 
 
+def _build_scep_ca_import_payload(module, cert_type):
+    payload = {"CertificateType": "SCEP_CA_CERT"}
+
+    cert_path = module.params.get('certificate_path')
+    try:
+        with open(cert_path, "r") as cert_file:
+            cert_file_content = cert_file.read()
+    except OSError as file_error:
+        module.exit_json(msg=str(file_error), failed=True)
+
+    payload['CertificateFile'] = cert_file_content
+    return payload
+
+
 def _build_generate_csr_payload(module, cert_type):
     payload = {}
     cert_params = module.params.get("cert_params")
@@ -400,7 +448,8 @@ payload_map = {"Server": get_ssl_payload,
                "CA": get_ssl_payload,
                "CustomCertificate": get_ssl_payload,
                "CSC": get_ssl_payload,
-               "ClientTrustCertificate": get_ssl_payload}
+               "ClientTrustCertificate": get_ssl_payload,
+               "SCEP_CA_CERT": _build_scep_ca_import_payload}
 
 
 def get_res_id(idrac, cert_type):
@@ -530,6 +579,79 @@ def check_csr_generated(idrac):
     return generated
 
 
+def check_firmware_and_license_for_scep_ca(idrac, module):
+    """
+    Validate iDRAC firmware version and Datacenter license for SCEP_CA_CERT operations.
+    Returns (is_compliant: bool, error_message: str)
+    """
+    generation, firmware_version, hw_model = idrac.get_server_generation()
+    idrac_model = "iDRAC 10" if generation >= 17 else "iDRAC 9"
+
+    if idrac_model == "iDRAC 10":
+        min_version = MIN_FW_IDRAC10_SCEP_CA
+    else:
+        min_version = MIN_FW_IDRAC9_SCEP_CA
+
+    is_fw_compliant = iDRACRedfishAPI.compare_firmware_version(firmware_version, min_version)
+    if not is_fw_compliant:
+        error_msg = (f"Minimum firmware requirement not met for SCEP_CA_CERT. "
+                     f"Minimum required: {idrac_model} {min_version}. Current: {firmware_version}. "
+                     f"Please upgrade firmware.")
+        return False, error_msg
+
+    try:
+        resp = idrac.invoke_request(IDRAC_LICENSES_URI, 'GET')
+        members = resp.json_data.get("Members", [])
+        has_datacenter_license = any(
+            lic.get("LicenseType", "").upper() == "DATACENTER" and
+            lic.get("LicensePrimaryStatus", "") == "OK"
+            for lic in members
+        )
+        if not has_datacenter_license:
+            error_msg = ("SCEP_CA_CERT operations require an active Datacenter license. "
+                         "No active Datacenter license found on this iDRAC.")
+            return False, error_msg
+    except Exception as e:
+        error_msg = f"Failed to validate Datacenter license: {str(e)}"
+        return False, error_msg
+
+    return True, ""
+
+
+def view_scep_ca_cert_metadata(idrac, module):
+    """
+    Query the iDRAC Attributes API to retrieve SCEP_CA_CERT certificate metadata.
+    Returns a dict with certificate metadata fields.
+    """
+    try:
+        resp = idrac.invoke_request(IDRAC_ATTRIBUTES_URI, 'GET')
+        attrs = resp.json_data.get("Attributes", {})
+
+        scep_ca_attrs = {}
+        for key, value in attrs.items():
+            if key.startswith("SecurityCertificate.") and "SCEP_CA" in str(value):
+                if value == "SCEP_CA":
+                    cert_index = key.split(".")[1]
+                    scep_ca_attrs = {k: v for k, v in attrs.items() if k.startswith(f"SecurityCertificate.{cert_index}.")}
+                    break
+
+        if not scep_ca_attrs:
+            return {}
+
+        return {
+            "certificate_type": scep_ca_attrs.get(f"SecurityCertificate.{cert_index}.CertificateType"),
+            "subject_common_name": scep_ca_attrs.get(f"SecurityCertificate.{cert_index}.SubjectCommonName"),
+            "subject_organization": scep_ca_attrs.get(f"SecurityCertificate.{cert_index}.SubjectOrganization"),
+            "issuer_common_name": scep_ca_attrs.get(f"SecurityCertificate.{cert_index}.IssuerCommonName"),
+            "serial_number": scep_ca_attrs.get(f"SecurityCertificate.{cert_index}.SerialNumber"),
+            "cert_valid_from": scep_ca_attrs.get(f"SecurityCertificate.{cert_index}.CertValidFrom"),
+            "cert_valid_to": scep_ca_attrs.get(f"SecurityCertificate.{cert_index}.CertValidTo"),
+            "expiry_state": scep_ca_attrs.get(f"SecurityCertificate.{cert_index}.ExpiryState"),
+        }
+    except Exception as e:
+        module.exit_json(msg=f"Failed to retrieve SCEP_CA_CERT metadata: {str(e)}", failed=True)
+
+
 def perform_operation_and_download_csr(idrac, cert_url, method, cert_payload, module):
     resp = None
     try:
@@ -581,9 +703,9 @@ def exit_certificates(module, idrac, cert_url, cert_payload, method, cert_type, 
 def main():
     specs = {
         "command": {"type": 'str', "default": 'generate_csr',
-                    "choices": ['generate_csr', 'export', 'import', 'reset']},
+                    "choices": ['generate_csr', 'export', 'import', 'reset', 'view']},
         "certificate_type": {"type": 'str', "default": 'HTTPS',
-                             "choices": ['HTTPS', 'CA', 'CUSTOMCERTIFICATE', 'CSC', 'CLIENT_TRUST_CERTIFICATE']},
+                             "choices": ['HTTPS', 'CA', 'CUSTOMCERTIFICATE', 'CSC', 'CLIENT_TRUST_CERTIFICATE', 'SCEP_CA_CERT']},
         "certificate_path": {"type": 'path'},
         "ssl_key": {"type": 'path'},
         "passphrase": {"type": 'str', "no_log": True},
@@ -607,7 +729,8 @@ def main():
         required_if=[
             ['command', 'generate_csr', ('cert_params', 'certificate_path',)],
             ['command', 'import', ('certificate_path',)],
-            ['command', 'export', ('certificate_path',)]
+            ['command', 'export', ('certificate_path',)],
+            ['command', 'view', ('certificate_type',)]
         ],
         supports_check_mode=True)
 
@@ -625,6 +748,43 @@ def main():
             ssl_key = module.params.get('ssl_key')
             if operation == "import" and ssl_key is not None and cert_type == "Server":
                 upload_ssl_key(module, idrac, actions_map, ssl_key, res_id)
+
+            # SCEP_CA_CERT specific handling
+            if cert_type == "SCEP_CA_CERT":
+                # Pre-flight rejection of delete (not supported for SCEP_CA_CERT)
+                if operation == "delete":
+                    module.exit_json(msg=DELETE_REJECTED_MSG, failed=True)
+
+                # Pre-flight rejection of export (not supported for SCEP_CA_CERT)
+                if operation == "export":
+                    module.exit_json(msg=EXPORT_REJECTED_MSG, failed=True)
+
+                # Firmware and license validation for SCEP_CA_CERT operations
+                is_compliant, error_msg = check_firmware_and_license_for_scep_ca(idrac, module)
+                if not is_compliant:
+                    module.exit_json(msg=error_msg, failed=True)
+
+                # View command handling
+                if operation == "view":
+                    cert_metadata = view_scep_ca_cert_metadata(idrac, module)
+                    if not cert_metadata:
+                        module.exit_json(msg="No SCEP_CA_CERT certificate found on this iDRAC.", changed=False)
+                    module.exit_json(msg="Successfully retrieved SCEP_CA_CERT metadata.", changed=False, **cert_metadata)
+
+                # Idempotency check for import using Attributes API
+                if operation == "import":
+                    try:
+                        current_metadata = view_scep_ca_cert_metadata(idrac, module)
+                        if current_metadata:
+                            cert_path = module.params.get('certificate_path')
+                            with open(cert_path, "r") as cert_file:
+                                import_cert_content = cert_file.read()
+                            current_serial = current_metadata.get("serial_number", "")
+                            if current_serial and current_serial in import_cert_content:
+                                module.exit_json(msg=NO_CHANGES_MSG, changed=False)
+                    except Exception as e:
+                        module.warn(f"Idempotency check failed, proceeding with import: {str(e)}")
+
             certificate_action(module, idrac, actions_map, operation, cert_type, res_id)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
