@@ -300,7 +300,7 @@ IDRAC_RESET = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
 GET_LAST_GENERATED_CSR = "/redfish/v1/CertificateService/Actions/Oem/DellCertificateService.GetLastGeneratedCSR"
 CERT_STATUS = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1?$select=Security.1.ConfigCertStatus"
 IDRAC_ATTRIBUTES_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
-IDRAC_LICENSES_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses?$expand=*($levels=1)"
+IDRAC_LICENSES_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses"
 DELETE_REJECTED_MSG = "Delete operation is not supported for SCEP_CA_CERT certificate type. See CIT-2606 for the workaround via iDRAC GUI/CLI."
 EXPORT_REJECTED_MSG = "Export operation is not supported for SCEP_CA_CERT certificate type. Use 'command: view' to retrieve certificate metadata via the Attributes API. See CIT-2606 for details."
 
@@ -410,8 +410,9 @@ def _build_import_payload(module, cert_type):
     return payload
 
 
-def _build_scep_ca_import_payload(module, cert_type):
+def _build_scep_ca_import_payload(module, operation, cert_type):
     payload = {"CertificateType": "SCEP_CA_CERT"}
+    method = 'POST'
 
     cert_path = module.params.get('certificate_path')
     try:
@@ -421,7 +422,7 @@ def _build_scep_ca_import_payload(module, cert_type):
         module.exit_json(msg=str(file_error), failed=True)
 
     payload['CertificateFile'] = cert_file_content
-    return payload
+    return payload, method
 
 
 def _build_generate_csr_payload(module, cert_type):
@@ -591,18 +592,24 @@ def check_firmware_and_license_for_scep_ca(idrac, module):
     if not is_compliant:
         return False, error_msg
 
+    # Check for Datacenter license
     try:
         resp = idrac.invoke_request(IDRAC_LICENSES_URI, 'GET')
         members = resp.json_data.get("Members", [])
-        has_datacenter_license = any(
-            lic.get("LicenseType", "").upper() == "DATACENTER" and
-            lic.get("LicensePrimaryStatus", "") == "OK"
-            for lic in members
-        )
-        if not has_datacenter_license:
-            error_msg = ("SCEP_CA_CERT operations require an active Datacenter license. "
-                         "No active Datacenter license found on this iDRAC.")
-            return False, error_msg
+        for lic in members:
+            desc = lic.get("LicenseDescription", [])
+            if desc is None:
+                continue
+            status = lic.get("LicensePrimaryStatus", "")
+            desc_str = str(desc)
+            has_datacenter = "Datacenter" in desc_str
+            status_ok = status == "OK"
+            if has_datacenter and status_ok:
+                # Found valid Datacenter license
+                return True, ""
+        error_msg = ("SCEP_CA_CERT operations require an active Datacenter license. "
+                     "No active Datacenter license found on this iDRAC.")
+        return False, error_msg
     except Exception as e:
         error_msg = f"Failed to validate Datacenter license: {str(e)}"
         return False, error_msg
@@ -620,14 +627,15 @@ def view_scep_ca_cert_metadata(idrac, module):
         attrs = resp.json_data.get("Attributes", {})
 
         scep_ca_attrs = {}
+        cert_index = None
         for key, value in attrs.items():
-            if key.startswith("SecurityCertificate.") and "SCEP_CA" in str(value):
+            if key.startswith("SecurityCertificate.") and value is not None and isinstance(value, str) and "SCEP_CA" in value:
                 if value == "SCEP_CA":
                     cert_index = key.split(".")[1]
                     scep_ca_attrs = {k: v for k, v in attrs.items() if k.startswith(f"SecurityCertificate.{cert_index}.")}
                     break
 
-        if not scep_ca_attrs:
+        if not scep_ca_attrs or cert_index is None:
             return {}
 
         return {
@@ -777,7 +785,7 @@ def main():
                             with open(cert_path, "r") as cert_file:
                                 import_cert_content = cert_file.read()
                             current_serial = current_metadata.get("serial_number", "")
-                            if current_serial and current_serial in import_cert_content:
+                            if current_serial and import_cert_content and isinstance(current_serial, str) and current_serial in import_cert_content:
                                 module.exit_json(msg=NO_CHANGES_MSG, changed=False)
                             # Check mode: predict change
                             if module.check_mode:
