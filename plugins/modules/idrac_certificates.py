@@ -122,6 +122,8 @@ author:
   - "Kristian Lamb V(@kristian_lamb)"
 notes:
     - The certificate operations are supported on iDRAC firmware version 6.10.80.00 and above.
+    - C(SCEP_CA_CERT) operations require iDRAC9 >= 7.00.00.00 or iDRAC10 >= 1.20.50.50 with an active Datacenter license.
+    - C(command: delete) and C(command: export) are not supported for C(SCEP_CA_CERT) due to iDRAC API limitations (CIT-2606). Use C(command: view) to retrieve certificate metadata via the Attributes API. Certificate rotation is supported via re-import (import overwrites the existing certificate).
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports C(check_mode).
     - This module supports IPv4 and IPv6 addresses.
@@ -230,6 +232,29 @@ EXAMPLES = r"""
     ca_path: "/path/to/ca_cert.pem"
     command: "view"
     certificate_type: "SCEP_CA_CERT"
+
+- name: Import SCEP_CA_CERT certificate in check mode (predicts changes without applying).
+  dellemc.openmanage.idrac_certificates:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "import"
+    certificate_type: "SCEP_CA_CERT"
+    certificate_path: "/path/to/scep_ca_cert.pem"
+    reset: false
+  check_mode: true
+
+- name: Rotate SCEP_CA_CERT certificate via re-import (overwrites existing certificate).
+  dellemc.openmanage.idrac_certificates:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "import"
+    certificate_type: "SCEP_CA_CERT"
+    certificate_path: "/path/to/new_scep_ca_cert.pem"
+    reset: false
 """
 
 RETURN = r'''
@@ -244,6 +269,41 @@ certificate_path:
   description: The csr or exported certificate file path
   returned: when I(command) is C(export) or C(generate_csr)
   sample: "/home/ansible/myfiles/cert.pem"
+certificate_type:
+  type: str
+  description: The certificate type returned by C(command: view) for C(SCEP_CA_CERT).
+  returned: when I(command) is C(view) and I(certificate_type) is C(SCEP_CA_CERT)
+  sample: "SCEP_CA"
+subject_common_name:
+  type: str
+  description: The subject common name of the certificate.
+  returned: when I(command) is C(view) and I(certificate_type) is C(SCEP_CA_CERT)
+  sample: "example.com"
+serial_number:
+  type: str
+  description: The serial number of the certificate in colon-separated hex format.
+  returned: when I(command) is C(view) and I(certificate_type) is C(SCEP_CA_CERT)
+  sample: "AA:BB:CC:DD:EE:FF"
+issuer_common_name:
+  type: str
+  description: The issuer common name of the certificate.
+  returned: when I(command) is C(view) and I(certificate_type) is C(SCEP_CA_CERT)
+  sample: "Dell CA"
+cert_valid_from:
+  type: str
+  description: The certificate validity start date.
+  returned: when I(command) is C(view) and I(certificate_type) is C(SCEP_CA_CERT)
+  sample: "Jan 19 05:43:11 2024 GMT"
+cert_valid_to:
+  type: str
+  description: The certificate validity end date.
+  returned: when I(command) is C(view) and I(certificate_type) is C(SCEP_CA_CERT)
+  sample: "Jan 19 05:43:11 2025 GMT"
+expiry_state:
+  type: str
+  description: The certificate expiry state.
+  returned: when I(command) is C(view) and I(certificate_type) is C(SCEP_CA_CERT)
+  sample: "Valid"
 error_info:
   description: Details of the HTTP Error.
   returned: on HTTP error
@@ -420,6 +480,10 @@ def _build_import_payload(module, cert_type):
 
 
 def _build_scep_ca_import_payload(module, operation, cert_type):
+    """
+    Build the import payload for SCEP_CA_CERT using the Dell OEM
+    DelliDRACCardService.ImportCertificate action (NFR-4 OEM fallback).
+    """
     payload = {"CertificateType": "SCEP_CA_CERT"}
     method = 'POST'
 
@@ -659,6 +723,7 @@ def get_pem_cert_serial_number(cert_content):
 def view_scep_ca_cert_metadata(idrac, module):
     """
     Query the iDRAC Attributes API to retrieve SCEP_CA_CERT certificate metadata.
+    This uses the standard Redfish Attributes API endpoint (NFR-4).
     Returns a dict with certificate metadata fields.
     """
     try:
