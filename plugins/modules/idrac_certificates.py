@@ -771,6 +771,11 @@ def main():
                         module.exit_json(msg="No SCEP_CA_CERT certificate found on this iDRAC.", changed=False)
                     module.exit_json(msg="Successfully retrieved SCEP_CA_CERT metadata.", changed=False, **cert_metadata)
 
+                # Set reset: false default for SCEP_CA_CERT import
+                if operation == "import" and module.params.get('reset') is True:
+                    module.warn("reset parameter is ignored for SCEP_CA_CERT import; SCEP_CA_CERT does not require iDRAC reset")
+                    module.params['reset'] = False
+
                 # Idempotency check for import using Attributes API
                 if operation == "import":
                     try:
