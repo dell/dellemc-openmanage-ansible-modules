@@ -452,26 +452,18 @@ class TestIdracCertificates(FakeAnsibleModule):
         assert 'msg' in result
 
     @pytest.mark.parametrize("params", [
-        {"generation": 17, "firmware_version": "2.00.05.10", "hw_model": "iDRAC 10",
-         "license_members": [{"LicenseType": "DATACENTER", "LicensePrimaryStatus": "OK"}],
+        {"license_members": [{"LicenseType": "DATACENTER", "LicensePrimaryStatus": "OK"}],
          "expected": (True, "")},
-        {"generation": 17, "firmware_version": "1.20.40.00", "hw_model": "iDRAC 10",
-         "license_members": [{"LicenseType": "DATACENTER", "LicensePrimaryStatus": "OK"}],
-         "expected": (False, "Minimum firmware requirement not met")},
-        {"generation": 17, "firmware_version": "2.00.05.10", "hw_model": "iDRAC 10",
-         "license_members": [{"LicenseType": "ENTERPRISE", "LicensePrimaryStatus": "OK"}],
+        {"license_members": [{"LicenseType": "ENTERPRISE", "LicensePrimaryStatus": "OK"}],
          "expected": (False, "SCEP_CA_CERT operations require an active Datacenter license")},
-        {"generation": 14, "firmware_version": "6.00.00.00", "hw_model": "iDRAC 9",
-         "license_members": [{"LicenseType": "DATACENTER", "LicensePrimaryStatus": "OK"}],
-         "expected": (False, "Minimum firmware requirement not met")},
-        {"generation": 14, "firmware_version": "7.10.90.00", "hw_model": "iDRAC 9",
-         "license_members": [{"LicenseType": "DATACENTER", "LicensePrimaryStatus": "OK"}],
-         "expected": (True, "")},
+        {"license_members": [],
+         "expected": (False, "SCEP_CA_CERT operations require an active Datacenter license")},
     ])
-    def test_check_firmware_and_license_for_scep_ca(self, params, idrac_default_args, mocker):
+    def test_check_license_for_scep_ca(self, params, idrac_default_args, mocker):
         idrac_mock = MagicMock()
-        idrac_mock.get_server_generation = MagicMock(return_value=(params['generation'], params['firmware_version'], params['hw_model']))
+        idrac_mock.get_server_generation = MagicMock(return_value=(17, "2.00.05.10", "iDRAC 10"))
         idrac_mock.invoke_request = MagicMock(return_value=MagicMock(json_data={"Members": params['license_members']}))
+        mocker.patch(MODULE_PATH + 'iDRACRedfishAPI.check_minimum_firmware_requirement', return_value=(True, "1.20.50.50", ""))
         f_module = self.get_module_mock(params=idrac_default_args)
         result = self.module.check_firmware_and_license_for_scep_ca(idrac_mock, f_module)
         assert result == params['expected']
