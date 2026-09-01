@@ -692,7 +692,7 @@ def exit_certificates(module, idrac, cert_url, cert_payload, method, cert_type, 
     if changed:
         reset_msg = "Reset iDRAC to apply the new certificate." \
                     " Until the iDRAC is reset, the old certificate will remain active."
-    if module.params.get('command') == 'import':
+    if module.params.get('command') == 'import' and cert_type != 'SCEP_CA_CERT':
         export_cert = get_export_data(idrac, cert_type, res_id)
         if cert_payload.get('SSLCertificateFile') in export_cert:
             module.exit_json(msg=NO_CHANGES_MSG)
