@@ -1,0 +1,124 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Ensure directory exists
+  ansible.builtin.file:
+    path: "{{ base_path_for_import_certificate }}"
+    state: directory
+
+- name: Create a test SCEP_CA_CERT certificate file
+  ansible.builtin.copy:
+    content: |
+      -----BEGIN CERTIFICATE-----
+      MIIDXTCCAkWgAwIBAgIJAKLzJ7r9X9x1MA0GCSqGSIb3DQEBCwUAMEUxCzAJBgNV
+      BAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhEZWxsIFRlY2hub2xv
+      Z2llcyBJbmMuMB4XDTI2MDkwMTAwMDAwMFoXDTI3MDkwMTAwMDAwMFowRTELMAkGA1UE
+      BhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxHDAaBgNVBAoME0RlbGwgVGVjaG5vbG9naWVz
+      -----END CERTIFICATE-----
+    dest: "{{ base_path_for_import_certificate }}/scep_ca_test.pem"
+
+- block:
+    - name: Import SCEP_CA_CERT certificate - Check mode
+      dellemc.openmanage.idrac_certificates:
+        command: import
+        certificate_type: "SCEP_CA_CERT"
+        certificate_path: "{{ base_path_for_import_certificate }}/scep_ca_test.pem"
+        reset: false
+      register: import_output
+      check_mode: true
+
+    - name: Verify check mode predicts change
+      ansible.builtin.assert:
+        that:
+          - import_output.changed
+          - import_output.msg == 'Changes found to be applied.'
+
+    - name: Import SCEP_CA_CERT certificate - Normal mode
+      dellemc.openmanage.idrac_certificates:
+        command: import
+        certificate_type: "SCEP_CA_CERT"
+        certificate_path: "{{ base_path_for_import_certificate }}/scep_ca_test.pem"
+        reset: false
+      register: import_output
+
+    - name: Verify import succeeded
+      ansible.builtin.assert:
+        that:
+          - import_output.changed
+          - "'Successfully performed' in import_output.msg"
+
+    - name: Import SCEP_CA_CERT certificate - Idempotency
+      dellemc.openmanage.idrac_certificates:
+        command: import
+        certificate_type: "SCEP_CA_CERT"
+        certificate_path: "{{ base_path_for_import_certificate }}/scep_ca_test.pem"
+        reset: false
+      register: import_output
+
+    - name: Verify idempotency
+      ansible.builtin.assert:
+        that:
+          - not import_output.changed
+          - import_output.msg == 'No changes found to be applied.'
+
+    - name: View SCEP_CA_CERT metadata
+      dellemc.openmanage.idrac_certificates:
+        command: view
+        certificate_type: "SCEP_CA_CERT"
+      register: view_output
+
+    - name: Verify view returns metadata
+      ansible.builtin.assert:
+        that:
+          - not view_output.changed
+          - view_output.certificate_type == "SCEP_CA"
+
+    - name: Test delete rejection for SCEP_CA_CERT
+      dellemc.openmanage.idrac_certificates:
+        command: delete
+        certificate_type: "SCEP_CA_CERT"
+      register: delete_output
+      ignore_errors: true
+
+    - name: Verify delete is rejected with CIT-2606 message
+      ansible.builtin.assert:
+        that:
+          - delete_output.failed
+          - "'CIT-2606' in delete_output.msg"
+
+    - name: Test export rejection for SCEP_CA_CERT
+      dellemc.openmanage.idrac_certificates:
+        command: export
+        certificate_type: "SCEP_CA_CERT"
+        certificate_path: "{{ base_path_for_import_certificate }}"
+      register: export_output
+      ignore_errors: true
+
+    - name: Verify export is rejected with CIT-2606 message
+      ansible.builtin.assert:
+        that:
+          - export_output.failed
+          - "'CIT-2606' in export_output.msg"
+
+  always:
+    - name: Cleanup test certificate file
+      ansible.builtin.file:
+        path: "{{ base_path_for_import_certificate }}/scep_ca_test.pem"
+        state: absent
+
+module_defaults:
+  dellemc.openmanage.idrac_certificates:
+    idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    validate_certs: "{{ validate_certs }}"
