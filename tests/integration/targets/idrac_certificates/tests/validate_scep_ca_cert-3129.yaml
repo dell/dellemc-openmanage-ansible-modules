@@ -16,23 +16,28 @@
     path: "{{ base_path_for_import_certificate }}"
     state: directory
 
-- name: Create a test SCEP_CA_CERT certificate file
-  ansible.builtin.copy:
-    content: |
-      -----BEGIN CERTIFICATE-----
-      MIIDXTCCAkWgAwIBAgIJAKLzJ7r9X9x1MA0GCSqGSIb3DQEBCwUAMEUxCzAJBgNV
-      BAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhEZWxsIFRlY2hub2xv
-      Z2llcyBJbmMuMB4XDTI2MDkwMTAwMDAwMFoXDTI3MDkwMTAwMDAwMFowRTELMAkGA1UE
-      BhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxHDAaBgNVBAoME0RlbGwgVGVjaG5vbG9naWVz
-      -----END CERTIFICATE-----
-    dest: "{{ base_path_for_import_certificate }}/scep_ca_test.pem"
+- name: Set fact for SCEP_CA_CERT download
+  ansible.builtin.set_fact:
+    curl_cmd: "curl -v --ntlm -u %s:%s -o %s %s"
+    curl_https_url: "{{ https_share_ip }}/{{ https_certificate_path }}scep_ca_cert.pem"
+    scep_ca_cert_path: "scep_ca_cert.pem"
+
+- name: Downloading SCEP_CA_CERT certificate file from HTTP share
+  register: http_dnld_curl_cmd_out
+  no_log: false
+  changed_when: http_dnld_curl_cmd_out.rc == 0
+  failed_when: http_dnld_curl_cmd_out.rc != 0
+  ansible.builtin.command: >
+      {{ curl_cmd | format(https_share_username, https_share_password,
+       base_path_for_import_certificate + scep_ca_cert_path, curl_https_url) }}
+  check_mode: false
 
 - block:
     - name: Import SCEP_CA_CERT certificate - Check mode
       dellemc.openmanage.idrac_certificates:
         command: import
         certificate_type: "SCEP_CA_CERT"
-        certificate_path: "{{ base_path_for_import_certificate }}/scep_ca_test.pem"
+        certificate_path: "{{ base_path_for_import_certificate }}/scep_ca_cert.pem"
         reset: false
       register: import_output
       check_mode: true
@@ -47,7 +52,7 @@
       dellemc.openmanage.idrac_certificates:
         command: import
         certificate_type: "SCEP_CA_CERT"
-        certificate_path: "{{ base_path_for_import_certificate }}/scep_ca_test.pem"
+        certificate_path: "{{ base_path_for_import_certificate }}/scep_ca_cert.pem"
         reset: false
       register: import_output
 
@@ -61,7 +66,7 @@
       dellemc.openmanage.idrac_certificates:
         command: import
         certificate_type: "SCEP_CA_CERT"
-        certificate_path: "{{ base_path_for_import_certificate }}/scep_ca_test.pem"
+        certificate_path: "{{ base_path_for_import_certificate }}/scep_ca_cert.pem"
         reset: false
       register: import_output
 
@@ -113,7 +118,7 @@
   always:
     - name: Cleanup test certificate file
       ansible.builtin.file:
-        path: "{{ base_path_for_import_certificate }}/scep_ca_test.pem"
+        path: "{{ base_path_for_import_certificate }}/scep_ca_cert.pem"
         state: absent
 
 module_defaults:
