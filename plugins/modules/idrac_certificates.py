@@ -601,6 +601,8 @@ def check_firmware_and_license_for_scep_ca(idrac, module):
             if desc is None:
                 continue
             status = lic.get("LicensePrimaryStatus", "")
+            if not isinstance(desc, list):
+                desc = [desc]
             desc_str = str(desc)
             has_datacenter = "Datacenter" in desc_str
             status_ok = status == "OK"
@@ -648,6 +650,9 @@ def view_scep_ca_cert_metadata(idrac, module):
             "cert_valid_to": scep_ca_attrs.get(f"SecurityCertificate.{cert_index}.CertValidTo"),
             "expiry_state": scep_ca_attrs.get(f"SecurityCertificate.{cert_index}.ExpiryState"),
         }
+    except Exception as e:
+        module.warn(f"Failed to retrieve SCEP_CA_CERT metadata: {str(e)}")
+        return {}
     except Exception as e:
         module.exit_json(msg=f"Failed to retrieve SCEP_CA_CERT metadata: {str(e)}", failed=True)
 
@@ -785,7 +790,7 @@ def main():
                             with open(cert_path, "r") as cert_file:
                                 import_cert_content = cert_file.read()
                             current_serial = current_metadata.get("serial_number", "")
-                            if current_serial and import_cert_content and isinstance(current_serial, str) and current_serial in import_cert_content:
+                            if current_serial and import_cert_content and isinstance(current_serial, str) and isinstance(import_cert_content, str) and current_serial in import_cert_content:
                                 module.exit_json(msg=NO_CHANGES_MSG, changed=False)
                             # Check mode: predict change
                             if module.check_mode:
