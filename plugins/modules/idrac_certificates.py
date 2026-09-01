@@ -275,6 +275,14 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import reset_idrac
 
+try:
+    from cryptography import x509
+    from cryptography.hazmat.backends import default_backend
+    HAS_CRYPTOGRAPHY = True
+except ImportError:
+    HAS_CRYPTOGRAPHY = False
+
+
 IMPORT_SSL_CERTIFICATE = "#DelliDRACCardService.ImportSSLCertificate"
 EXPORT_SSL_CERTIFICATE = "#DelliDRACCardService.ExportSSLCertificate"
 IDRAC_CARD_SERVICE_ACTION_URI = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions"
@@ -628,6 +636,25 @@ def check_firmware_and_license_for_scep_ca(idrac, module):
     return True, ""
 
 
+def get_pem_cert_serial_number(cert_content):
+    """
+    Parse a PEM-encoded certificate and return its serial number formatted
+    as a colon-separated uppercase hex string, matching the format
+    returned by the iDRAC Attributes API (e.g. '5A:0E:FF:FF:...').
+    Returns None if the content cannot be parsed or cryptography is unavailable.
+    """
+    if not HAS_CRYPTOGRAPHY or not cert_content:
+        return None
+    try:
+        cert = x509.load_pem_x509_certificate(cert_content.encode("utf-8"), default_backend())
+        serial_hex = format(cert.serial_number, 'x')
+        if len(serial_hex) % 2:
+            serial_hex = "0" + serial_hex
+        return ":".join(serial_hex[i:i + 2] for i in range(0, len(serial_hex), 2)).upper()
+    except Exception:
+        return None
+
+
 def view_scep_ca_cert_metadata(idrac, module):
     """
     Query the iDRAC Attributes API to retrieve SCEP_CA_CERT certificate metadata.
@@ -799,8 +826,10 @@ def main():
                             with open(cert_path, "r") as cert_file:
                                 import_cert_content = cert_file.read()
                             current_serial = current_metadata.get("serial_number", "")
-                            # Only check idempotency if both serial and content are non-empty strings
-                            if current_serial and import_cert_content and isinstance(current_serial, str) and isinstance(import_cert_content, str) and current_serial.strip() and import_cert_content.strip() and current_serial in import_cert_content:
+                            import_cert_serial = get_pem_cert_serial_number(import_cert_content)
+                            # Only treat as no-op if both serials are known, non-empty strings and match
+                            if (current_serial and import_cert_serial and isinstance(current_serial, str)
+                                    and current_serial.strip() and current_serial.strip().upper() == import_cert_serial.strip().upper()):
                                 module.exit_json(msg=NO_CHANGES_MSG, changed=False)
                             # Check mode: predict change
                             if module.check_mode:
