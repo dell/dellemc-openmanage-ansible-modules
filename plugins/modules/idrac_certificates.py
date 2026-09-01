@@ -818,6 +818,9 @@ def main():
 
                 # Idempotency check for import using Attributes API
                 if operation == "import":
+                    no_change = False
+                    predicted_change = False
+                    current_metadata, import_cert_serial = {}, None
                     try:
                         current_metadata = view_scep_ca_cert_metadata(idrac, module)
                         if current_metadata:
@@ -829,12 +832,16 @@ def main():
                             # Only treat as no-op if both serials are known, non-empty strings and match
                             if (current_serial and import_cert_serial and isinstance(current_serial, str)
                                     and current_serial.strip() and current_serial.strip().upper() == import_cert_serial.strip().upper()):
-                                module.exit_json(msg=NO_CHANGES_MSG, changed=False)
-                            # Check mode: predict change
-                            if module.check_mode:
-                                module.exit_json(msg=CHANGES_MSG, changed=True, diff={"before": current_metadata, "after": {"certificate_type": "SCEP_CA_CERT", "serial_number": import_cert_serial}})
+                                no_change = True
+                            elif module.check_mode:
+                                predicted_change = True
                     except Exception as e:
                         module.warn(f"Idempotency check failed, proceeding with import: {str(e)}")
+                    if no_change:
+                        module.exit_json(msg=NO_CHANGES_MSG, changed=False)
+                    # Check mode: predict change
+                    if predicted_change:
+                        module.exit_json(msg=CHANGES_MSG, changed=True, diff={"before": current_metadata, "after": {"certificate_type": "SCEP_CA_CERT", "serial_number": import_cert_serial}})
 
             certificate_action(module, idrac, actions_map, operation, cert_type, res_id)
     except HTTPError as err:
