@@ -584,7 +584,7 @@ def check_firmware_and_license_for_scep_ca(idrac, module):
     Validate iDRAC firmware version and Datacenter license for SCEP_CA_CERT operations.
     Returns (is_compliant: bool, error_message: str)
     """
-    generation, firmware_version, hw_model = idrac.get_server_generation()
+    generation, firmware_version, hw_model = idrac.get_server_generation
     idrac_model = "iDRAC 10" if generation >= 17 else "iDRAC 9"
 
     if idrac_model == "iDRAC 10":
