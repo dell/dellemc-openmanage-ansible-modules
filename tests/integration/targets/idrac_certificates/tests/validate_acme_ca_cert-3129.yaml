@@ -19,22 +19,22 @@
         state: directory
       delegate_to: localhost
 
-    - name: Set fact for SCEP_CA_CERT download
+    - name: Set fact for ACME_CA_CERT download
       ansible.builtin.set_fact:
-        curl_https_url: "{{ https_share_ip }}/{{ https_certificate_path }}{{ scep_ca_certificate_name }}"
+        curl_https_url: "{{ https_share_ip }}/{{ https_certificate_path }}{{ acme_ca_certificate_name }}"
 
-    - name: Downloading SCEP_CA_CERT certificate file from HTTP share
+    - name: Downloading ACME_CA_CERT certificate file from HTTP share
       ansible.builtin.get_url:
         url: "{{ curl_https_url }}"
-        dest: "{{ base_path_for_import_certificate }}/{{ scep_ca_certificate_name }}"
+        dest: "{{ base_path_for_import_certificate }}/{{ acme_ca_certificate_name }}"
         mode: '0644'
       delegate_to: localhost
 
-    - name: Import SCEP_CA_CERT certificate - Check mode
+    - name: Import ACME_CA_CERT certificate - Check mode
       dellemc.openmanage.idrac_certificates:
         command: import
         certificate_type: "SCEP_CA_CERT"
-        certificate_path: "{{ base_path_for_import_certificate }}/{{ scep_ca_certificate_name }}"
+        certificate_path: "{{ base_path_for_import_certificate }}/{{ acme_ca_certificate_name }}"
         reset: false
       register: import_output
       check_mode: true
@@ -44,11 +44,11 @@
         that:
           - import_output.msg == 'Changes found to be applied.' or import_output.msg == 'No changes found to be applied.'
 
-    - name: Import SCEP_CA_CERT certificate - Normal mode
+    - name: Import ACME_CA_CERT certificate - Normal mode
       dellemc.openmanage.idrac_certificates:
         command: import
         certificate_type: "SCEP_CA_CERT"
-        certificate_path: "{{ base_path_for_import_certificate }}/{{ scep_ca_certificate_name }}"
+        certificate_path: "{{ base_path_for_import_certificate }}/{{ acme_ca_certificate_name }}"
         reset: false
       register: import_output
 
@@ -57,11 +57,11 @@
         that:
           - "'Successfully performed' in import_output.msg or 'No changes found to be applied.' in import_output.msg"
 
-    - name: Import SCEP_CA_CERT certificate - Idempotency
+    - name: Import ACME_CA_CERT certificate - Idempotency
       dellemc.openmanage.idrac_certificates:
         command: import
         certificate_type: "SCEP_CA_CERT"
-        certificate_path: "{{ base_path_for_import_certificate }}/{{ scep_ca_certificate_name }}"
+        certificate_path: "{{ base_path_for_import_certificate }}/{{ acme_ca_certificate_name }}"
         reset: false
       register: import_output
 
@@ -112,6 +112,6 @@
 
     - name: Cleanup test certificate file
       ansible.builtin.file:
-        path: "{{ base_path_for_import_certificate }}/{{ scep_ca_certificate_name }}"
+        path: "{{ base_path_for_import_certificate }}/{{ acme_ca_certificate_name }}"
         state: absent
       delegate_to: localhost
