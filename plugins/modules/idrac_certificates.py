@@ -603,8 +603,8 @@ def check_firmware_and_license_for_scep_ca(idrac, module):
             status = lic.get("LicensePrimaryStatus", "")
             if not isinstance(desc, list):
                 desc = [desc]
-            desc_str = str(desc)
-            has_datacenter = "Datacenter" in desc_str
+            desc_str = str(desc) if desc else ""
+            has_datacenter = "Datacenter" in desc_str if desc_str else False
             status_ok = status == "OK"
             if has_datacenter and status_ok:
                 # Found valid Datacenter license
@@ -790,7 +790,8 @@ def main():
                             with open(cert_path, "r") as cert_file:
                                 import_cert_content = cert_file.read()
                             current_serial = current_metadata.get("serial_number", "")
-                            if current_serial and import_cert_content and isinstance(current_serial, str) and isinstance(import_cert_content, str) and current_serial in import_cert_content:
+                            # Only check idempotency if both serial and content are non-empty strings
+                            if current_serial and import_cert_content and isinstance(current_serial, str) and isinstance(import_cert_content, str) and current_serial.strip() and import_cert_content.strip() and current_serial in import_cert_content:
                                 module.exit_json(msg=NO_CHANGES_MSG, changed=False)
                             # Check mode: predict change
                             if module.check_mode:
