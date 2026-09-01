@@ -689,8 +689,6 @@ def view_scep_ca_cert_metadata(idrac, module):
     except Exception as e:
         module.warn(f"Failed to retrieve SCEP_CA_CERT metadata: {str(e)}")
         return {}
-    except Exception as e:
-        module.exit_json(msg=f"Failed to retrieve SCEP_CA_CERT metadata: {str(e)}", failed=True)
 
 
 def perform_operation_and_download_csr(idrac, cert_url, method, cert_payload, module):
@@ -716,7 +714,7 @@ def exit_certificates(module, idrac, cert_url, cert_payload, method, cert_type, 
     reset = changed_map.get(cmd) and module.params.get('reset')
     result = {"changed": changed}
     reset_msg = ""
-    if changed:
+    if changed and cert_type != 'SCEP_CA_CERT':
         reset_msg = "Reset iDRAC to apply the new certificate." \
                     " Until the iDRAC is reset, the old certificate will remain active."
     if module.params.get('command') == 'import' and cert_type != 'SCEP_CA_CERT':
@@ -833,7 +831,7 @@ def main():
                                 module.exit_json(msg=NO_CHANGES_MSG, changed=False)
                             # Check mode: predict change
                             if module.check_mode:
-                                module.exit_json(msg=CHANGES_MSG, changed=True, diff={"before": current_metadata, "after": {"certificate_type": "SCEP_CA_CERT", "serial_number": current_serial}})
+                                module.exit_json(msg=CHANGES_MSG, changed=True, diff={"before": current_metadata, "after": {"certificate_type": "SCEP_CA_CERT", "serial_number": import_cert_serial}})
                     except Exception as e:
                         module.warn(f"Idempotency check failed, proceeding with import: {str(e)}")
 
