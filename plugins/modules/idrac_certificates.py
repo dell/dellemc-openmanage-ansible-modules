@@ -31,8 +31,9 @@ options:
       - C(export), export the certificate. This requires I(certificate_path).
       - C(reset), reset the certificate to default settings. This is applicable only for C(HTTPS).
       - C(view), view certificate metadata via the iDRAC Attributes API. This is applicable for C(SCEP_CA_CERT).
+      - C(delete), delete the certificate. This is not supported for C(SCEP_CA_CERT); see CIT-2606.
     type: str
-    choices: [import, export, generate_csr, reset, view]
+    choices: [import, export, generate_csr, reset, view, delete]
     default: 'generate_csr'
   certificate_type:
     description:
@@ -742,7 +743,7 @@ def exit_certificates(module, idrac, cert_url, cert_payload, method, cert_type, 
 def main():
     specs = {
         "command": {"type": 'str', "default": 'generate_csr',
-                    "choices": ['generate_csr', 'export', 'import', 'reset', 'view']},
+                    "choices": ['generate_csr', 'export', 'import', 'reset', 'view', 'delete']},
         "certificate_type": {"type": 'str', "default": 'HTTPS',
                              "choices": ['HTTPS', 'CA', 'CUSTOMCERTIFICATE', 'CSC', 'CLIENT_TRUST_CERTIFICATE', 'SCEP_CA_CERT']},
         "certificate_path": {"type": 'path'},
