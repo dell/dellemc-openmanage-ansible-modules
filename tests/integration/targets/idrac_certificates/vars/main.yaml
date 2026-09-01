@@ -8,7 +8,7 @@ certificate_names: {"CA": "ca_cert.cer",
                     "CLIENT_TRUST_CERTIFICATE":
                     "ctc_cert.cer",
                     "CSC": "csc_cert_no_passphrase.p12",
-                    "SCEP_CA_CERT": "scep_ca_cert.pem"}
+                    "SCEP_CA_CERT": "{{ scep_ca_certificate_name }}"}
 base_path_for_import_certificate: "{{
   base_path_directory_for_import_certificate }}"
 csc_passphrase_certificate: "{{ csc_passphrase_certificate_name }}"
@@ -16,3 +16,4 @@ custom_certificate: "{{ custom_certificate_name }}"
 custom_certificate_without_passphrase: "{{
   custom_certificate_name_without_passphrase }}"
 passphrase: "{{ pass }}"
+scep_ca_certificate_name: "{{ scep_ca_certificate_name }}"
