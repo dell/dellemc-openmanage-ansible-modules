@@ -121,9 +121,9 @@
         path: "{{ base_path_for_import_certificate }}/{{ scep_ca_certificate_name }}"
         state: absent
 
-module_defaults:
-  dellemc.openmanage.idrac_certificates:
-    idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
-    idrac_user: "{{ idrac_user }}"
-    idrac_password: "{{ idrac_password }}"
-    validate_certs: "{{ validate_certs }}"
+  module_defaults:
+    dellemc.openmanage.idrac_certificates:
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
