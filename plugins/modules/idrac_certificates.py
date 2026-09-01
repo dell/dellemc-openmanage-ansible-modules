@@ -31,7 +31,7 @@ options:
       - C(export), export the certificate. This requires I(certificate_path).
       - C(reset), reset the certificate to default settings. This is applicable only for C(HTTPS).
       - C(view), view certificate metadata via the iDRAC Attributes API. This is applicable for C(SCEP_CA_CERT).
-      - C(delete), delete the certificate. This is not supported for C(SCEP_CA_CERT); see CIT-2606.
+      - C(delete), delete the certificate. This is not supported for C(SCEP_CA_CERT).
     type: str
     choices: [import, export, generate_csr, reset, view, delete]
     default: 'generate_csr'
@@ -123,7 +123,7 @@ author:
 notes:
     - The certificate operations are supported on iDRAC firmware version 6.10.80.00 and above.
     - C(SCEP_CA_CERT) operations require iDRAC9 >= 7.00.00.00 or iDRAC10 >= 1.20.50.50 with an active Datacenter license.
-    - C(command: delete) and C(command: export) are not supported for C(SCEP_CA_CERT) due to iDRAC API limitations (CIT-2606). Use C(command: view) to retrieve certificate metadata via the Attributes API. Certificate rotation is supported via re-import (import overwrites the existing certificate).
+    - C(command: delete) and C(command: export) are not supported for C(SCEP_CA_CERT). Use C(command: view) to retrieve certificate metadata via the Attributes API. Certificate rotation is supported via re-import (import overwrites the existing certificate).
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports C(check_mode).
     - This module supports IPv4 and IPv6 addresses.
@@ -370,8 +370,8 @@ GET_LAST_GENERATED_CSR = "/redfish/v1/CertificateService/Actions/Oem/DellCertifi
 CERT_STATUS = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1?$select=Security.1.ConfigCertStatus"
 IDRAC_ATTRIBUTES_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
 IDRAC_LICENSES_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses"
-DELETE_REJECTED_MSG = "Delete operation is not supported for SCEP_CA_CERT certificate type. See CIT-2606 for the workaround via iDRAC GUI/CLI."
-EXPORT_REJECTED_MSG = "Export operation is not supported for SCEP_CA_CERT certificate type. Use 'command: view' to retrieve certificate metadata via the Attributes API. See CIT-2606 for details."
+DELETE_REJECTED_MSG = "Delete operation is not supported for SCEP_CA_CERT certificate type. Use the iDRAC GUI or CLI to manage this certificate type."
+EXPORT_REJECTED_MSG = "Export operation is not supported for SCEP_CA_CERT certificate type. Use 'command: view' to retrieve certificate metadata via the Attributes API."
 
 idrac_service_actions = {
     "#DelliDRACCardService.DeleteCertificate": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.DeleteCertificate",

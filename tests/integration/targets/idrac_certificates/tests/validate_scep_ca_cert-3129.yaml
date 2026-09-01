@@ -95,11 +95,11 @@
       register: delete_output
       ignore_errors: true
 
-    - name: Verify delete is rejected with CIT-2606 message
+    - name: Verify delete is rejected with appropriate message
       ansible.builtin.assert:
         that:
           - delete_output.failed
-          - "'CIT-2606' in delete_output.msg"
+          - "'not supported' in delete_output.msg or 'GUI or CLI' in delete_output.msg"
 
     - name: Test export rejection for SCEP_CA_CERT
       dellemc.openmanage.idrac_certificates:
@@ -109,11 +109,11 @@
       register: export_output
       ignore_errors: true
 
-    - name: Verify export is rejected with CIT-2606 message
+    - name: Verify export is rejected with appropriate message
       ansible.builtin.assert:
         that:
           - export_output.failed
-          - "'CIT-2606' in export_output.msg"
+          - "'not supported' in export_output.msg or 'view' in export_output.msg"
 
   always:
     - name: Cleanup test certificate file
