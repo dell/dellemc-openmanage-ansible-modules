@@ -787,6 +787,9 @@ def main():
                             current_serial = current_metadata.get("serial_number", "")
                             if current_serial and current_serial in import_cert_content:
                                 module.exit_json(msg=NO_CHANGES_MSG, changed=False)
+                            # Check mode: predict change
+                            if module.check_mode:
+                                module.exit_json(msg=CHANGES_MSG, changed=True, diff={"before": current_metadata, "after": {"certificate_type": "SCEP_CA_CERT", "serial_number": current_serial}})
                     except Exception as e:
                         module.warn(f"Idempotency check failed, proceeding with import: {str(e)}")
 
