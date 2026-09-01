@@ -303,8 +303,6 @@ IDRAC_ATTRIBUTES_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttri
 IDRAC_LICENSES_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses?$expand=*($levels=1)"
 DELETE_REJECTED_MSG = "Delete operation is not supported for SCEP_CA_CERT certificate type. See CIT-2606 for the workaround via iDRAC GUI/CLI."
 EXPORT_REJECTED_MSG = "Export operation is not supported for SCEP_CA_CERT certificate type. Use 'command: view' to retrieve certificate metadata via the Attributes API. See CIT-2606 for details."
-MIN_FW_IDRAC9_SCEP_CA = "7.00.00.00"
-MIN_FW_IDRAC10_SCEP_CA = "1.20.50.50"
 
 idrac_service_actions = {
     "#DelliDRACCardService.DeleteCertificate": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.DeleteCertificate",
@@ -585,18 +583,12 @@ def check_firmware_and_license_for_scep_ca(idrac, module):
     Returns (is_compliant: bool, error_message: str)
     """
     generation, firmware_version, hw_model = idrac.get_server_generation
-    idrac_model = "iDRAC 10" if generation >= 17 else "iDRAC 9"
 
-    if idrac_model == "iDRAC 10":
-        min_version = MIN_FW_IDRAC10_SCEP_CA
-    else:
-        min_version = MIN_FW_IDRAC9_SCEP_CA
-
-    is_fw_compliant = iDRACRedfishAPI.compare_firmware_version(firmware_version, min_version)
-    if not is_fw_compliant:
-        error_msg = (f"Minimum firmware requirement not met for SCEP_CA_CERT. "
-                     f"Minimum required: {idrac_model} {min_version}. Current: {firmware_version}. "
-                     f"Please upgrade firmware.")
+    # Check firmware version requirements using centralized utility
+    is_compliant, min_fw_version, error_msg = iDRACRedfishAPI.check_minimum_firmware_requirement(
+        hw_model, firmware_version
+    )
+    if not is_compliant:
         return False, error_msg
 
     try:
