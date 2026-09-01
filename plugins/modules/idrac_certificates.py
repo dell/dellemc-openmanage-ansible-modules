@@ -421,6 +421,9 @@ def _build_scep_ca_import_payload(module, operation, cert_type):
     except OSError as file_error:
         module.exit_json(msg=str(file_error), failed=True)
 
+    if cert_file_content is None:
+        module.exit_json(msg="Certificate file content is empty", failed=True)
+
     payload['CertificateFile'] = cert_file_content
     return payload, method
 
@@ -519,7 +522,10 @@ def certificate_action(module, idrac, actions, operation, cert_type, res_id):
     cert_url = get_cert_url(actions, operation, cert_type, res_id)
     if not cert_url:
         module.exit_json(msg=NOT_SUPPORTED_ACTION.format(operation=operation, cert_type=module.params.get('certificate_type')))
-    cert_payload, method = payload_map.get(cert_type)(module, operation, cert_type)
+    payload_func = payload_map.get(cert_type)
+    if payload_func is None:
+        module.exit_json(msg=f"No payload function found for certificate type: {cert_type}", failed=True)
+    cert_payload, method = payload_func(module, operation, cert_type)
     exit_certificates(module, idrac, cert_url, cert_payload, method, cert_type, res_id)
 
 
