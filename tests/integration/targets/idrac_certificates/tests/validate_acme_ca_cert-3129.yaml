@@ -4,7 +4,8 @@
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
-- hosts: iDRAC
+- name: Validate ACME_CA_CERT certificate import, view, and rejection scenarios
+  hosts: iDRAC
   gather_facts: false
   module_defaults:
     dellemc.openmanage.idrac_certificates:
@@ -17,6 +18,7 @@
       ansible.builtin.file:
         path: "{{ base_path_for_import_certificate }}"
         state: directory
+        mode: '0755'
       delegate_to: localhost
 
     - name: Set fact for ACME_CA_CERT download

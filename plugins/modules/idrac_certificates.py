@@ -123,7 +123,7 @@ author:
 notes:
     - The certificate operations are supported on iDRAC firmware version 6.10.80.00 and above.
     - C(SCEP_CA_CERT) operations require iDRAC9 >= 7.00.00.00 or iDRAC10 >= 1.20.50.50 with an active Datacenter license.
-    - C(command: delete) and C(command: export) are not supported for C(SCEP_CA_CERT). Use C(command: view) to retrieve certificate metadata via the Attributes API. Certificate rotation is supported via re-import (import overwrites the existing certificate).
+    - I(command) values C(delete) and C(export) are not supported for C(SCEP_CA_CERT). Use C(view) to retrieve certificate metadata via the Attributes API. Certificate rotation is supported via re-import (import overwrites the existing certificate).
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports C(check_mode).
     - This module supports IPv4 and IPv6 addresses.
@@ -271,7 +271,7 @@ certificate_path:
   sample: "/home/ansible/myfiles/cert.pem"
 certificate_type:
   type: str
-  description: The certificate type returned by C(command: view) for C(SCEP_CA_CERT).
+  description: The certificate type returned by the C(view) command for C(SCEP_CA_CERT).
   returned: when I(command) is C(view) and I(certificate_type) is C(SCEP_CA_CERT)
   sample: "SCEP_CA"
 subject_common_name:
