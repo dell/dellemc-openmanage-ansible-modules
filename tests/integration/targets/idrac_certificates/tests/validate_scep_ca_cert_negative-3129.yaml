@@ -4,7 +4,8 @@
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
-- hosts: iDRAC
+- name: Validate SCEP_CA_CERT negative and edge-case scenarios
+  hosts: iDRAC
   gather_facts: false
   module_defaults:
     dellemc.openmanage.idrac_certificates:
@@ -17,6 +18,7 @@
       ansible.builtin.file:
         path: "{{ base_path_for_import_certificate }}"
         state: directory
+        mode: '0755'
       register: created_directory
       delegate_to: localhost
 
@@ -52,6 +54,7 @@
       ansible.builtin.copy:
         content: "This is not a valid certificate"
         dest: "{{ base_path_for_import_certificate }}/invalid_cert.pem"
+        mode: '0644'
       delegate_to: localhost
 
     - name: Test import with invalid certificate content
