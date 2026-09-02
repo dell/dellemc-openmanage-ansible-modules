@@ -1,12 +1,14 @@
 ---
 certificate_type: {"Server": "HTTPS", "CA": "CA",
                    "ClientTrustCertificate": "CLIENT_TRUST_CERTIFICATE",
-                   "CSC": "CSC"}
+                   "CSC": "CSC",
+                   "SCEP_CA_CERT": "SCEP_CA_CERT"}
 export_certificate_path: "{{ base_path_directory_to_export_certificate }}"
 certificate_names: {"CA": "ca_cert.cer",
                     "CLIENT_TRUST_CERTIFICATE":
                     "ctc_cert.cer",
-                    "CSC": "csc_cert_no_passphrase.p12"}
+                    "CSC": "csc_cert_no_passphrase.p12",
+                    "SCEP_CA_CERT": "{{ scep_ca_certificate_name }}"}
 base_path_for_import_certificate: "{{
   base_path_directory_for_import_certificate }}"
 csc_passphrase_certificate: "{{ csc_passphrase_certificate_name }}"

@@ -71,6 +71,9 @@ idrac_service_actions = {
     "#DelliDRACCardService.iDRACReset": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.iDRACReset"
 }
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_certificates.'
+DELETE_REJECTED_MSG = "Delete operation is not supported for SCEP_CA_CERT certificate type. Use the iDRAC GUI or CLI to manage this certificate type."
+EXPORT_REJECTED_MSG = ("Export operation is not supported for SCEP_CA_CERT certificate type. "
+                       "Use 'command: view' to retrieve certificate metadata via the Attributes API.")
 
 
 @pytest.fixture
@@ -448,3 +451,133 @@ class TestIdracCertificates(FakeAnsibleModule):
         else:
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
+
+    @pytest.mark.parametrize("params", [
+        {"license_members": [{"LicenseDescription": ["Datacenter"], "LicensePrimaryStatus": "OK"}],
+         "expected": (True, "")},
+        {"license_members": [{"LicenseDescription": ["Enterprise"], "LicensePrimaryStatus": "OK"}],
+         "expected": (False, "SCEP_CA_CERT operations require an active Datacenter license. No active Datacenter license found on this iDRAC.")},
+        {"license_members": [],
+         "expected": (False, "SCEP_CA_CERT operations require an active Datacenter license. No active Datacenter license found on this iDRAC.")},
+    ])
+    def test_check_license_for_scep_ca(self, params, idrac_default_args, mocker):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = (17, "2.00.05.10", "iDRAC 10")
+        idrac_mock.invoke_request = MagicMock(return_value=MagicMock(json_data={"Members": params['license_members']}))
+        mocker.patch(MODULE_PATH + 'iDRACRedfishAPI.check_minimum_firmware_requirement', return_value=(True, "1.20.50.50", ""))
+        f_module = self.get_module_mock(params=idrac_default_args)
+        result = self.module.check_firmware_and_license_for_scep_ca(idrac_mock, f_module)
+        assert result == params['expected']
+
+    @pytest.mark.parametrize("params", [
+        {"attrs": {"SecurityCertificate.7.CertificateType": "SCEP_CA",
+                   "SecurityCertificate.7.SubjectCommonName": "test.example.com",
+                   "SecurityCertificate.7.SerialNumber": "AA:BB:CC:DD:EE:FF",
+                   "SecurityCertificate.7.IssuerCommonName": "Test CA",
+                   "SecurityCertificate.7.CertValidFrom": "Jan 19 05:43:11 2024 GMT",
+                   "SecurityCertificate.7.CertValidTo": "Jan 19 05:43:11 2025 GMT",
+                   "SecurityCertificate.7.ExpiryState": "Valid"},
+         "expected": {"certificate_type": "SCEP_CA", "subject_common_name": "test.example.com",
+                      "serial_number": "AA:BB:CC:DD:EE:FF", "issuer_common_name": "Test CA",
+                      "cert_valid_from": "Jan 19 05:43:11 2024 GMT",
+                      "cert_valid_to": "Jan 19 05:43:11 2025 GMT",
+                      "expiry_state": "Valid", "subject_organization": None}},
+        {"attrs": {"SecurityCertificate.1.CertificateType": "HTTPS"},
+         "expected": {}},
+        {"attrs": {},
+         "expected": {}},
+    ])
+    def test_view_scep_ca_cert_metadata(self, params, idrac_default_args, mocker):
+        idrac_mock = MagicMock()
+        idrac_mock.invoke_request = MagicMock(return_value=MagicMock(json_data={"Attributes": params['attrs']}))
+        f_module = self.get_module_mock(params=idrac_default_args)
+        result = self.module.view_scep_ca_cert_metadata(idrac_mock, f_module)
+        assert result == params['expected']
+
+    @pytest.mark.parametrize("params", [
+        {"command": "delete", "certificate_type": "SCEP_CA_CERT", "expected_msg": DELETE_REJECTED_MSG},
+        {"command": "export", "certificate_type": "SCEP_CA_CERT", "expected_msg": EXPORT_REJECTED_MSG},
+    ])
+    def test_scep_ca_rejection_messages(self, params, idrac_default_args, mocker):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = (17, "2.00.05.10", "iDRAC 10")
+        idrac_mock.invoke_request = MagicMock(return_value=MagicMock(json_data={"Members": [{"LicenseType": "DATACENTER", "LicensePrimaryStatus": "OK"}]}))
+        mocker.patch(MODULE_PATH + 'iDRACRedfishAPI', return_value=idrac_mock)
+        mocker.patch(MODULE_PATH + 'get_res_id', return_value=MANAGER_ID)
+        mocker.patch(MODULE_PATH + 'get_idrac_service', return_value=IDRAC_SERVICE.format(res_id=MANAGER_ID))
+        mocker.patch(MODULE_PATH + 'get_actions_map', return_value=idrac_service_actions)
+        idrac_default_args.update({"command": params['command'], "certificate_type": params['certificate_type']})
+        if params['command'] == 'export':
+            idrac_default_args.update({"certificate_path": tempfile.gettempdir()})
+        result = self._run_module(idrac_default_args)
+        assert result['failed'] is True
+        assert params['expected_msg'] in result['msg']
+
+    def test_scep_ca_import_idempotency_different_cert(self, idrac_default_args, mocker):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = (17, "2.00.05.10", "iDRAC 10")
+        idrac_mock.invoke_request = MagicMock(return_value=MagicMock(
+            json_data={"Members": [{"LicenseDescription": ["Datacenter"], "LicensePrimaryStatus": "OK"}]}))
+        idrac_conn_mock = mocker.patch(MODULE_PATH + 'iDRACRedfishAPI', return_value=idrac_mock)
+        idrac_conn_mock.return_value.__enter__.return_value = idrac_mock
+        idrac_conn_mock.check_minimum_firmware_requirement = MagicMock(return_value=(True, "1.20.50.50", ""))
+        mocker.patch(MODULE_PATH + 'get_res_id', return_value=MANAGER_ID)
+        mocker.patch(MODULE_PATH + 'get_idrac_service', return_value=IDRAC_SERVICE.format(res_id=MANAGER_ID))
+        mocker.patch(MODULE_PATH + 'get_actions_map', return_value=idrac_service_actions)
+        mocker.patch(MODULE_PATH + 'get_pem_cert_serial_number', return_value="NEW:SERIAL")
+        mocker.patch(MODULE_PATH + 'view_scep_ca_cert_metadata', return_value={"serial_number": "OLD:SERIAL"})
+        mocker.patch(MODULE_PATH + 'certificate_action',
+                     side_effect=lambda module, *a, **k: module.exit_json(msg=SUCCESS_MSG.format(command="import"), changed=True))
+        temp_cert = tempfile.NamedTemporaryFile(mode='w', suffix='.pem', delete=False)
+        temp_cert.write("NEW:SERIAL:DifferentContent")
+        temp_cert.close()
+        idrac_default_args.update({"command": "import", "certificate_type": "SCEP_CA_CERT", "certificate_path": temp_cert.name, "reset": False})
+        result = self._run_module(idrac_default_args)
+        os.remove(temp_cert.name)
+        assert result['changed'] is True
+
+    def test_scep_ca_import_idempotency_no_cert(self, idrac_default_args, mocker):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = (17, "2.00.05.10", "iDRAC 10")
+        idrac_mock.invoke_request = MagicMock(return_value=MagicMock(
+            json_data={"Members": [{"LicenseDescription": ["Datacenter"], "LicensePrimaryStatus": "OK"}]}))
+        idrac_conn_mock = mocker.patch(MODULE_PATH + 'iDRACRedfishAPI', return_value=idrac_mock)
+        idrac_conn_mock.return_value.__enter__.return_value = idrac_mock
+        idrac_conn_mock.check_minimum_firmware_requirement = MagicMock(return_value=(True, "1.20.50.50", ""))
+        mocker.patch(MODULE_PATH + 'get_res_id', return_value=MANAGER_ID)
+        mocker.patch(MODULE_PATH + 'get_idrac_service', return_value=IDRAC_SERVICE.format(res_id=MANAGER_ID))
+        mocker.patch(MODULE_PATH + 'get_actions_map', return_value=idrac_service_actions)
+        mocker.patch(MODULE_PATH + 'get_pem_cert_serial_number', return_value="CERT:SERIAL")
+        mocker.patch(MODULE_PATH + 'view_scep_ca_cert_metadata', return_value={})
+        mocker.patch(MODULE_PATH + 'certificate_action',
+                     side_effect=lambda module, *a, **k: module.exit_json(msg=SUCCESS_MSG.format(command="import"), changed=True))
+        temp_cert = tempfile.NamedTemporaryFile(mode='w', suffix='.pem', delete=False)
+        temp_cert.write("CERTIFICATE_CONTENT")
+        temp_cert.close()
+        idrac_default_args.update({"command": "import", "certificate_type": "SCEP_CA_CERT", "certificate_path": temp_cert.name, "reset": False})
+        result = self._run_module(idrac_default_args)
+        os.remove(temp_cert.name)
+        assert result['changed'] is True
+
+    def test_scep_ca_check_mode_with_diff(self, idrac_default_args, mocker):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = (17, "2.00.05.10", "iDRAC 10")
+        idrac_mock.invoke_request = MagicMock(return_value=MagicMock(
+            json_data={"Members": [{"LicenseDescription": ["Datacenter"], "LicensePrimaryStatus": "OK"}]}))
+        idrac_conn_mock = mocker.patch(MODULE_PATH + 'iDRACRedfishAPI', return_value=idrac_mock)
+        idrac_conn_mock.return_value.__enter__.return_value = idrac_mock
+        idrac_conn_mock.check_minimum_firmware_requirement = MagicMock(return_value=(True, "1.20.50.50", ""))
+        mocker.patch(MODULE_PATH + 'get_res_id', return_value=MANAGER_ID)
+        mocker.patch(MODULE_PATH + 'get_idrac_service', return_value=IDRAC_SERVICE.format(res_id=MANAGER_ID))
+        mocker.patch(MODULE_PATH + 'get_actions_map', return_value=idrac_service_actions)
+        mocker.patch(MODULE_PATH + 'get_pem_cert_serial_number', return_value="DIFFERENT:SERIAL")
+        mocker.patch(MODULE_PATH + 'view_scep_ca_cert_metadata', return_value={"serial_number": "CURRENT:SERIAL"})
+        temp_cert = tempfile.NamedTemporaryFile(mode='w', suffix='.pem', delete=False)
+        temp_cert.write("DIFFERENT:SERIAL")
+        temp_cert.close()
+        idrac_default_args.update({"command": "import", "certificate_type": "SCEP_CA_CERT", "certificate_path": temp_cert.name, "reset": False})
+        result = self._run_module(idrac_default_args, check_mode=True)
+        os.remove(temp_cert.name)
+        assert result['changed'] is True
+        assert 'diff' in result
+        assert result['diff']['before']['serial_number'] == "CURRENT:SERIAL"

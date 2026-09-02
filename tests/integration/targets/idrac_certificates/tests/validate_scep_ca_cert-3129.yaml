@@ -1,0 +1,119 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Validate SCEP_CA_CERT certificate import, view, and rejection scenarios
+  hosts: iDRAC
+  gather_facts: false
+  module_defaults:
+    dellemc.openmanage.idrac_certificates:
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+  tasks:
+    - name: Ensure directory exists
+      ansible.builtin.file:
+        path: "{{ base_path_for_import_certificate }}"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+
+    - name: Set fact for SCEP_CA_CERT download
+      ansible.builtin.set_fact:
+        curl_https_url: "{{ https_share_ip }}/{{ https_certificate_path }}{{ scep_ca_certificate_name }}"
+
+    - name: Downloading SCEP_CA_CERT certificate file from HTTP share
+      ansible.builtin.get_url:
+        url: "{{ curl_https_url }}"
+        dest: "{{ base_path_for_import_certificate }}/{{ scep_ca_certificate_name }}"
+        mode: '0644'
+      delegate_to: localhost
+
+    - name: Import SCEP_CA_CERT certificate - Check mode
+      dellemc.openmanage.idrac_certificates:
+        command: import
+        certificate_type: "SCEP_CA_CERT"
+        certificate_path: "{{ base_path_for_import_certificate }}/{{ scep_ca_certificate_name }}"
+        reset: false
+      register: import_output
+      check_mode: true
+
+    - name: Verify check mode result
+      ansible.builtin.assert:
+        that:
+          - import_output.msg == 'Changes found to be applied.' or import_output.msg == 'No changes found to be applied.'
+
+    - name: Import SCEP_CA_CERT certificate - Normal mode
+      dellemc.openmanage.idrac_certificates:
+        command: import
+        certificate_type: "SCEP_CA_CERT"
+        certificate_path: "{{ base_path_for_import_certificate }}/{{ scep_ca_certificate_name }}"
+        reset: false
+      register: import_output
+
+    - name: Verify import succeeded
+      ansible.builtin.assert:
+        that:
+          - "'Successfully performed' in import_output.msg or 'No changes found to be applied.' in import_output.msg"
+
+    - name: Import SCEP_CA_CERT certificate - Idempotency
+      dellemc.openmanage.idrac_certificates:
+        command: import
+        certificate_type: "SCEP_CA_CERT"
+        certificate_path: "{{ base_path_for_import_certificate }}/{{ scep_ca_certificate_name }}"
+        reset: false
+      register: import_output
+
+    - name: Verify idempotency
+      ansible.builtin.assert:
+        that:
+          - not import_output.changed
+          - import_output.msg == 'No changes found to be applied.'
+
+    - name: View SCEP_CA_CERT metadata
+      dellemc.openmanage.idrac_certificates:
+        command: view
+        certificate_type: "SCEP_CA_CERT"
+      register: view_output
+
+    - name: Verify view returns metadata
+      ansible.builtin.assert:
+        that:
+          - not view_output.changed
+          - view_output.certificate_type == "SCEP_CA"
+
+    - name: Test delete rejection for SCEP_CA_CERT
+      dellemc.openmanage.idrac_certificates:
+        command: delete
+        certificate_type: "SCEP_CA_CERT"
+      register: delete_output
+      ignore_errors: true
+
+    - name: Verify delete is rejected with appropriate message
+      ansible.builtin.assert:
+        that:
+          - delete_output.failed
+          - "'not supported' in delete_output.msg or 'GUI or CLI' in delete_output.msg"
+
+    - name: Test export rejection for SCEP_CA_CERT
+      dellemc.openmanage.idrac_certificates:
+        command: export
+        certificate_type: "SCEP_CA_CERT"
+        certificate_path: "{{ base_path_for_import_certificate }}"
+      register: export_output
+      ignore_errors: true
+
+    - name: Verify export is rejected with appropriate message
+      ansible.builtin.assert:
+        that:
+          - export_output.failed
+          - "'not supported' in export_output.msg or 'view' in export_output.msg"
+
+    - name: Cleanup test certificate file
+      ansible.builtin.file:
+        path: "{{ base_path_for_import_certificate }}/{{ scep_ca_certificate_name }}"
+        state: absent
+      delegate_to: localhost

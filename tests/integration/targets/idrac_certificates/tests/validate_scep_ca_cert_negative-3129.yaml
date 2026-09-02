@@ -1,0 +1,112 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Validate SCEP_CA_CERT negative and edge-case scenarios
+  hosts: iDRAC
+  gather_facts: false
+  module_defaults:
+    dellemc.openmanage.idrac_certificates:
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+  tasks:
+    - name: Create Directory
+      ansible.builtin.file:
+        path: "{{ base_path_for_import_certificate }}"
+        state: directory
+        mode: '0755'
+      register: created_directory
+      delegate_to: localhost
+
+    - name: Set fact
+      ansible.builtin.set_fact:
+        curl_https_url: "{{ https_share_ip }}/{{ https_certificate_path }}{{ scep_ca_certificate_name }}"
+
+    - name: Get SCEP_CA_CERT certificate from share
+      ansible.builtin.get_url:
+        url: "{{ curl_https_url }}"
+        dest: "{{ base_path_for_import_certificate }}/{{ scep_ca_certificate_name }}"
+        mode: '0644'
+      delegate_to: localhost
+
+    # AC-004: Test file not found error (AC-007)
+    - name: Test import with non-existent certificate file
+      dellemc.openmanage.idrac_certificates:
+        command: import
+        certificate_type: "SCEP_CA_CERT"
+        certificate_path: "{{ base_path_for_import_certificate }}/nonexistent_cert.pem"
+        reset: false
+      register: file_not_found_output
+      ignore_errors: true
+
+    - name: Verify file not found error message
+      ansible.builtin.assert:
+        that:
+          - file_not_found_output.failed
+          - "'No such file' in file_not_found_output.msg or 'does not exist' in file_not_found_output.msg or 'Errno 2' in file_not_found_output.msg"
+
+    # AC-004: Test invalid certificate content (AC-007)
+    - name: Create invalid certificate file
+      ansible.builtin.copy:
+        content: "This is not a valid certificate"
+        dest: "{{ base_path_for_import_certificate }}/invalid_cert.pem"
+        mode: '0644'
+      delegate_to: localhost
+
+    - name: Test import with invalid certificate content
+      dellemc.openmanage.idrac_certificates:
+        command: import
+        certificate_type: "SCEP_CA_CERT"
+        certificate_path: "{{ base_path_for_import_certificate }}/invalid_cert.pem"
+        reset: false
+      register: invalid_cert_output
+      ignore_errors: true
+
+    - name: Verify invalid certificate error message
+      ansible.builtin.assert:
+        that:
+          - invalid_cert_output.failed
+          - "'invalid' in invalid_cert_output.msg or 'certificate' in invalid_cert_output.msg or 'Bad Request' in invalid_cert_output.msg"
+
+    # AC-005: Test diff mode with existing certificate (no change)
+    - name: Import SCEP_CA_CERT certificate - Diff mode (existing certificate)
+      dellemc.openmanage.idrac_certificates:
+        command: import
+        certificate_type: "SCEP_CA_CERT"
+        certificate_path: "{{ base_path_for_import_certificate }}/{{ scep_ca_certificate_name }}"
+        reset: false
+      register: diff_existing_output
+      diff: true
+
+    - name: Verify diff mode shows no change for existing certificate
+      ansible.builtin.assert:
+        that:
+          - not diff_existing_output.changed
+
+    # AC-010: Verify firmware version in view output
+    - name: View SCEP_CA_CERT metadata to verify firmware support
+      dellemc.openmanage.idrac_certificates:
+        command: view
+        certificate_type: "SCEP_CA_CERT"
+      register: view_firmware_output
+
+    - name: Verify view returns certificate metadata (confirms firmware support)
+      ansible.builtin.assert:
+        that:
+          - not view_firmware_output.changed
+          - view_firmware_output.certificate_type == "SCEP_CA"
+          - view_firmware_output.cert_valid_from is defined
+          - view_firmware_output.cert_valid_to is defined
+
+    - name: Delete the certificate files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ base_path_for_import_certificate }}/{{ scep_ca_certificate_name }}"
+        - "{{ base_path_for_import_certificate }}/invalid_cert.pem"
+      delegate_to: localhost
