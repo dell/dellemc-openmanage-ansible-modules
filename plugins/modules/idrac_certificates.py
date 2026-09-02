@@ -44,7 +44,8 @@ options:
         and above.
       - C(CSC) The custom signing SSL certificate.
       - C(CLIENT_TRUST_CERTIFICATE) Client trust certificate.
-      - C(SCEP_CA_CERT) The CA certificate for ACME and SCEP enrollment. Supported on iDRAC9 >= 7.00.00.00 and iDRAC10 >= 1.20.50.50 with an active Datacenter license.
+      - C(SCEP_CA_CERT) The CA certificate for ACME and SCEP enrollment. Supported on iDRAC9 >= 7.00.00.00
+        and iDRAC10 >= 1.20.50.50 with an active Datacenter license.
     type: str
     choices: [HTTPS, CA, CUSTOMCERTIFICATE, CSC, CLIENT_TRUST_CERTIFICATE, SCEP_CA_CERT]
     default: 'HTTPS'
@@ -123,7 +124,9 @@ author:
 notes:
     - The certificate operations are supported on iDRAC firmware version 6.10.80.00 and above.
     - C(SCEP_CA_CERT) operations require iDRAC9 >= 7.00.00.00 or iDRAC10 >= 1.20.50.50 with an active Datacenter license.
-    - I(command) values C(delete) and C(export) are not supported for C(SCEP_CA_CERT). Use C(view) to retrieve certificate metadata via the Attributes API. Certificate rotation is supported via re-import (import overwrites the existing certificate).
+    - I(command) values C(delete) and C(export) are not supported for C(SCEP_CA_CERT). Use C(view) to retrieve
+      certificate metadata via the Attributes API. Certificate rotation is supported via re-import (import
+      overwrites the existing certificate).
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports C(check_mode).
     - This module supports IPv4 and IPv6 addresses.
@@ -371,7 +374,8 @@ CERT_STATUS = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDR
 IDRAC_ATTRIBUTES_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
 IDRAC_LICENSES_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses"
 DELETE_REJECTED_MSG = "Delete operation is not supported for SCEP_CA_CERT certificate type. Use the iDRAC GUI or CLI to manage this certificate type."
-EXPORT_REJECTED_MSG = "Export operation is not supported for SCEP_CA_CERT certificate type. Use 'command: view' to retrieve certificate metadata via the Attributes API."
+EXPORT_REJECTED_MSG = ("Export operation is not supported for SCEP_CA_CERT certificate type. "
+                       "Use 'command: view' to retrieve certificate metadata via the Attributes API.")
 
 idrac_service_actions = {
     "#DelliDRACCardService.DeleteCertificate": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.DeleteCertificate",
@@ -906,7 +910,9 @@ def main():
                         module.exit_json(msg=NO_CHANGES_MSG, changed=False)
                     # Check mode: predict change
                     if predicted_change:
-                        module.exit_json(msg=CHANGES_MSG, changed=True, diff={"before": current_metadata, "after": {"certificate_type": "SCEP_CA_CERT", "serial_number": import_cert_serial}})
+                        diff = {"before": current_metadata,
+                                "after": {"certificate_type": "SCEP_CA_CERT", "serial_number": import_cert_serial}}
+                        module.exit_json(msg=CHANGES_MSG, changed=True, diff=diff)
 
             certificate_action(module, idrac, actions_map, operation, cert_type, res_id)
     except HTTPError as err:
