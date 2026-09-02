@@ -92,3 +92,37 @@
         certificate_type: "CLIENT_TRUST_CERTIFICATE"
         certificate_path: "/home/omam/mycert_dir"
       delegate_to: localhost
+
+    - name: Import a SCEP_CA_CERT certificate for ACME/SCEP enrollment.
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "import"
+        certificate_type: "SCEP_CA_CERT"
+        certificate_path: "/path/to/scep_ca_cert.pem"
+        reset: false
+      delegate_to: localhost
+
+    - name: View SCEP_CA_CERT certificate metadata via Attributes API.
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "view"
+        certificate_type: "SCEP_CA_CERT"
+      delegate_to: localhost
+
+    - name: Rotate SCEP_CA_CERT certificate via re-import (overwrites existing certificate).
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "import"
+        certificate_type: "SCEP_CA_CERT"
+        certificate_path: "/path/to/new_scep_ca_cert.pem"
+        reset: false
+      delegate_to: localhost

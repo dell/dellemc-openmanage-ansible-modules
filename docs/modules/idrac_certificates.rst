@@ -28,13 +28,17 @@ Parameters
 ----------
 
   command (optional, str, generate_csr)
-    \ :literal:`generate\_csr`\ , generate CSR. This requires \ :emphasis:`cert\_params`\  and \ :emphasis:`certificate\_path`\ . This is applicable only for \ :literal:`HTTPS`\ 
+    \ :literal:`generate\_csr`\ , generate CSR. This requires \ :emphasis:`cert\_params`\  and \ :emphasis:`certificate\_path`\ . This is applicable only for \ :literal:`HTTPS`\ .
 
     \ :literal:`import`\ , import the certificate file. This requires \ :emphasis:`certificate\_path`\ .
 
     \ :literal:`export`\ , export the certificate. This requires \ :emphasis:`certificate\_path`\ .
 
     \ :literal:`reset`\ , reset the certificate to default settings. This is applicable only for \ :literal:`HTTPS`\ .
+
+    \ :literal:`view`\ , view certificate metadata via the iDRAC Attributes API. This is applicable for \ :literal:`SCEP\_CA\_CERT`\ .
+
+    \ :literal:`delete`\ , delete the certificate. This is not supported for \ :literal:`SCEP\_CA\_CERT`\ .
 
 
   certificate_type (optional, str, HTTPS)
@@ -49,6 +53,8 @@ Parameters
     \ :literal:`CSC`\  The custom signing SSL certificate.
 
     \ :literal:`CLIENT\_TRUST\_CERTIFICATE`\  Client trust certificate.
+
+    \ :literal:`SCEP\_CA\_CERT`\  The CA certificate for ACME and SCEP enrollment. Supported on iDRAC9 >= 7.00.00.00 and iDRAC10 >= 1.20.50.50 with an active Datacenter license.
 
 
   certificate_path (optional, path, None)
@@ -178,6 +184,8 @@ Notes
 
 .. note::
    - The certificate operations are supported on iDRAC firmware version 6.10.80.00 and above.
+   - \ :literal:`SCEP\_CA\_CERT`\ operations require iDRAC9 >= 7.00.00.00 or iDRAC10 >= 1.20.50.50 with an active Datacenter license.
+   - \ :emphasis:`command`\ values \ :literal:`delete`\ and \ :literal:`export`\ are not supported for \ :literal:`SCEP\_CA\_CERT`\ . Use \ :literal:`view`\ to retrieve certificate metadata via the Attributes API. Certificate rotation is supported via re-import (import overwrites the existing certificate).
    - Run this module from a system that has direct access to Dell iDRAC.
    - This module supports \ :literal:`check\_mode`\ .
    - This module supports IPv4 and IPv6 addresses.
@@ -274,6 +282,49 @@ Examples
         certificate_type: "CLIENT_TRUST_CERTIFICATE"
         certificate_path: "/home/omam/mycert_dir"
 
+    - name: Import a SCEP_CA_CERT certificate for ACME/SCEP enrollment.
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "import"
+        certificate_type: "SCEP_CA_CERT"
+        certificate_path: "/path/to/scep_ca_cert.pem"
+        reset: false
+
+    - name: View SCEP_CA_CERT certificate metadata via Attributes API.
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "view"
+        certificate_type: "SCEP_CA_CERT"
+
+    - name: Import SCEP_CA_CERT certificate in check mode (predicts changes without applying).
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "import"
+        certificate_type: "SCEP_CA_CERT"
+        certificate_path: "/path/to/scep_ca_cert.pem"
+        reset: false
+      check_mode: true
+
+    - name: Rotate SCEP_CA_CERT certificate via re-import (overwrites existing certificate).
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "import"
+        certificate_type: "SCEP_CA_CERT"
+        certificate_path: "/path/to/new_scep_ca_cert.pem"
+        reset: false
+
 
 
 Return Values
@@ -285,6 +336,34 @@ msg (always, str, Successfully performed the 'generate_csr' certificate operatio
 
 certificate_path (when I(command) is C(export) or C(generate_csr), str, /home/ansible/myfiles/cert.pem)
   The csr or exported certificate file path
+
+
+certificate_type (when I(command) is C(view) and I(certificate_type) is C(SCEP_CA_CERT), str, SCEP_CA)
+  The certificate type returned by the C(view) command for C(SCEP_CA_CERT).
+
+
+subject_common_name (when I(command) is C(view) and I(certificate_type) is C(SCEP_CA_CERT), str, example.com)
+  The subject common name of the certificate.
+
+
+serial_number (when I(command) is C(view) and I(certificate_type) is C(SCEP_CA_CERT), str, AA:BB:CC:DD:EE:FF)
+  The serial number of the certificate in colon-separated hex format.
+
+
+issuer_common_name (when I(command) is C(view) and I(certificate_type) is C(SCEP_CA_CERT), str, Dell CA)
+  The issuer common name of the certificate.
+
+
+cert_valid_from (when I(command) is C(view) and I(certificate_type) is C(SCEP_CA_CERT), str, Jan 19 05:43:11 2024 GMT)
+  The certificate validity start date.
+
+
+cert_valid_to (when I(command) is C(view) and I(certificate_type) is C(SCEP_CA_CERT), str, Jan 19 05:43:11 2025 GMT)
+  The certificate validity end date.
+
+
+expiry_state (when I(command) is C(view) and I(certificate_type) is C(SCEP_CA_CERT), str, Valid)
+  The certificate expiry state.
 
 
 error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
