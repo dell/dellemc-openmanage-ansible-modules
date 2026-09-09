@@ -1,0 +1,5 @@
+minor_changes:
+  - idrac_storage_info - New module to query storage controllers, physical disks, and virtual disks with merged Redfish and Dell OEM attributes.
+  - idrac_storage_volume - Added a new "modify" state to support virtual disk attribute modification, encryption enablement, and initialization.
+  - idrac_storage_volume - Added idempotency checks and configuration state verification for the "create" state.
+  - idrac_storage_volume - Added physical disk state validation with per-state remediation guidance before virtual disk creation.
