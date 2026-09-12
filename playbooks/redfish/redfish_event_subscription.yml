@@ -1,7 +1,8 @@
 ---
 - name: Configure Redfish subscriptions
-  hosts: redfish
+  hosts: redfish_hosts
   gather_facts: false
+  connection: local
 
   tasks:
     - name: Add Redfish metric subscription
@@ -9,34 +10,34 @@
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
-        ca_path: "/path/to/ca_cert.pem"
-        destination: "https://192.168.1.100:8188"
+        ca_path: "{{ ca_path | default(omit) }}"
+        destination: "{{ subscription_destination | default(omit) }}"
         event_type: MetricReport
         event_format_type: MetricReport
         state: present
+      register: metric_subscription_result
       tags: add_metric_subscription
-      delegate_to: localhost
 
     - name: Add Redfish alert subscription
       dellemc.openmanage.redfish_event_subscription:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
-        ca_path: "/path/to/ca_cert.pem"
-        destination: "https://server01.example.com:8188"
+        ca_path: "{{ ca_path | default(omit) }}"
+        destination: "{{ subscription_destination | default(omit) }}"
         event_type: Alert
         event_format_type: Event
         state: present
+      register: alert_subscription_result
       tags: add_alert_subscription
-      delegate_to: localhost
 
     - name: Delete Redfish subscription with a specified destination
       dellemc.openmanage.redfish_event_subscription:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
-        ca_path: "/path/to/ca_cert.pem"
-        destination: "https://server01.example.com:8188"
+        ca_path: "{{ ca_path | default(omit) }}"
+        destination: "{{ subscription_destination | default(omit) }}"
         state: absent
+      register: delete_subscription_result
       tags: delete_subscription
-      delegate_to: localhost
