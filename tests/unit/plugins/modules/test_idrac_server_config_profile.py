@@ -13,14 +13,13 @@ __metaclass__ = type
 
 import json
 import pytest
-import mock
 from io import StringIO
 from ansible.module_utils._text import to_text
 from urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_server_config_profile
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 
 MODULE_UTILS_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.utils.'
@@ -156,7 +155,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
                      "import_buffer": "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'> \
                                        <Value>Disabled</Value></Attribute></Component><Component FQDD='iDRAC.Embedded.1'>"}},
     ])
-    @mock.patch(MODULE_PATH + "idrac_server_config_profile.exists", return_value=True)
+    @patch(MODULE_PATH + "idrac_server_config_profile.exists", return_value=True)
     def test_run_import_scp(self, mock_exists, params, idrac_scp_redfish_mock, idrac_redfish_job_tracking_mock, idrac_default_args, mocker):
         idrac_default_args.update({"command": "import"})
         idrac_default_args.update(params['mparams'])
@@ -198,7 +197,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
                      "import_buffer": "SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'> \
                      <Value>Disabled</Value></Attribute></Component><Component FQDD='iDRAC.Embedded.1'>"}},
     ])
-    @mock.patch(MODULE_PATH + "idrac_server_config_profile.exists", return_value=True)
+    @patch(MODULE_PATH + "idrac_server_config_profile.exists", return_value=True)
     def test_run_import_scp_gen(self, mock_exists, params, idrac_scp_redfish_mock, idrac_redfish_job_tracking_mock, idrac_default_args, mocker):
         idrac_default_args.update({"command": "import"})
         idrac_default_args.update(params['mparams'])
@@ -233,7 +232,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
                      "import_buffer": "SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'> \
                      <Value>Disabled</Value></Attribute></Component><Component FQDD='iDRAC.Embedded.1'>"}},
     ])
-    @mock.patch(MODULE_PATH + "idrac_server_config_profile.exists", return_value=True)
+    @patch(MODULE_PATH + "idrac_server_config_profile.exists", return_value=True)
     def test_run_import_scp_gen2222(self, mock_exists, params, idrac_scp_redfish_mock, idrac_redfish_job_tracking_mock, idrac_default_args, mocker):
         idrac_default_args.update({"command": "import"})
         idrac_default_args.update(params['mparams'])
