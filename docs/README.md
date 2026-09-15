@@ -12,11 +12,6 @@ You may obtain a copy of the License at
 ### iDRAC Modules
 | Module Name                                                                                          | iDRAC9 | iDRAC10 |
 | ---------------------------------------------------------------------------------------------------- | ------ | ------  |
-| [dellemc_configure_idrac_eventing](modules/dellemc_configure_idrac_eventing.rst)                     | ✓      | ✗      |
-| [dellemc_configure_idrac_services](modules/dellemc_configure_idrac_services.rst)                     | ✓      | ✗      |
-| [dellemc_idrac_lc_attributes](modules/dellemc_idrac_lc_attributes.rst)                               | ✓      | ✗      |
-| [dellemc_idrac_storage_volume](modules/dellemc_idrac_storage_volume.rst)                             | ✓      | ✗      |
-| [dellemc_system_lockdown_mode](modules/dellemc_system_lockdown_mode.rst)                             | ✓      | ✗      |
 | [idrac_attributes](modules/idrac_attributes.rst)                                                     | ✓      | ✓      |
 | [idrac_bios](modules/idrac_bios.rst)                                                                 | ✓      | ✓      |
 | [idrac_boot](modules/idrac_boot.rst)                                                                 | ✓      | ✓      |
@@ -29,7 +24,6 @@ You may obtain a copy of the License at
 | [idrac_lifecycle_controller_jobs](modules/idrac_lifecycle_controller_jobs.rst)                       | ✓      | ✓      |
 | [idrac_lifecycle_controller_logs](modules/idrac_lifecycle_controller_logs.rst)                       | ✓      | ✓      |
 | [idrac_lifecycle_controller_status_info](modules/idrac_lifecycle_controller_status_info.rst)         | ✓      | ✓      |
-| [idrac_network](modules/idrac_network.rst)                                                           | ✓      | ✗      |
 | [idrac_network_attributes](modules/idrac_network_attributes.rst)                                     | ✓      | ✓      |
 | [idrac_os_deployment](modules/idrac_os_deployment.rst)                                               | ✓      | ✓     |
 | [idrac_redfish_storage_controller](modules/idrac_redfish_storage_controller.rst)                     | ✓      | ✓      |
@@ -39,10 +33,8 @@ You may obtain a copy of the License at
 | [idrac_session](modules/idrac_session.rst)                                                           | ✓      | ✓      |
 | [idrac_storage_volume](modules/idrac_storage_volume.rst)                                             | ✓      | ✓      |
 | [idrac_support_assist](modules/idrac_support_assists.rst)                                            | ✓      | ✓      |
-| [idrac_syslog](modules/idrac_syslog.rst)                                                             | ✓      | ✗      |
 | [idrac_system_erase](modules/idrac_system_erase.rst)                                                 | ✓      | ✓      |  
 | [idrac_system_info](modules/idrac_system_info.rst)                                                   | ✓      | ✓      |
-| [idrac_timezone_ntp](modules/idrac_timezone_ntp.rst)                                                 | ✓      | ✗      |
 | [idrac_user](modules/idrac_user.rst)                                                                 | ✓      | ✓      |
 | [idrac_user_info](modules/idrac_user_info.rst)                                                       | ✓      | ✓      |
 | [idrac_virtual_media](modules/idrac_virtual_media.rst)                                               | ✓      | ✓      |
