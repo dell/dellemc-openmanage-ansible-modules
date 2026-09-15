@@ -103,7 +103,7 @@ class TestIDRACLogExporter:
 
         # Verify file permissions
         file_stat = os.stat(export_path)
-        assert oct(file_stat.st_mode)[-3:] == "600"
+        assert oct(file_stat.st_mode).endswith("600")
 
         # Verify content structure
         with open(export_path, 'r') as f:
@@ -126,7 +126,7 @@ class TestIDRACLogExporter:
 
         # Verify file permissions
         file_stat = os.stat(export_path)
-        assert oct(file_stat.st_mode)[-3:] == "600"
+        assert oct(file_stat.st_mode).endswith("600")
 
         # Verify CSV structure
         with open(export_path, 'r') as f:
@@ -149,7 +149,7 @@ class TestIDRACLogExporter:
 
         # Verify file permissions
         file_stat = os.stat(export_path)
-        assert oct(file_stat.st_mode)[-3:] == "600"
+        assert oct(file_stat.st_mode).endswith("600")
 
         # Verify text format
         with open(export_path, 'r') as f:

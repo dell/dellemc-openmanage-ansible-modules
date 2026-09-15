@@ -469,7 +469,7 @@ def build_odata_filter(module):
     return ' and '.join(filters) if filters else None
 
 
-def get_filtered_log_entries(idrac, module, odata_filter=None):
+def get_filtered_log_entries(idrac, _module, odata_filter=None):
     """Retrieve log entries with optional OData filter and pagination."""
     entries = []
     uri = LC_LOG_ENTRIES_URI

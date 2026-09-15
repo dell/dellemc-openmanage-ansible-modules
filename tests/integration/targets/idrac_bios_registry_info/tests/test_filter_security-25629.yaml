@@ -6,10 +6,12 @@
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and
-     idrac_password.'
-  when: idrac_ip is not defined or idrac_user is not defined or
-   idrac_password is not defined
+    msg: >-
+      Please define the following variables: idrac_ip, idrac_user and
+      idrac_password.
+  when: >-
+    idrac_ip is not defined or idrac_user is not defined or
+    idrac_password is not defined
 
 - name: Check iDRAC firmware version
   ansible.builtin.include_tasks: _check_idrac_version.yml
@@ -38,12 +40,17 @@
       ansible.builtin.assert:
         that:
           - filter_result.attribute_count | int >= 0
-          - filter_result.bios_attributes | length == filter_result.attribute_count | int
+          - >-
+              filter_result.bios_attributes | length ==
+              filter_result.attribute_count | int
 
     - name: Verify all attributes belong to Security category
       ansible.builtin.assert:
         that:
-          - "'security' in item.group | lower or 'Security' in item.menu_path or 'SysSecurity' in item.menu_path"
+          - >-
+              'security' in item.group | lower or
+              'Security' in item.menu_path or
+              'SysSecurity' in item.menu_path
       loop: "{{ filter_result.bios_attributes }}"
       loop_control:
         label: "{{ item.name }}"
@@ -59,7 +66,10 @@
       ansible.builtin.debug:
         msg:
           - "Attribute Count: {{ filter_result.attribute_count }}"
-          - "Security Attributes: {{ filter_result.bios_attributes | map(attribute='name') | list }}"
+          - >-
+              Security Attributes:
+              {{ filter_result.bios_attributes |
+              map(attribute='name') | list }}
 
   when:
     - is_idrac_10 | bool

@@ -6,10 +6,12 @@
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and
-     idrac_password.'
-  when: idrac_ip is not defined or idrac_user is not defined or
-   idrac_password is not defined
+    msg: >-
+      Please define the following variables: idrac_ip, idrac_user and
+      idrac_password.
+  when: >-
+    idrac_ip is not defined or idrac_user is not defined or
+    idrac_password is not defined
 
 - name: Check iDRAC firmware version
   ansible.builtin.include_tasks: _check_idrac_version.yml
@@ -35,8 +37,11 @@
     - name: Verify idrac_model matches expected generation
       ansible.builtin.assert:
         that:
-          - (model_result.idrac_generation | int in [14, 15, 16] and model_result.idrac_model == 'iDRAC 9') or
-            (model_result.idrac_generation | int >= 17 and model_result.idrac_model == 'iDRAC 10')
+          - >-
+              (model_result.idrac_generation | int in [14, 15, 16] and
+              model_result.idrac_model == 'iDRAC 9') or
+              (model_result.idrac_generation | int >= 17 and
+              model_result.idrac_model == 'iDRAC 10')
 
     - name: Verify generation-specific attribute list is returned
       ansible.builtin.assert:
