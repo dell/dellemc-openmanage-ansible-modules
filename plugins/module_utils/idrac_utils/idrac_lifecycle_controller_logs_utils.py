@@ -30,6 +30,7 @@ SCHEDULE_MSG = "The export lifecycle controller log job is submitted successfull
 NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 MANAGER_URI = '/redfish/v1/Managers'
+ODATA_ID = "@odata.id"
 
 import copy
 import datetime
@@ -148,11 +149,10 @@ class IDRACLifecycleControllerLogs(object):
         managers_details = get_dynamic_uri(
             self.idrac, MANAGER_URI, search_label='Members')
         if len(managers_details) > 0:
-            manager_uri = managers_details[0].get("@odata.id", "")
+            manager_uri = managers_details[0].get(ODATA_ID, "")
             manager_data = idrac.invoke_request(method='GET', uri=manager_uri).json_data
-            lc_service_uri = manager_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("DellLCService", {}).get("@odata.id", "")
-            lc_service_data = idrac.invoke_request(method='GET', uri=lc_service_uri).json_data
-            lc_logs_uri = lc_service_data.get("Actions", {}).get("#DellLCService.ExportLCLog", {}).get("target", "")
+            lc_service_uri = manager_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("DellLCService", {}).get(ODATA_ID, "")
+            lc_logs_uri = idrac.invoke_request(method='GET', uri=lc_service_uri).json_data.get("Actions", {}).get("#DellLCService.ExportLCLog", {}).get("target", "")
             return lc_logs_uri
 
     def export_lc_logs_idrac_9_10(self, idrac, module, share_name, share_type, file_name, ip_address, file_path):
@@ -236,16 +236,15 @@ class IDRACLifecycleControllerLogs(object):
             managers_details = get_dynamic_uri(
                 self.idrac, MANAGER_URI, search_label='Members')
             if len(managers_details) > 0:
-                manager_uri = managers_details[0].get("@odata.id", "")
+                manager_uri = managers_details[0].get(ODATA_ID, "")
                 manager_data = idrac.invoke_request(method='GET', uri=manager_uri).json_data
-                lc_service_uri = manager_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("DellLCService", {}).get("@odata.id", "")
-                lc_service_data = idrac.invoke_request(method='GET', uri=lc_service_uri).json_data
+                lc_service_uri = manager_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("DellLCService", {}).get(ODATA_ID, "")
 
                 # Get log entries URI
-                log_services_uri = manager_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("DellLCLogService", {}).get("@odata.id", "")
+                log_services_uri = manager_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("DellLCLogService", {}).get(ODATA_ID, "")
                 if log_services_uri:
                     log_service_data = idrac.invoke_request(method='GET', uri=log_services_uri).json_data
-                    entries_uri = log_service_data.get("Entries", {}).get("@odata.id", "")
+                    entries_uri = log_service_data.get("Entries", {}).get(ODATA_ID, "")
 
                     if entries_uri:
                         # Get total entries count
@@ -357,12 +356,12 @@ class IDRACLifecycleControllerLogs(object):
             managers_details = get_dynamic_uri(
                 self.idrac, MANAGER_URI, search_label='Members')
             if len(managers_details) > 0:
-                manager_uri = managers_details[0].get("@odata.id", "")
+                manager_uri = managers_details[0].get(ODATA_ID, "")
                 manager_data = idrac.invoke_request(method='GET', uri=manager_uri).json_data
 
                 # Get DellLCService URI for InsertComment action
                 lc_service_uri = manager_data.get("Links", {}).get("Oem", {}).get(
-                    "Dell", {}).get("DellLCService", {}).get("@odata.id", "")
+                    "Dell", {}).get("DellLCService", {}).get(ODATA_ID, "")
 
                 if lc_service_uri:
                     lc_service_data = idrac.invoke_request(method='GET', uri=lc_service_uri).json_data

@@ -115,7 +115,9 @@
         certificate_type: "SCEP_CA_CERT"
       delegate_to: localhost
 
-    - name: Rotate SCEP_CA_CERT certificate via re-import (overwrites existing certificate).
+    - name: >-
+        Rotate SCEP_CA_CERT certificate via re-import
+        (overwrites existing certificate).
       dellemc.openmanage.idrac_certificates:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"

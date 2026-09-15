@@ -461,9 +461,6 @@ class TestidracFirmware(FakeAnsibleModule):
         if exc_type == HTTPError:
             result = self._run_module(idrac_default_args)
             assert result['failed'] is True
-        elif exc_type == URLError:
-            result = self._run_module_with_fail_json(idrac_default_args)
-            assert result['failed'] is True
         else:
             result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] is True

@@ -18,6 +18,8 @@ with support for date range, severity, category, and message content filtering.
 from typing import List, Dict, Any, Callable, Optional
 from datetime import datetime
 
+UTC_OFFSET = '+00:00'
+
 
 class IDRACLogFilter:
     """Utility class for filtering iDRAC log entries with chainable operations."""
@@ -38,8 +40,8 @@ class IDRACLogFilter:
             IDRACLogFilter: Self for method chaining
         """
         if date_start or date_end:
-            start_dt = datetime.fromisoformat(date_start.replace('Z', '+00:00')) if date_start else None
-            end_dt = datetime.fromisoformat(date_end.replace('Z', '+00:00')) if date_end else None
+            start_dt = datetime.fromisoformat(date_start.replace('Z', UTC_OFFSET)) if date_start else None
+            end_dt = datetime.fromisoformat(date_end.replace('Z', UTC_OFFSET)) if date_end else None
 
             def date_filter(entry: Dict[str, Any]) -> bool:
                 entry_time_str = entry.get('Created', '')
@@ -47,7 +49,7 @@ class IDRACLogFilter:
                     return False
 
                 try:
-                    entry_dt = datetime.fromisoformat(entry_time_str.replace('Z', '+00:00'))
+                    entry_dt = datetime.fromisoformat(entry_time_str.replace('Z', UTC_OFFSET))
 
                     if start_dt and entry_dt < start_dt:
                         return False
@@ -156,8 +158,8 @@ class IDRACLogFilter:
             ValueError: If date_end is earlier than date_start
         """
         if date_start and date_end:
-            start_dt = datetime.fromisoformat(date_start.replace('Z', '+00:00'))
-            end_dt = datetime.fromisoformat(date_end.replace('Z', '+00:00'))
+            start_dt = datetime.fromisoformat(date_start.replace('Z', UTC_OFFSET))
+            end_dt = datetime.fromisoformat(date_end.replace('Z', UTC_OFFSET))
 
             if end_dt < start_dt:
                 raise ValueError("date_end must not be earlier than date_start")
