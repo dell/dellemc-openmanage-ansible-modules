@@ -19,10 +19,26 @@
   no_log: true
   register: virtualdisk_result
 
+- name: Set the keys to remove from Virtual Disk data
+  ansible.builtin.set_fact:
+    virtualdisk_keys_to_remove:
+      - "@odata.context"
+      - "@odata.type"
+      - "@odata.id"
+      - "@odata.etag"
+      - "Actions"
+      - "EncryptionTypes@odata.count"
+      - "Identifiers@odata.count"
+      - "Links"
+      - "Operations@odata.count"
+      - "DellVirtualDisk"
+      - "DellVirtualDisk@Redfish.Deprecated"
+
 - name: Filter Virtual Disk data
   ansible.builtin.set_fact:
-    api_response: "{{ virtualdisk_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', '@odata.etag', 'Actions',
-      'EncryptionTypes@odata.count', 'Identifiers@odata.count', 'Links', 'Operations@odata.count', 'DellVirtualDisk', 'DellVirtualDisk@Redfish.Deprecated']) }}"
+    api_response: >-
+      {{ virtualdisk_result.json |
+      ansible.utils.remove_keys(target=virtualdisk_keys_to_remove) }}
 
 - name: Set the keys diff
   ansible.builtin.set_fact:
