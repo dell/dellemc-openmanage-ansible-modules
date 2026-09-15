@@ -9,6 +9,7 @@ idrac_port = sys.argv[4]
 
 GET_IDRAC_SYSTEM_URI = "/redfish/v1/Systems/System.Embedded.1"
 GET_IDRAC_FIRMWARE_URI = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
+BIOS_EMBEDDED_1 = "BIOS.Embedded.1"
 
 params = {
     "idrac_ip": idrac_ip,
@@ -34,9 +35,9 @@ def get_bios_fqdd_and_instance_id_and_key():
     response = idrac_obj.invoke_request(method='GET', uri=bios_uri)
     if response.status_code == 200:
         # Use standard Redfish Id as FQDD/InstanceID/Key
-        instance_id = "BIOS.Embedded.1"
-        fqdd = "BIOS.Embedded.1"
-        key = "BIOS.Embedded.1"
+        instance_id = BIOS_EMBEDDED_1
+        fqdd = BIOS_EMBEDDED_1
+        key = BIOS_EMBEDDED_1
         return fqdd, instance_id, key
     return "", "", ""
 

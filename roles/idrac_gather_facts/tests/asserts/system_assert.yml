@@ -10,6 +10,11 @@
   ansible.builtin.set_fact:
     diff_keys: "{{ idrac_system_attributes.keys() | list | symmetric_difference((api_idrac_system_attributes.keys() | list)) }}"
 
+- name: Set the excluded attribute pattern
+  ansible.builtin.set_fact:
+    excluded_attribute_pattern: >-
+      ThermalSettings\.1\.System.*Temperature|SysInfo\.1\.POSTCode.*
+
 - name: Set a Diff of dict
   ansible.builtin.set_fact:
     diff_data: "{{ diff_data | combine({item: idrac_system_attributes[item]}) }}"
@@ -18,7 +23,7 @@
     - diff_keys | length == 0
     - idrac_system_attributes[item] != api_idrac_system_attributes[item]
     - item not in exclude_keys
-    - not item is match("ThermalSettings\\.1\\.System.*Temperature|SysInfo\\.1\\.POSTCode.*")
+    - not item is match(excluded_attribute_pattern)
 
 - name: Assert the difference in Keys
   ansible.builtin.assert:

@@ -140,6 +140,95 @@ from urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
 
+def _collect_info(key, collector, module):
+    """Runs a single info collector, tolerating 404s by returning an empty list."""
+    try:
+        return collector()
+    except HTTPError as err:
+        if err.code == 404:
+            return []
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+        return None
+
+
+def _build_info_collectors(idrac, chassis_sensors):
+    """Builds the mapping of system info section name to its collector callable."""
+    return {
+        "BIOS": lambda: IDRACBiosInfo(idrac).get_bios_system_info(),
+        "CPU": lambda: IDRACCpuInfo(idrac).get_cpu_system_info(),
+        "Enclosure": lambda: IDRACEnclosureInfo(idrac).get_enclosure_system_info(),
+        "Sensors_Battery": lambda: IDRACSensorsBatteryInfo(idrac).get_sensors_battery_info(),
+        "Sensors_Intrusion": lambda: IDRACSensorsIntrusionInfo(idrac).get_sensors_intrusion_info(),
+        "Sensors_Voltage": lambda: IDRACSensorsVoltageInfo(idrac).get_sensors_voltage_info(),
+        "Sensors_Amperage": lambda: IDRACSensorAmperageInfo(idrac, chassis_sensors).get_sensor_amperage_info(),
+        "Sensors_Fan": lambda: IDRACSensorsFanInfo(idrac).get_sensors_fan_info(),
+        "Fan": lambda: IDRACFanInfo(idrac).get_fan_info(),
+        "NIC": lambda: IDRACNICInfo(idrac).get_nic_info(),
+        "FC": lambda: IDRACFCInfo(idrac).get_fc_info(),
+        "System": lambda: IDRACSystemInfo(idrac).get_system_info(),
+        "SystemBoardMetrics": lambda: IDRACSystemBoardMetricsInfo(idrac, chassis_sensors).get_system_board_metrics_info(),
+        "SystemMetrics": lambda: IDRACSystemMetricsInfo(idrac, chassis_sensors).get_system_metrics_info(),
+        "Video": lambda: IDRACVideoInfo(idrac).get_idrac_video_details(),
+        "Subsystem": lambda: IDRACSubsystemInfo(idrac).get_subsystem_info(),
+        "License": lambda: IDRACLicenseInfo(idrac).get_license_info(),
+        "Memory": lambda: IDRACMemoryInfo(idrac).get_memory_info(),
+        "iDRAC": lambda: IDRACInfo(idrac).get_idrac_info_details(),
+        "PowerSupply": lambda: IDRACPowerSupplyInfo(idrac).get_power_supply_info(),
+        "iDRACNIC": lambda: IDRACInfo(idrac).get_idrac_nic_info(),
+        "PCIDevice": lambda: IDRACPCIDeviceInfo(idrac).get_pcidevice_info(),
+        "Controller": lambda: IDRACControllerInfo(idrac).get_controller_system_info(),
+        "PhysicalDisk": lambda: IDRACPhysicalDiskInfo(idrac).get_physical_disk_info(),
+        "Sensors_Temperature": lambda: IDRACSensorsTemperatureInfo(idrac).get_sensors_temperature_info(),
+        "ControllerSensor": lambda: IDRACControllerSensorInfo(idrac).get_controller_sensor_info(),
+        "ControllerBattery": lambda: IDRACControllerBatteryInfo(idrac).get_controller_battery_info(),
+    }
+
+
+def _fetch_system_info(idrac, module):
+    """Fetches all sections of the system inventory information."""
+    system_info_dict = {
+        "BIOS": "",
+        "CPU": "",
+        "Enclosure": "",
+        "EnclosureSensor": "",
+        "License": "",
+        "Memory": "",
+        "iDRACNIC": "",
+        "PCIDevice": "",
+        "PowerSupply": "",
+        "ControllerBattery": "",
+        "Sensors_Temperature": "",
+        "Sensors_Battery": "",
+        "Sensors_Fan": "",
+        "Sensors_Intrusion": "",
+        "Sensors_Voltage": "",
+        "Sensors_Amperage": "",
+        "NIC": "",
+        "FC": "",
+        "Fan": "",
+        "System": "",
+        "SystemBoardMetrics": "",
+        "SystemMetrics": "",
+        "Subsystem": "",
+        "Controller": "",
+        "ControllerSensor": "",
+        "PhysicalDisk": "",
+        "Video": "",
+        "iDRAC": ""
+    }
+    chassis_sensors = IDRACChassisSensors(idrac)
+    info_collectors = _build_info_collectors(idrac, chassis_sensors)
+    for key, collector in info_collectors.items():
+        system_info_dict[key] = _collect_info(key, collector, module)
+    if system_info_dict.get("Enclosure"):
+        system_info_dict["EnclosureSensor"] = _collect_info(
+            "EnclosureSensor",
+            lambda: IDRACEnclosureInfo(idrac).get_controller_enclosure_sensor_info(system_info_dict["Enclosure"]),
+            module
+        )
+    return system_info_dict
+
+
 # Main
 def main():
     specs = {}
@@ -153,82 +242,7 @@ def main():
     )
     try:
         with iDRACRedfishAPI(idrac_redfish_module.params) as idrac:
-            system_info_dict = {
-                "BIOS": "",
-                "CPU": "",
-                "Enclosure": "",
-                "EnclosureSensor": "",
-                "License": "",
-                "Memory": "",
-                "iDRACNIC": "",
-                "PCIDevice": "",
-                "PowerSupply": "",
-                "ControllerBattery": "",
-                "Sensors_Temperature": "",
-                "Sensors_Battery": "",
-                "Sensors_Fan": "",
-                "Sensors_Intrusion": "",
-                "Sensors_Voltage": "",
-                "Sensors_Amperage": "",
-                "NIC": "",
-                "FC": "",
-                "Fan": "",
-                "System": "",
-                "SystemBoardMetrics": "",
-                "SystemMetrics": "",
-                "Subsystem": "",
-                "Controller": "",
-                "ControllerSensor": "",
-                "PhysicalDisk": "",
-                "Video": "",
-                "iDRAC": ""
-            }
-            chassis_sensors = IDRACChassisSensors(idrac)
-            info_collectors = {
-                "BIOS": lambda: IDRACBiosInfo(idrac).get_bios_system_info(),
-                "CPU": lambda: IDRACCpuInfo(idrac).get_cpu_system_info(),
-                "Enclosure": lambda: IDRACEnclosureInfo(idrac).get_enclosure_system_info(),
-                "Sensors_Battery": lambda: IDRACSensorsBatteryInfo(idrac).get_sensors_battery_info(),
-                "Sensors_Intrusion": lambda: IDRACSensorsIntrusionInfo(idrac).get_sensors_intrusion_info(),
-                "Sensors_Voltage": lambda: IDRACSensorsVoltageInfo(idrac).get_sensors_voltage_info(),
-                "Sensors_Amperage": lambda: IDRACSensorAmperageInfo(idrac, chassis_sensors).get_sensor_amperage_info(),
-                "Sensors_Fan": lambda: IDRACSensorsFanInfo(idrac).get_sensors_fan_info(),
-                "Fan": lambda: IDRACFanInfo(idrac).get_fan_info(),
-                "NIC": lambda: IDRACNICInfo(idrac).get_nic_info(),
-                "FC": lambda: IDRACFCInfo(idrac).get_fc_info(),
-                "System": lambda: IDRACSystemInfo(idrac).get_system_info(),
-                "SystemBoardMetrics": lambda: IDRACSystemBoardMetricsInfo(idrac, chassis_sensors).get_system_board_metrics_info(),
-                "SystemMetrics": lambda: IDRACSystemMetricsInfo(idrac, chassis_sensors).get_system_metrics_info(),
-                "Video": lambda: IDRACVideoInfo(idrac).get_idrac_video_details(),
-                "Subsystem": lambda: IDRACSubsystemInfo(idrac).get_subsystem_info(),
-                "License": lambda: IDRACLicenseInfo(idrac).get_license_info(),
-                "Memory": lambda: IDRACMemoryInfo(idrac).get_memory_info(),
-                "iDRAC": lambda: IDRACInfo(idrac).get_idrac_info_details(),
-                "PowerSupply": lambda: IDRACPowerSupplyInfo(idrac).get_power_supply_info(),
-                "iDRACNIC": lambda: IDRACInfo(idrac).get_idrac_nic_info(),
-                "PCIDevice": lambda: IDRACPCIDeviceInfo(idrac).get_pcidevice_info(),
-                "Controller": lambda: IDRACControllerInfo(idrac).get_controller_system_info(),
-                "PhysicalDisk": lambda: IDRACPhysicalDiskInfo(idrac).get_physical_disk_info(),
-                "Sensors_Temperature": lambda: IDRACSensorsTemperatureInfo(idrac).get_sensors_temperature_info(),
-                "ControllerSensor": lambda: IDRACControllerSensorInfo(idrac).get_controller_sensor_info(),
-                "ControllerBattery": lambda: IDRACControllerBatteryInfo(idrac).get_controller_battery_info(),
-            }
-            for key, collector in info_collectors.items():
-                try:
-                    system_info_dict[key] = collector()
-                except HTTPError as err:
-                    if err.code == 404:
-                        system_info_dict[key] = []
-                    else:
-                        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
-            if system_info_dict.get("Enclosure"):
-                try:
-                    system_info_dict["EnclosureSensor"] = IDRACEnclosureInfo(idrac).get_controller_enclosure_sensor_info(system_info_dict["Enclosure"])
-                except HTTPError as err:
-                    if err.code == 404:
-                        system_info_dict["EnclosureSensor"] = []
-                    else:
-                        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+            system_info_dict = _fetch_system_info(idrac, module)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
