@@ -162,23 +162,19 @@ def transform_firmware_data(filtered_data):
     return transformed_data
 
 
-def get_idrac_firmware_info(idrac, module):
-    try:
-        response = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI_10)
-        if response.status_code == 200:
-            transformed_firmware_data = []
-            tmp = {"Subsystem": [], "System": [], "iDRAC": [], "iDRACString": []}
-            details_response = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_DETAILS_URI_10)
+def get_idrac_firmware_info(idrac, _module):
+    response = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI_10)
+    if response.status_code == 200:
+        transformed_firmware_data = []
+        tmp = {"Subsystem": [], "System": [], "iDRAC": [], "iDRACString": []}
+        details_response = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_DETAILS_URI_10)
 
-            if details_response and details_response.status_code == 200 and details_response.json_data["Members"]:
-                filtered_data = remove_key(details_response.json_data.get("Members"))
-                transformed_firmware_data = transform_firmware_data(filtered_data)
-        resp = {"Firmware": transformed_firmware_data}
-        resp.update(tmp)
-        return resp
-
-    except HTTPError:
-        raise
+        if details_response and details_response.status_code == 200 and details_response.json_data["Members"]:
+            filtered_data = remove_key(details_response.json_data.get("Members"))
+            transformed_firmware_data = transform_firmware_data(filtered_data)
+    resp = {"Firmware": transformed_firmware_data}
+    resp.update(tmp)
+    return resp
 
 
 def main():

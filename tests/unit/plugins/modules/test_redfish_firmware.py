@@ -298,11 +298,11 @@ class TestRedfishFirmware(FakeAnsibleModule):
     def test_encode_form_data(self, mocker):
         payload_file = {'UpdateFile': ('image.exe', BytesIO(b'example data'), 'application/octet-stream')}
         payload_file_header = 'UpdateFile'
-        mock_encode = mocker.patch(
+        mocker.patch(
             MODULE_PATH + 'redfish_firmware.encode_multipart_formdata',
             return_value=(b'example data', 'multipart/form-data')
         )
-        mock_request_field = mocker.patch(
+        mocker.patch(
             MODULE_PATH + 'redfish_firmware.RequestField'
         )
         result = redfish_firmware._encode_form_data(payload_file, payload_file_header)

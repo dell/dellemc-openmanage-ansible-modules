@@ -418,13 +418,12 @@ class DeleteSession(Session):
         password = self.module.params.get("password")
         if username and password:
             self.idrac._headers.pop('X-Auth-Token', None)
-            auth_session_id, token = self._create_auth_session()
+            auth_session_id, _token = self._create_auth_session()
             self.auth_session_id = auth_session_id
             if auth_session_id is not None and str(session_id) == str(auth_session_id):
                 self._cleanup_auth_session(auth_session_id)
                 self.module.fail_json(
                     msg=SELF_SESSION_ERROR_MSG.format(session_id=session_id))
-            return
 
     def execute(self):
         """

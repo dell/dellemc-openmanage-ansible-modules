@@ -56,7 +56,7 @@ class IDRACSensorsFanInfo(object):
             sensor_uri = GET_IDRAC_FAN_SENSOR_DETAILS_URI_10.format(fan_name=quote(fan_name, safe=''))
             resp = self.idrac.invoke_request(method='GET', uri=sensor_uri)
             return resp.json_data if resp.status_code == 200 else None
-        except (HTTPError, Exception):
+        except HTTPError:
             return None
 
     def map_fan_sensor_data(self, resp):
