@@ -366,8 +366,8 @@ def main():
 
     try:
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
-            generation, firmware_version, idrac_model = idrac.get_server_generation
-            is_compliant, min_ver, err_msg = iDRACRedfishAPI.check_minimum_firmware_requirement(
+            _generation, firmware_version, idrac_model = idrac.get_server_generation
+            is_compliant, _min_ver, err_msg = iDRACRedfishAPI.check_minimum_firmware_requirement(
                 idrac_model, firmware_version
             )
             if not is_compliant:
