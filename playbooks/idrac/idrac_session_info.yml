@@ -69,7 +69,8 @@
       ansible.builtin.debug:
         msg: >-
           Stale sessions:
-          {{ stale_check.sessions | selectattr('is_stale', 'equalto', true) | list }}
+          {{ stale_check.sessions | selectattr('is_stale',
+          'equalto', true) | list }}
 
     # Display session limits and utilization
     - name: Show session utilization

@@ -140,7 +140,7 @@ from urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
 
-def _collect_info(key, collector, module):
+def _collect_info(collector, module):
     """Runs a single info collector, tolerating 404s by returning an empty list."""
     try:
         return collector()
@@ -148,7 +148,6 @@ def _collect_info(key, collector, module):
         if err.code == 404:
             return []
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
-        return None
 
 
 def _build_info_collectors(idrac, chassis_sensors):
@@ -219,10 +218,9 @@ def _fetch_system_info(idrac, module):
     chassis_sensors = IDRACChassisSensors(idrac)
     info_collectors = _build_info_collectors(idrac, chassis_sensors)
     for key, collector in info_collectors.items():
-        system_info_dict[key] = _collect_info(key, collector, module)
+        system_info_dict[key] = _collect_info(collector, module)
     if system_info_dict.get("Enclosure"):
         system_info_dict["EnclosureSensor"] = _collect_info(
-            "EnclosureSensor",
             lambda: IDRACEnclosureInfo(idrac).get_controller_enclosure_sensor_info(system_info_dict["Enclosure"]),
             module
         )

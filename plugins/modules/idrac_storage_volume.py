@@ -533,7 +533,7 @@ class StorageData:
             for volume_id, volume_data in controller_data["Volumes"].items():
                 try:
                     physical_disk = [self.fetch_api_data(drive[ODATA_ID], -1)[0] for drive in volume_data["Links"]["Drives"]]
-                except (HTTPError, URLError):
+                except URLError:
                     physical_disk = []
                 storage_info["Controller"][controller_id]["VirtualDisk"][volume_id] = {"PhysicalDisk": physical_disk}
 
