@@ -162,7 +162,7 @@ def transform_firmware_data(filtered_data):
     return transformed_data
 
 
-def get_idrac_firmware_info(idrac, module):
+def get_idrac_firmware_info(idrac, _module):
     try:
         response = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI_10)
         if response.status_code == 200:
@@ -177,8 +177,8 @@ def get_idrac_firmware_info(idrac, module):
         resp.update(tmp)
         return resp
 
-    except HTTPError:
-        raise
+    except HTTPError as err:
+        module.fail_json(msg=str(err))
 
 
 def main():
