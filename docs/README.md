@@ -1,5 +1,5 @@
 <!--
-Copyright (c) 2023-2025 Dell Inc., or its subsidiaries. All Rights Reserved.
+Copyright (c) 2023-2026 Dell Inc., or its subsidiaries. All Rights Reserved.
 
 Licensed under the GPL, Version 3.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@ You may obtain a copy of the License at
 | ---------------------------------------------------------------------------------------------------- | ------ | ------  |
 | [idrac_attributes](modules/idrac_attributes.rst)                                                     | ✓      | ✓      |
 | [idrac_bios](modules/idrac_bios.rst)                                                                 | ✓      | ✓      |
+| [idrac_bios_registry_info](modules/idrac_bios_registry_info.rst)                                     | ✓      | ✓      |
 | [idrac_boot](modules/idrac_boot.rst)                                                                 | ✓      | ✓      |
 | [idrac_certificates](modules/idrac_certificates.rst)                                                 | ✓      | ✓      |
 | [idrac_diagnostics](modules/idrac_diagnostics.rst)                                                   | ✓      | ✓      |
@@ -25,12 +26,15 @@ You may obtain a copy of the License at
 | [idrac_lifecycle_controller_logs](modules/idrac_lifecycle_controller_logs.rst)                       | ✓      | ✓      |
 | [idrac_lifecycle_controller_status_info](modules/idrac_lifecycle_controller_status_info.rst)         | ✓      | ✓      |
 | [idrac_network_attributes](modules/idrac_network_attributes.rst)                                     | ✓      | ✓      |
+| [idrac_network_attributes_info](modules/idrac_network_attributes_info.rst)                           | ✓      | ✓      |
+| [idrac_network_info](modules/idrac_network_info.rst)                                                 | ✓      | ✓      |
 | [idrac_os_deployment](modules/idrac_os_deployment.rst)                                               | ✓      | ✓     |
 | [idrac_redfish_storage_controller](modules/idrac_redfish_storage_controller.rst)                     | ✓      | ✓      |
 | [idrac_reset](modules/idrac_reset.rst)                                                               | ✓      | ✓      |
 | [idrac_secure_boot](modules/idrac_secure_boot.rst)                                                   | ✓      | ✓      |
 | [idrac_server_config_profile](modules/idrac_server_config_profile.rst)                               | ✓      | ✓      |
 | [idrac_session](modules/idrac_session.rst)                                                           | ✓      | ✓      |
+| [idrac_session_info](modules/idrac_session_info.rst)                                                 | ✓      | ✓      |
 | [idrac_storage_volume](modules/idrac_storage_volume.rst)                                             | ✓      | ✓      |
 | [idrac_support_assist](modules/idrac_support_assists.rst)                                            | ✓      | ✓      |
 | [idrac_system_erase](modules/idrac_system_erase.rst)                                                 | ✓      | ✓      |  
