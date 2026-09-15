@@ -6,7 +6,8 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 # Sample playbook: idrac_session_info
-# Demonstrates querying iDRAC session information, filtering, and stale detection.
+# Demonstrates querying iDRAC session information,
+# filtering, and stale detection.
 
 - name: Query iDRAC session information
   hosts: idrac
@@ -66,7 +67,10 @@
 
     - name: Display stale sessions
       ansible.builtin.debug:
-        msg: "Stale sessions: {{ stale_check.sessions | selectattr('is_stale', 'equalto', true) | list }}"
+        msg: >-
+          Stale sessions:
+          {{ stale_check.sessions | selectattr('is_stale',
+          'equalto', true) | list }}
 
     # Display session limits and utilization
     - name: Show session utilization
@@ -76,7 +80,7 @@
           ({{ all_sessions.session_limits.utilization_percent }}%)
 
     # Combined filtering example
-    - name: Combined filter - Redfish sessions for admin user with stale detection
+    - name: Combined filter - Redfish sessions for admin
       dellemc.openmanage.idrac_session_info:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
@@ -119,8 +123,10 @@
     - name: Warn if session utilization is high
       ansible.builtin.debug:
         msg: >-
-          WARNING: iDRAC session utilization is at {{ session_status.session_limits.utilization_percent }}%.
-          Active: {{ session_status.session_limits.active_sessions }}/{{ session_status.session_limits.max_sessions }}.
+          WARNING: iDRAC session utilization is at
+          {{ session_status.session_limits.utilization_percent }}%.
+          Active: {{ session_status.session_limits.active_sessions }}/
+          {{ session_status.session_limits.max_sessions }}.
           Consider cleaning up stale sessions.
       when: session_status.session_limits.utilization_percent | int >= 80
 
@@ -136,7 +142,10 @@
 
     - name: Display stale sessions eligible for cleanup
       ansible.builtin.debug:
-        msg: "Found {{ stale_sessions.sessions | selectattr('is_stale', 'equalto', true) | list | length }} stale sessions to clean up"
+        msg: >-
+          Found {{ stale_sessions.sessions | selectattr('is_stale',
+          'equalto', true) | list | length }} stale sessions
+          to clean up
 
 - name: Fleet-wide session monitoring (UC-2)
   hosts: idrac
@@ -155,7 +164,9 @@
     - name: Report servers with high session utilization
       ansible.builtin.debug:
         msg: >-
-          {{ inventory_hostname }}: {{ fleet_sessions.session_limits.active_sessions }}/{{ fleet_sessions.session_limits.max_sessions }}
+          {{ inventory_hostname }}:
+          {{ fleet_sessions.session_limits.active_sessions }}/
+          {{ fleet_sessions.session_limits.max_sessions }}
           ({{ fleet_sessions.session_limits.utilization_percent }}%)
       when: fleet_sessions.session_limits.utilization_percent | int >= 50
 
@@ -176,9 +187,12 @@
     - name: Export session data as CSV
       ansible.builtin.copy:
         content: |
-          Id,UserName,SessionType,ClientOriginIPAddress,CreatedTime,SessionAge
+          Id,UserName,SessionType,ClientOriginIPAddress,
+          CreatedTime,SessionAge
           {% for s in all_sessions.sessions %}
-          {{ s.Id }},{{ s.UserName }},{{ s.SessionType }},{{ s.ClientOriginIPAddress }},{{ s.CreatedTime }},{{ s.session_age_minutes }}min
+          {{ s.Id }},{{ s.UserName }},{{ s.SessionType }},
+          {{ s.ClientOriginIPAddress }},{{ s.CreatedTime }},
+          {{ s.session_age_minutes }}min
           {% endfor %}
         dest: "/tmp/idrac_sessions_report.csv"
         mode: "0644"

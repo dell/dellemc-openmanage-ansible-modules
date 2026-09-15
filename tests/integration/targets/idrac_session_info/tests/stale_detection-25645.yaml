@@ -33,4 +33,6 @@
     - name: Verify - No sessions are flagged as stale
       ansible.builtin.assert:
         that:
-          - no_stale_result.sessions | selectattr('is_stale', 'equalto', true) | list | length == 0
+          - >-
+            no_stale_result.sessions | selectattr('is_stale', 'equalto',
+            true) | list | length == 0

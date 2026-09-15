@@ -44,7 +44,8 @@
 
     - name: Set url for pre-17G
       ansible.builtin.set_fact:
-        url1: "https://{{ hostname }}/redfish/v1/Chassis/Oem/Dell/DellEnclosures/"
+        url1: >-
+          https://{{ hostname }}/redfish/v1/Chassis/Oem/Dell/DellEnclosures/
       when: "'17G' not in idrac_gen"
 
     - name: Gather enclosure data
