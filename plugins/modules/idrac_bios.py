@@ -535,37 +535,47 @@ def _is_sys011_error(error_body):
     return False
 
 
+def _handle_scheduled_bios_job(module, redfish_obj, job_id, job_state):
+    """Handles a running or scheduled BIOS job, exiting the module as appropriate."""
+    if job_state in ["Running", "Starting"]:
+        module.exit_json(failed=True, status_msg=BIOS_JOB_RUNNING, job_id=job_id)
+    elif job_state in ["Scheduled", "Scheduling"]:
+        if module.check_mode:
+            module.exit_json(status_msg=CHANGES_MSG, changed=True)
+        delete_scheduled_bios_job(redfish_obj, job_id)
+        module.exit_json(status_msg=SUCCESS_CLEAR, changed=True)
+
+
+def _invoke_clear_pending(redfish_obj):
+    """Invokes the clear pending BIOS attributes API, retrying once after
+    clearing the job queue if a SYS011 error is encountered."""
+    try:
+        redfish_obj.invoke_request(
+            CLEAR_PENDING_URI, "POST", data="{}", dump=False)
+    except HTTPError as err:
+        error_body = _read_error_body(err)
+        if not _is_sys011_error(error_body):
+            raise
+        delete_all_jobs(redfish_obj)
+        time.sleep(10)
+        try:
+            redfish_obj.invoke_request(
+                CLEAR_PENDING_URI, "POST",
+                data="{}", dump=False)
+        except HTTPError:
+            pass
+
+
 def clear_pending_bios(module, redfish_obj):
     attr = get_pending_attributes(redfish_obj)
     if not attr:
         module.exit_json(status_msg=NO_CHANGES_MSG)
     job_id, job_state = check_scheduled_bios_job(redfish_obj)
     if job_id:
-        if job_state in ["Running", "Starting"]:
-            module.exit_json(failed=True, status_msg=BIOS_JOB_RUNNING, job_id=job_id)
-        elif job_state in ["Scheduled", "Scheduling"]:
-            if module.check_mode:
-                module.exit_json(status_msg=CHANGES_MSG, changed=True)
-            delete_scheduled_bios_job(redfish_obj, job_id)
-            module.exit_json(status_msg=SUCCESS_CLEAR, changed=True)
+        _handle_scheduled_bios_job(module, redfish_obj, job_id, job_state)
     if module.check_mode:
         module.exit_json(status_msg=CHANGES_MSG, changed=True)
-    try:
-        redfish_obj.invoke_request(
-            CLEAR_PENDING_URI, "POST", data="{}", dump=False)
-    except HTTPError as err:
-        error_body = _read_error_body(err)
-        if _is_sys011_error(error_body):
-            delete_all_jobs(redfish_obj)
-            time.sleep(10)
-            try:
-                redfish_obj.invoke_request(
-                    CLEAR_PENDING_URI, "POST",
-                    data="{}", dump=False)
-            except HTTPError:
-                pass
-        else:
-            raise
+    _invoke_clear_pending(redfish_obj)
     module.exit_json(status_msg=SUCCESS_CLEAR, changed=True)
 
 
@@ -726,15 +736,73 @@ def _clear_committed_pending(redfish_obj):
     time.sleep(5)
 
 
-def attributes_config(module, redfish_obj):
+def _diff_attributes(redfish_obj, inp_attr):
+    """Computes the effective diff attributes and the current apply-time settings."""
     curr_resp = get_current_attributes(redfish_obj)
     curr_attr = curr_resp.get("Attributes", {})
-    inp_attr = module.params.get("attributes")
     diff_tuple = recursive_diff(inp_attr, curr_attr)
     attr = {}
-    if diff_tuple:
-        if diff_tuple[0]:
-            attr = diff_tuple[0]
+    if diff_tuple and diff_tuple[0]:
+        attr = diff_tuple[0]
+    rf_settings = curr_resp.get("@Redfish.Settings", {}).get("SupportedApplyTimes", [])
+    return attr, rf_settings
+
+
+def _try_apply_attributes(module, redfish_obj, attr, rf_settings):
+    """Attempts to apply the given attributes once. Returns (job_id, reboot_required)."""
+    pending = get_pending_attributes(redfish_obj)
+    pending.update(attr)
+    check_pending_jobs(module, redfish_obj, pending)
+    return apply_attributes(module, redfish_obj, pending, rf_settings)
+
+
+def _apply_attributes_after_sys011(module, redfish_obj, attr, rf_settings, err):
+    """Recovers from a SYS011 error by clearing pending jobs and retrying once.
+
+    Returns a tuple (job_id, reboot_required, retry_err, retry_err_body) where
+    job_id is set on success, otherwise retry_err/retry_err_body describe the failure.
+    """
+    error_body = _read_error_body(err)
+    if not _is_sys011_error(error_body):
+        if err.code in (500, 503):
+            return None, None, err, error_body
+        raise err
+    _clear_committed_pending(redfish_obj)
+    try:
+        job_id, reboot_required = _try_apply_attributes(module, redfish_obj, attr, rf_settings)
+        return job_id, reboot_required, None, None
+    except HTTPError as sys011_err:
+        if getattr(sys011_err, 'code', 0) in (500, 503):
+            return None, None, sys011_err, _read_error_body(sys011_err)
+        raise
+
+
+def _apply_attributes_with_retry(module, redfish_obj, attr, rf_settings):
+    """Applies the given attributes, retrying on transient errors up to 10 times.
+
+    Returns (job_id, reboot_required, last_err, last_err_body).
+    """
+    last_err = None
+    last_err_body = None
+    job_id = None
+    reboot_required = None
+    for _attempt in range(10):
+        try:
+            job_id, reboot_required = _try_apply_attributes(module, redfish_obj, attr, rf_settings)
+            last_err = None
+            break
+        except HTTPError as err:
+            job_id, reboot_required, last_err, last_err_body = _apply_attributes_after_sys011(
+                module, redfish_obj, attr, rf_settings, err)
+            if last_err is None:
+                break
+            time.sleep(60)
+    return job_id, reboot_required, last_err, last_err_body
+
+
+def attributes_config(module, redfish_obj):
+    inp_attr = module.params.get("attributes")
+    attr, rf_settings = _diff_attributes(redfish_obj, inp_attr)
     invalid = {}
     attr_registry = get_attributes_registry(redfish_obj)
     if attr_registry:
@@ -743,43 +811,8 @@ def attributes_config(module, redfish_obj):
         module.exit_json(status_msg=NO_CHANGES_MSG)
     if module.check_mode:
         module.exit_json(status_msg=CHANGES_MSG, changed=True)
-    rf_settings = curr_resp.get("@Redfish.Settings", {}).get("SupportedApplyTimes", [])
-    last_err = None
-    last_err_body = None
-    for _attempt in range(10):
-        try:
-            pending = get_pending_attributes(redfish_obj)
-            pending.update(attr)
-            check_pending_jobs(module, redfish_obj, pending)
-            job_id, reboot_required = apply_attributes(
-                module, redfish_obj, pending, rf_settings)
-            last_err = None
-            break
-        except HTTPError as err:
-            error_body = _read_error_body(err)
-            if _is_sys011_error(error_body):
-                _clear_committed_pending(redfish_obj)
-                try:
-                    pending = get_pending_attributes(redfish_obj)
-                    pending.update(attr)
-                    job_id, reboot_required = apply_attributes(
-                        module, redfish_obj, pending, rf_settings)
-                    last_err = None
-                    break
-                except HTTPError as sys011_err:
-                    sys011_body = _read_error_body(sys011_err)
-                    if getattr(sys011_err, 'code', 0) in (500, 503):
-                        last_err = sys011_err
-                        last_err_body = sys011_body
-                        time.sleep(60)
-                    else:
-                        raise
-            elif err.code in (500, 503):
-                last_err = err
-                last_err_body = error_body
-                time.sleep(60)
-            else:
-                raise
+    job_id, reboot_required, last_err, last_err_body = _apply_attributes_with_retry(
+        module, redfish_obj, attr, rf_settings)
     if last_err is not None:
         filter_err = remove_key(last_err_body, regex_pattern=ODATA_REGEX) if last_err_body else {}
         module.exit_json(msg=str(last_err), error_info=filter_err, failed=True)
@@ -793,72 +826,104 @@ def validate_negative_job_time_out(module):
         module.fail_json(msg=NEGATIVE_TIMEOUT_MESSAGE)
 
 
+def _is_boot_source_valid(source):
+    """Validates a single boot_sources entry."""
+    valid_keys = ['Name', 'Index', 'Enabled']
+    if not isinstance(source, dict):
+        return False
+    if 'Name' not in source:
+        return False
+    if any(key not in valid_keys for key in source.keys()):
+        return False
+    if 'Index' in source and not isinstance(source['Index'], int):
+        return False
+    if 'Enabled' in source and not isinstance(source['Enabled'], bool):
+        return False
+    return True
+
+
 def validate_boot_sources_params(boot_sources):
     """Validate boot_sources parameter format."""
     if not boot_sources:
         return None
-    valid_keys = ['Name', 'Index', 'Enabled']
-    for source in boot_sources:
-        if not isinstance(source, dict):
-            return BOOT_SOURCES_INVALID
-        if 'Name' not in source:
-            return BOOT_SOURCES_INVALID
-        for key in source.keys():
-            if key not in valid_keys:
-                return BOOT_SOURCES_INVALID
-        if 'Index' in source and not isinstance(source['Index'], int):
-            return BOOT_SOURCES_INVALID
-        if 'Enabled' in source and not isinstance(source['Enabled'], bool):
-            return BOOT_SOURCES_INVALID
+    if any(not _is_boot_source_valid(source) for source in boot_sources):
+        return BOOT_SOURCES_INVALID
     return None
+
+
+def _get_boot_seq_key(boot_seq_data):
+    """Determines which boot sequence attribute key is present on the system."""
+    if "BootSeq" in boot_seq_data:
+        return "BootSeq"
+    if "UefiBootSeq" in boot_seq_data:
+        return "UefiBootSeq"
+    return None
+
+
+def _build_boot_source_map(boot_sources):
+    """Builds a lookup map of {Name: {Enabled, Index}} from the user input."""
+    return {
+        source['Name']: {'Enabled': source.get('Enabled'), 'Index': source.get('Index')}
+        for source in boot_sources
+    }
+
+
+def _apply_boot_source_updates(device, user_source):
+    """Applies the user-provided Enabled/Index values to a device entry.
+
+    Returns True if the device was changed.
+    """
+    changed = False
+    if 'Enabled' in user_source and device.get('Enabled') != user_source['Enabled']:
+        device['Enabled'] = user_source['Enabled']
+        changed = True
+    if 'Index' in user_source and device.get('Index') != user_source['Index']:
+        device['Index'] = user_source['Index']
+        changed = True
+    return changed
+
+
+def _build_updated_boot_sequence(current_seq, source_map):
+    """Builds the updated boot sequence list, applying any user overrides.
+
+    Returns (updated_seq, changes_found).
+    """
+    updated_seq = []
+    changes_found = False
+    for device in current_seq:
+        user_source = source_map.get(device.get('Name'))
+        if user_source and _apply_boot_source_updates(device, user_source):
+            changes_found = True
+        updated_seq.append(device)
+    return updated_seq, changes_found
+
+
+def _submit_boot_sequence(redfish_obj, seq_key, updated_seq):
+    """Submits the updated boot sequence and returns (job_id, message)."""
+    payload = {"Attributes": {seq_key: updated_seq}, "@Redfish.SettingsApplyTime": {"ApplyTime": "OnReset"}}
+    resp = redfish_obj.invoke_request(PATCH_BOOT_SEQ_URI, "PATCH", data=payload)
+    if resp.status_code not in [200, 202]:
+        return None, "Failed to configure boot sources. HTTP status: {0}".format(resp.status_code)
+    location = resp.headers.get("Location", "")
+    if location:
+        return location.split("/")[-1], SUCCESS_BOOT_SOURCES
+    return None, SUCCESS_BOOT_SOURCES
 
 
 def configure_boot_sources(redfish_obj, boot_sources):
     """Configure boot sources using Redfish API."""
     resp = redfish_obj.invoke_request(BOOT_SEQ_URI, "GET")
     boot_seq_data = resp.json_data.get("Attributes", {})
-    seq_key = None
-    if "BootSeq" in boot_seq_data:
-        seq_key = "BootSeq"
-    elif "UefiBootSeq" in boot_seq_data:
-        seq_key = "UefiBootSeq"
-    else:
+    seq_key = _get_boot_seq_key(boot_seq_data)
+    if not seq_key:
         return None, "Unable to determine boot sequence type from system."
 
-    current_seq = boot_seq_data.get(seq_key, [])
-    updated_seq = []
-    changes_found = False
-
-    # Build a lookup map from user input
-    source_map = {}
-    for source in boot_sources:
-        source_map[source['Name']] = {'Enabled': source.get('Enabled'), 'Index': source.get('Index')}
-
-    # Update boot sequence with user values
-    for device in current_seq:
-        device_name = device.get('Name')
-        if device_name in source_map:
-            user_source = source_map[device_name]
-            if 'Enabled' in user_source and device.get('Enabled') != user_source['Enabled']:
-                device['Enabled'] = user_source['Enabled']
-                changes_found = True
-            if 'Index' in user_source and device.get('Index') != user_source['Index']:
-                device['Index'] = user_source['Index']
-                changes_found = True
-        updated_seq.append(device)
-
+    source_map = _build_boot_source_map(boot_sources)
+    updated_seq, changes_found = _build_updated_boot_sequence(boot_seq_data.get(seq_key, []), source_map)
     if not changes_found:
         return None, NO_CHANGES_MSG
 
-    payload = {"Attributes": {seq_key: updated_seq}, "@Redfish.SettingsApplyTime": {"ApplyTime": "OnReset"}}
-    resp = redfish_obj.invoke_request(PATCH_BOOT_SEQ_URI, "PATCH", data=payload)
-    if resp.status_code in [200, 202]:
-        location = resp.headers.get("Location", "")
-        if location:
-            job_id = location.split("/")[-1]
-            return job_id, SUCCESS_BOOT_SOURCES
-        return None, SUCCESS_BOOT_SOURCES
-    return None, "Failed to configure boot sources. HTTP status: {0}".format(resp.status_code)
+    return _submit_boot_sequence(redfish_obj, seq_key, updated_seq)
 
 
 def main():

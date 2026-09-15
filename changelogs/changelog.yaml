@@ -2599,7 +2599,9 @@ releases:
         - Update galaxy.yml to exclude unnecessary files from collection build.
         - Bump pytest from 8.3.5 to 9.0.3.
         - Update README.md.
-      release_summary: This release includes dependency updates and build configuration improvements.
+      release_summary: >-
+        This release includes dependency updates and build configuration
+        improvements.
     release_date: '2026-06-23'
 
   11.0.0:

@@ -56,7 +56,7 @@ class IDRACSensorsTemperatureInfo(object):
             sensor_uri = GET_IDRAC_SENSOR_TEMPERATURE_DETAILS_URI_10.format(temp_sensor_name=quote(temp_sensor_name, safe=''))
             resp = self.idrac.invoke_request(method='GET', uri=sensor_uri)
             return resp.json_data if resp.status_code == 200 else None
-        except (HTTPError, Exception):
+        except HTTPError:
             return None
 
     def sensors_temperature_mapped_data(self, resp):
