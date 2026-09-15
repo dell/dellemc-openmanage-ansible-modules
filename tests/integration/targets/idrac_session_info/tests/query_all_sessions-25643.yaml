@@ -14,7 +14,7 @@
 - name: TC-25643 Query all active sessions
   block:
     - name: Query all sessions - Normal mode
-      dellemc.openmanage.idrac_session_info:
+      dellemc.openmanage.idrac_session_info: {}
       register: query_result
 
     - name: Verify - Query returns session list
@@ -50,7 +50,7 @@
           - query_result.session_limits.utilization_percent is defined
 
     - name: Query all sessions - Check mode
-      dellemc.openmanage.idrac_session_info:
+      dellemc.openmanage.idrac_session_info: {}
       check_mode: true
       register: query_check
 
