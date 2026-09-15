@@ -4,6 +4,50 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v11.0.0
+=======
+
+Release Summary
+---------------
+
+Major release removing OMSDK dependencies and deprecated modules, with enhanced lifecycle controller logs, certificate validation, and new info modules.
+
+Breaking Changes
+----------------
+
+- Removed 8 deprecated OMSDK-dependent modules: dellemc_configure_idrac_eventing, dellemc_configure_idrac_services, dellemc_idrac_lc_attributes, dellemc_system_lockdown_mode, idrac_network, idrac_timezone_ntp, dellemc_idrac_storage_volume, idrac_syslog.
+- Complete removal of OMSDK library dependency from the collection.
+- Removed OMSDK-specific code from dellemc_idrac.py utility module.
+
+Major Changes
+-------------
+
+- Enhanced idrac_lifecycle_controller_logs module with pagination, filtering, and export capabilities.
+- Added certificate validation improvements including ACME and SCEP support.
+- Added network attributes info modules: idrac_network_attributes_info, idrac_network_info.
+- Added BIOS registry info module: idrac_bios_registry_info.
+- Added session info module: idrac_session_info.
+
+Removed Features
+----------------
+
+- dellemc_configure_idrac_eventing - Use idrac_attributes as alternative.
+- dellemc_configure_idrac_services - Use idrac_attributes as alternative.
+- dellemc_idrac_lc_attributes - Use idrac_attributes as alternative.
+- dellemc_system_lockdown_mode - Use idrac_attributes as alternative.
+- idrac_network - Use idrac_network_attributes as alternative.
+- idrac_timezone_ntp - Use idrac_attributes as alternative.
+- dellemc_idrac_storage_volume - Use idrac_storage_volume as alternative.
+- idrac_syslog - Use idrac_attributes as alternative.
+
+New Modules
+-----------
+
+- idrac_bios_registry_info - Retrieve BIOS registry attribute information from iDRAC.
+- idrac_network_attributes_info - Retrieve network attributes information from iDRAC.
+- idrac_network_info - Retrieve network information from iDRAC.
+- idrac_session_info - Retrieve session information from iDRAC.
+
 v10.0.3
 =======
 

@@ -2601,3 +2601,40 @@ releases:
         - Update README.md.
       release_summary: This release includes dependency updates and build configuration improvements.
     release_date: '2026-06-23'
+
+  11.0.0:
+    changes:
+      breaking_changes:
+        - Removed 8 deprecated OMSDK-dependent modules: dellemc_configure_idrac_eventing, dellemc_configure_idrac_services, dellemc_idrac_lc_attributes, dellemc_system_lockdown_mode, idrac_network, idrac_timezone_ntp, dellemc_idrac_storage_volume, idrac_syslog.
+        - Complete removal of OMSDK library dependency from the collection.
+        - Removed OMSDK-specific code from dellemc_idrac.py utility module.
+      major_changes:
+        - Enhanced idrac_lifecycle_controller_logs module with pagination, filtering, and export capabilities.
+        - Added certificate validation improvements including ACME and SCEP support.
+        - Added network attributes info modules: idrac_network_attributes_info, idrac_network_info.
+        - Added BIOS registry info module: idrac_bios_registry_info.
+        - Added session info module: idrac_session_info.
+      removed_features:
+        - dellemc_configure_idrac_eventing - Use idrac_attributes as alternative.
+        - dellemc_configure_idrac_services - Use idrac_attributes as alternative.
+        - dellemc_idrac_lc_attributes - Use idrac_attributes as alternative.
+        - dellemc_system_lockdown_mode - Use idrac_attributes as alternative.
+        - idrac_network - Use idrac_network_attributes as alternative.
+        - idrac_timezone_ntp - Use idrac_attributes as alternative.
+        - dellemc_idrac_storage_volume - Use idrac_storage_volume as alternative.
+        - idrac_syslog - Use idrac_attributes as alternative.
+      release_summary: Major release removing OMSDK dependencies and deprecated modules, with enhanced lifecycle controller logs, certificate validation, and new info modules.
+    modules:
+      - description: Retrieve BIOS registry attribute information from iDRAC.
+        name: idrac_bios_registry_info
+        namespace: ''
+      - description: Retrieve network attributes information from iDRAC.
+        name: idrac_network_attributes_info
+        namespace: ''
+      - description: Retrieve network information from iDRAC.
+        name: idrac_network_info
+        namespace: ''
+      - description: Retrieve session information from iDRAC.
+        name: idrac_session_info
+        namespace: ''
+    release_date: '2026-09-15'
