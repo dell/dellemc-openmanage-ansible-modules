@@ -19,10 +19,22 @@ Major Changes
 - Complete removal of OMSDK library dependency from the collection.
 - Removed OMSDK-specific code from dellemc_idrac.py utility module.
 - Enhanced idrac_lifecycle_controller_logs module with pagination, filtering, and export capabilities.
-- Added certificate validation improvements including ACME and SCEP support.
+- Enhanced idrac_session module with self-session protection to prevent accidental lockout when deleting sessions.
+- Enhanced idrac_certificates module with SCEP_CA_CERT support for ACME and SCEP enrollment.
+- Removed deprecated parameters from idrac_bios module (share_name, share_user, share_password, share_mnt, boot_sources).
+- Removed OMSDK requirement from idrac_system_info module.
 - Added network attributes info modules: idrac_network_attributes_info, idrac_network_info.
 - Added BIOS registry info module: idrac_bios_registry_info.
 - Added session info module: idrac_session_info.
+
+Minor Changes
+-------------
+
+- Enhanced idrac_firmware module with improved error handling and cleanup.
+- Enhanced idrac_lifecycle_controller_jobs module with improved job tracking.
+- Enhanced idrac_lifecycle_controller_job_status_info module with improved status reporting.
+- Enhanced idrac_lifecycle_controller_status_info module with improved status reporting.
+- Enhanced idrac_storage_volume module with improved error handling.
 
 Removed Features
 ----------------
