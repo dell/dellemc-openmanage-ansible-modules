@@ -12,16 +12,12 @@ Release Summary
 
 Major release removing OMSDK dependencies and deprecated modules, with enhanced lifecycle controller logs, certificate validation, and new info modules.
 
-Breaking Changes
-----------------
+Major Changes
+-------------
 
 - Removed 8 deprecated OMSDK-dependent modules: dellemc_configure_idrac_eventing, dellemc_configure_idrac_services, dellemc_idrac_lc_attributes, dellemc_system_lockdown_mode, idrac_network, idrac_timezone_ntp, dellemc_idrac_storage_volume, idrac_syslog.
 - Complete removal of OMSDK library dependency from the collection.
 - Removed OMSDK-specific code from dellemc_idrac.py utility module.
-
-Major Changes
--------------
-
 - Enhanced idrac_lifecycle_controller_logs module with pagination, filtering, and export capabilities.
 - Added certificate validation improvements including ACME and SCEP support.
 - Added network attributes info modules: idrac_network_attributes_info, idrac_network_info.
