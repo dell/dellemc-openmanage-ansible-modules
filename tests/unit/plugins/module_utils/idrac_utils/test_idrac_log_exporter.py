@@ -119,7 +119,7 @@ class TestIDRACLogExporter:
         export_path = os.path.join(temp_dir, "test_export.csv")
         exporter = IDRACLogExporter(export_path, "csv")
 
-        count = exporter.export_to_csv(sample_log_entries, sample_metadata)
+        count = exporter.export_to_csv(sample_log_entries)
 
         assert count == 2
         assert os.path.exists(export_path)
@@ -142,7 +142,7 @@ class TestIDRACLogExporter:
         export_path = os.path.join(temp_dir, "test_export.txt")
         exporter = IDRACLogExporter(export_path, "text")
 
-        count = exporter.export_to_text(sample_log_entries, sample_metadata)
+        count = exporter.export_to_text(sample_log_entries)
 
         assert count == 2
         assert os.path.exists(export_path)
