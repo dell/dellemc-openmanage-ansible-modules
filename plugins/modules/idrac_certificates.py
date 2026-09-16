@@ -669,12 +669,16 @@ def check_firmware_and_license_for_scep_ca(idrac, _module):
     Validate iDRAC firmware version and Datacenter license for SCEP_CA_CERT operations.
     Returns (is_compliant: bool, error_message: str)
     """
-    _, firmware_version, hw_model = idrac.get_server_generation
+    server_generation = idrac.get_server_generation
+    firmware_version = server_generation[1]
+    hw_model = server_generation[2]
 
     # Check firmware version requirements using centralized utility
-    is_compliant, _, error_msg = iDRACRedfishAPI.check_minimum_firmware_requirement(
+    firmware_check = iDRACRedfishAPI.check_minimum_firmware_requirement(
         hw_model, firmware_version
     )
+    is_compliant = firmware_check[0]
+    error_msg = firmware_check[2]
     if not is_compliant:
         return False, error_msg
 
