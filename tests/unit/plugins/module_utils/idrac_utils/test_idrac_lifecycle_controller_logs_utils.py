@@ -11,7 +11,7 @@ import pytest
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     idrac_utils.idrac_lifecycle_controller_logs_utils \
     import IDRACLifecycleControllerLogs
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.module_utils.idrac_utils.test_idrac_utils import TestUtils
+from tests.unit.plugins.module_utils.idrac_utils.test_idrac_utils import TestUtils
 from unittest.mock import MagicMock
 
 
