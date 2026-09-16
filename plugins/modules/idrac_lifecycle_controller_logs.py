@@ -469,7 +469,7 @@ def build_odata_filter(module):
     return ' and '.join(filters) if filters else None
 
 
-def get_filtered_log_entries(idrac, module, odata_filter=None):
+def get_filtered_log_entries(idrac, _module, odata_filter=None):
     """Retrieve log entries with optional OData filter and pagination."""
     entries = []
     uri = LC_LOG_ENTRIES_URI
@@ -517,7 +517,8 @@ def get_filters_applied(module):
     return filters
 
 
-def main():
+def _build_argument_spec():
+    """Build the module argument specification."""
     specs = {
         "share_name": {"required": True, "type": 'str'},
         "share_user": {"required": False, "type": 'str'},
@@ -551,199 +552,227 @@ def main():
         "insert_comment": {"required": False, "type": 'str'},
     }
     specs.update(idrac_auth_params)
+    return specs
+
+
+def _validate_module_params(module):
+    """Validate insert_comment and date range parameters."""
+    insert_comment = module.params.get('insert_comment')
+    if insert_comment:
+        validate_insert_comment(insert_comment)
+
+    date_start = module.params.get('date_start')
+    date_end = module.params.get('date_end')
+    if date_start and date_end:
+        log_filter = IDRACLogFilter()
+        log_filter.validate_date_range(date_start, date_end)
+
+    return insert_comment
+
+
+def _build_storage_warning(metadata, storage_threshold, extra=""):
+    """Build a storage overflow warning message if utilization exceeds the threshold."""
+    if storage_threshold <= 0 or not metadata:
+        return None
+    utilization = metadata.get('storage_utilization_pct', 0)
+    if utilization <= storage_threshold:
+        return None
+    return (
+        f"LC log storage at {utilization}% capacity "
+        f"(threshold: {storage_threshold}%). "
+        f"Consider exporting and archiving logs.{extra}"
+    )
+
+
+def _handle_fetch_metadata_only(idrac, module, lifecycle_controller_logs_obj):
+    """Fetch and return LC log metadata only, then exit the module."""
+    metadata = lifecycle_controller_logs_obj.get_lc_log_metadata(idrac, module)
+    result = {}
+
+    storage_threshold = module.params.get('storage_threshold_pct', 80)
+    storage_warning = _build_storage_warning(metadata, storage_threshold)
+    if storage_warning:
+        result['storage_warning'] = storage_warning
+
+    module.exit_json(
+        msg="Successfully retrieved LC log metadata.",
+        log_metadata=metadata,
+        changed=False,
+        **result
+    )
+
+
+def _handle_insert_comment(idrac, module, lifecycle_controller_logs_obj, insert_comment):
+    """Insert a comment into the LC logs, then exit the module."""
+    comment_result = lifecycle_controller_logs_obj.insert_lc_comment(
+        idrac, module, insert_comment
+    )
+    module.exit_json(
+        msg=COMMENT_INSERT_SUCCESS,
+        inserted_entry_id=comment_result.get('entry_id'),
+        inserted_entry_timestamp=comment_result.get('timestamp'),
+        changed=True
+    )
+
+
+def _get_metadata_with_storage_warning(idrac, module, lifecycle_controller_logs_obj, result):
+    """Fetch LC log metadata (if needed) and populate a storage warning in result."""
+    metadata = None
+    storage_threshold = module.params.get('storage_threshold_pct', 80)
+    if module.params.get('verify_export') or storage_threshold > 0:
+        metadata = lifecycle_controller_logs_obj.get_lc_log_metadata(idrac, module)
+
+        overwrite_policy = metadata.get('overwrite_policy', 'Unknown') if metadata else 'Unknown'
+        storage_warning = _build_storage_warning(
+            metadata, storage_threshold, f" Overwrite policy: {overwrite_policy}"
+        )
+        if storage_warning:
+            result['storage_warning'] = storage_warning
+
+    return metadata
+
+
+def _build_export_verification(expected_count, actual_count):
+    """Build the export_verification result dict."""
+    verified = expected_count == actual_count
+    return {
+        'expected_count': expected_count,
+        'actual_count': actual_count,
+        'verified': verified,
+        'message': (
+            "Export verification successful"
+            if verified
+            else f"Export verification failed: expected {expected_count}, got {actual_count}"
+        )
+    }
+
+
+def _build_local_export_path(share_name, export_format, idrac_ip):
+    """Determine the local export file path, generating a filename if a directory was provided."""
+    if not os.path.isdir(share_name):
+        return share_name
+    from datetime import datetime
+    safe_ip = (idrac_ip or 'unknown').replace(':', '.')
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f"{safe_ip}_{timestamp}_LC_Log.{export_format}"
+    return os.path.join(share_name, filename)
+
+
+def _export_filtered_entries_locally(module, log_entries, metadata, result):
+    """Export filtered log entries to a local file and exit the module."""
+    export_format = module.params.get('export_format', 'json')
+    share_name = module.params.get('share_name')
+
+    export_metadata = {
+        'server_ip': module.params.get('idrac_ip'),
+        'export_timestamp': None,  # Will be set by exporter
+        'filters_applied': result['filters_applied'],
+        'exported_entry_count': len(log_entries)
+    }
+    if metadata:
+        export_metadata['total_entries_on_server'] = metadata.get('total_entries', 0)
+
+    export_path = _build_local_export_path(share_name, export_format, module.params.get('idrac_ip'))
+
+    exporter = IDRACLogExporter(export_path, export_format)
+    exported_count = exporter.export(log_entries, export_metadata)
+
+    result['exported_entry_count'] = exported_count
+    result['export_file'] = export_path
+
+    if module.params.get('verify_export'):
+        result['export_verification'] = _build_export_verification(len(log_entries), exported_count)
+
+    module.exit_json(
+        msg=FILTERED_EXPORT_MSG,
+        lc_logs=log_entries,
+        changed=True,
+        **result
+    )
+
+
+def _handle_filtered_export(module, log_entries, metadata, result):
+    """Handle the filtered-export path: no matches, local export, or remote share listing."""
+    if not log_entries:
+        module.exit_json(
+            msg=NO_MATCHING_ENTRIES_MSG,
+            lc_logs=[],
+            changed=False,
+            **result
+        )
+
+    share_name = module.params.get('share_name')
+    is_local = not (share_name.startswith('\\\\') or ':/' in share_name)
+
+    if is_local:
+        _export_filtered_entries_locally(module, log_entries, metadata, result)
+    else:
+        # For network shares, return filtered entries without local export
+        result['lc_logs'] = log_entries
+        module.exit_json(
+            msg=f"Retrieved {len(log_entries)} filtered log entries.",
+            lc_logs=log_entries,
+            changed=False,
+            **result
+        )
+
+
+def _get_filtered_entries_for_export(idrac, module):
+    """Get filtered log entries applying both server-side and client-side filters."""
+    odata_filter = build_odata_filter(module)
+    log_entries = get_filtered_log_entries(idrac, module, odata_filter)
+
+    message_contains = module.params.get('message_contains')
+    if message_contains:
+        log_filter = IDRACLogFilter()
+        log_filter.add_message_filter(message_contains)
+        log_entries = log_filter.apply(log_entries)
+
+    return log_entries
+
+
+def _handle_standard_export(idrac, module, lifecycle_controller_logs_obj, metadata, expected_count, result):
+    """Handle the standard (non-filtered) export operation, then exit the module."""
+    msg, job_dict, changed = lifecycle_controller_logs_obj.lifecycle_controller_logs_operation(
+        idrac, module
+    )
+
+    if module.params.get('verify_export') and metadata:
+        post_metadata = lifecycle_controller_logs_obj.get_lc_log_metadata(idrac, module)
+        actual_count = post_metadata.get('total_entries', 0)
+        result['export_verification'] = _build_export_verification(expected_count, actual_count)
+
+    module.exit_json(msg=msg, lc_logs_status=job_dict, changed=changed, **result)
+
+
+def main():
+    specs = _build_argument_spec()
     module = AnsibleModule(
         argument_spec=specs,
         supports_check_mode=False)
 
     try:
-        # Validate insert_comment if provided
-        insert_comment = module.params.get('insert_comment')
-        if insert_comment:
-            validate_insert_comment(insert_comment)
-
-        # Validate date range
-        date_start = module.params.get('date_start')
-        date_end = module.params.get('date_end')
-        if date_start and date_end:
-            log_filter = IDRACLogFilter()
-            log_filter.validate_date_range(date_start, date_end)
+        insert_comment = _validate_module_params(module)
 
         with iDRACRedfishAPI(module.params) as idrac:
             lifecycle_controller_logs_obj = IDRACLifecycleControllerLogs(idrac)
             result = {}
 
-            # Handle fetch_metadata_only mode
             if module.params.get('fetch_metadata_only'):
-                metadata = lifecycle_controller_logs_obj.get_lc_log_metadata(idrac, module)
+                _handle_fetch_metadata_only(idrac, module, lifecycle_controller_logs_obj)
 
-                # Add storage warning if threshold exceeded
-                storage_threshold = module.params.get('storage_threshold_pct', 80)
-                if storage_threshold > 0:
-                    utilization = metadata.get('storage_utilization_pct', 0)
-                    if utilization > storage_threshold:
-                        result['storage_warning'] = (
-                            f"LC log storage at {utilization}% capacity "
-                            f"(threshold: {storage_threshold}%). "
-                            f"Consider exporting and archiving logs."
-                        )
-
-                module.exit_json(
-                    msg="Successfully retrieved LC log metadata.",
-                    log_metadata=metadata,
-                    changed=False,
-                    **result
-                )
-
-            # Handle insert_comment
             if insert_comment:
-                comment_result = lifecycle_controller_logs_obj.insert_lc_comment(
-                    idrac, module, insert_comment
-                )
-                module.exit_json(
-                    msg=COMMENT_INSERT_SUCCESS,
-                    inserted_entry_id=comment_result.get('entry_id'),
-                    inserted_entry_timestamp=comment_result.get('timestamp'),
-                    changed=True
-                )
+                _handle_insert_comment(idrac, module, lifecycle_controller_logs_obj, insert_comment)
 
-            # Get metadata for storage monitoring and verification
-            metadata = None
-            if module.params.get('verify_export') or module.params.get('storage_threshold_pct', 80) > 0:
-                metadata = lifecycle_controller_logs_obj.get_lc_log_metadata(idrac, module)
-
-                # Add storage warning if threshold exceeded
-                storage_threshold = module.params.get('storage_threshold_pct', 80)
-                if storage_threshold > 0 and metadata:
-                    utilization = metadata.get('storage_utilization_pct', 0)
-                    if utilization > storage_threshold:
-                        result['storage_warning'] = (
-                            f"LC log storage at {utilization}% capacity "
-                            f"(threshold: {storage_threshold}%). "
-                            f"Consider exporting and archiving logs. "
-                            f"Overwrite policy: {metadata.get('overwrite_policy', 'Unknown')}"
-                        )
-
-            # Store expected count for verification
+            metadata = _get_metadata_with_storage_warning(idrac, module, lifecycle_controller_logs_obj, result)
             expected_count = metadata.get('total_entries', 0) if metadata else 0
 
-            # Check if filters are applied - use filtered export path
             if has_filters(module):
-                # Build OData filter for server-side filtering
-                odata_filter = build_odata_filter(module)
-
-                # Get filtered log entries
-                log_entries = get_filtered_log_entries(idrac, module, odata_filter)
-
-                # Apply client-side message_contains filter if specified
-                message_contains = module.params.get('message_contains')
-                if message_contains:
-                    log_filter = IDRACLogFilter()
-                    log_filter.add_message_filter(message_contains)
-                    log_entries = log_filter.apply(log_entries)
-
-                # Add filters_applied to result
+                log_entries = _get_filtered_entries_for_export(idrac, module)
                 result['filters_applied'] = get_filters_applied(module)
+                _handle_filtered_export(module, log_entries, metadata, result)
 
-                # Check if any entries matched
-                if not log_entries:
-                    module.exit_json(
-                        msg=NO_MATCHING_ENTRIES_MSG,
-                        lc_logs=[],
-                        changed=False,
-                        **result
-                    )
-
-                # Check if local export is requested
-                share_name = module.params.get('share_name')
-                is_local = not (share_name.startswith('\\\\') or ':/' in share_name)
-
-                if is_local:
-                    export_format = module.params.get('export_format', 'json')
-
-                    # Build export metadata
-                    export_metadata = {
-                        'server_ip': module.params.get('idrac_ip'),
-                        'export_timestamp': None,  # Will be set by exporter
-                        'filters_applied': result['filters_applied'],
-                        'exported_entry_count': len(log_entries)
-                    }
-
-                    # Get server info for metadata
-                    if metadata:
-                        export_metadata['total_entries_on_server'] = metadata.get('total_entries', 0)
-
-                    # Determine export file path
-                    if os.path.isdir(share_name):
-                        # Generate filename if directory provided
-                        idrac_ip = module.params.get('idrac_ip', 'unknown').replace(':', '.')
-                        from datetime import datetime
-                        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                        filename = f"{idrac_ip}_{timestamp}_LC_Log.{export_format}"
-                        export_path = os.path.join(share_name, filename)
-                    else:
-                        export_path = share_name
-
-                    # Export using the exporter utility
-                    exporter = IDRACLogExporter(export_path, export_format)
-                    exported_count = exporter.export(log_entries, export_metadata)
-
-                    result['exported_entry_count'] = exported_count
-                    result['export_file'] = export_path
-
-                    # Handle verify_export
-                    if module.params.get('verify_export'):
-                        verified = (exported_count == len(log_entries))
-                        result['export_verification'] = {
-                            'expected_count': len(log_entries),
-                            'actual_count': exported_count,
-                            'verified': verified,
-                            'message': (
-                                "Export verification successful"
-                                if verified
-                                else f"Export verification failed: expected {len(log_entries)}, got {exported_count}"
-                            )
-                        }
-
-                    module.exit_json(
-                        msg=FILTERED_EXPORT_MSG,
-                        lc_logs=log_entries,
-                        changed=True,
-                        **result
-                    )
-                else:
-                    # For network shares, return filtered entries without local export
-                    result['lc_logs'] = log_entries
-                    module.exit_json(
-                        msg=f"Retrieved {len(log_entries)} filtered log entries.",
-                        lc_logs=log_entries,
-                        changed=False,
-                        **result
-                    )
-
-            # No filters - use standard export operation
-            msg, job_dict, changed = lifecycle_controller_logs_obj.lifecycle_controller_logs_operation(
-                idrac, module
-            )
-
-            # Handle verify_export
-            if module.params.get('verify_export') and metadata:
-                # Get actual count after export
-                post_metadata = lifecycle_controller_logs_obj.get_lc_log_metadata(idrac, module)
-                actual_count = post_metadata.get('total_entries', 0)
-
-                verified = (expected_count == actual_count)
-                result['export_verification'] = {
-                    'expected_count': expected_count,
-                    'actual_count': actual_count,
-                    'verified': verified,
-                    'message': (
-                        "Export verification successful"
-                        if verified
-                        else f"Export verification failed: expected {expected_count}, got {actual_count}"
-                    )
-                }
-
-            module.exit_json(msg=msg, lc_logs_status=job_dict, changed=changed, **result)
+            _handle_standard_export(idrac, module, lifecycle_controller_logs_obj, metadata, expected_count, result)
 
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)

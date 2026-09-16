@@ -92,14 +92,12 @@ class IDRACLogExporter:
                     pass
             raise e
 
-    def export_to_csv(self, log_entries: List[Dict[str, Any]], metadata: Dict[str, Any]) -> int:
+    def export_to_csv(self, log_entries: List[Dict[str, Any]]) -> int:
         """
         Export log entries to CSV format with header row.
 
         Args:
             log_entries: List of log entry dictionaries
-            metadata: Metadata dictionary (not used in CSV but kept for consistency)
-
         Returns:
             int: Number of entries exported
         """
@@ -134,7 +132,7 @@ class IDRACLogExporter:
                     pass
             raise e
 
-    def export_to_text(self, log_entries: List[Dict[str, Any]], metadata: Dict[str, Any]) -> int:
+    def export_to_text(self, log_entries: List[Dict[str, Any]]) -> int:
         """
         Export log entries to text format with one entry per line.
 
@@ -142,8 +140,6 @@ class IDRACLogExporter:
 
         Args:
             log_entries: List of log entry dictionaries
-            metadata: Metadata dictionary (not used in text but kept for consistency)
-
         Returns:
             int: Number of entries exported
         """
@@ -196,8 +192,8 @@ class IDRACLogExporter:
         if self.export_format == "json":
             return self.export_to_json(log_entries, metadata)
         elif self.export_format == "csv":
-            return self.export_to_csv(log_entries, metadata)
+            return self.export_to_csv(log_entries)
         elif self.export_format == "text":
-            return self.export_to_text(log_entries, metadata)
+            return self.export_to_text(log_entries)
         else:
             raise ValueError(f"Invalid export format: {self.export_format}. Must be 'json', 'csv', or 'text'")

@@ -105,7 +105,7 @@ class IDRACLogPagination:
                 retry_attempts += 1
 
                 if retry_attempts >= retry_count:
-                    raise Exception(f"Failed to retrieve LC logs after {retry_count} attempts: {str(e)}")
+                    raise RuntimeError(f"Failed to retrieve LC logs after {retry_count} attempts: {str(e)}")
 
                 # Exponential backoff
                 time.sleep(current_delay)
