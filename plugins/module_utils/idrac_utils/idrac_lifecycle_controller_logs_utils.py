@@ -242,8 +242,6 @@ class IDRACLifecycleControllerLogs(object):
             if len(managers_details) > 0:
                 manager_uri = managers_details[0].get(ODATA_ID, "")
                 manager_data = idrac.invoke_request(method='GET', uri=manager_uri).json_data
-                lc_service_uri = manager_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("DellLCService", {}).get(ODATA_ID, "")
-
                 # Get log entries URI
                 log_services_uri = manager_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("DellLCLogService", {}).get(ODATA_ID, "")
                 if log_services_uri:
