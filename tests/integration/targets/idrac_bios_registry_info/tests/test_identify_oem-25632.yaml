@@ -6,10 +6,12 @@
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and
-     idrac_password.'
-  when: idrac_ip is not defined or idrac_user is not defined or
-   idrac_password is not defined
+    msg: >-
+      Please define the following variables: idrac_ip, idrac_user and
+      idrac_password.
+  when: >-
+    idrac_ip is not defined or idrac_user is not defined or
+    idrac_password is not defined
 
 - name: Check iDRAC firmware version
   ansible.builtin.include_tasks: _check_idrac_version.yml
@@ -44,19 +46,33 @@
     - name: Verify OEM attributes have is_oem true
       ansible.builtin.assert:
         that:
-          - query_result.bios_attributes | selectattr('is_oem', 'equalto', true) | list | length >= 0
+          - >-
+              query_result.bios_attributes |
+              selectattr('is_oem', 'equalto', true) |
+              list | length >= 0
 
     - name: Verify standard attributes have is_oem false
       ansible.builtin.assert:
         that:
-          - query_result.bios_attributes | selectattr('is_oem', 'equalto', false) | list | length >= 0
+          - >-
+              query_result.bios_attributes |
+              selectattr('is_oem', 'equalto', false) |
+              list | length >= 0
 
     - name: Display OEM identification summary
       ansible.builtin.debug:
         msg:
           - "Total Attributes: {{ query_result.attribute_count }}"
-          - "OEM Attributes: {{ query_result.bios_attributes | selectattr('is_oem', 'equalto', true) | list | length }}"
-          - "Standard Attributes: {{ query_result.bios_attributes | selectattr('is_oem', 'equalto', false) | list | length }}"
+          - >-
+              OEM Attributes:
+              {{ query_result.bios_attributes |
+              selectattr('is_oem', 'equalto', true) |
+              list | length }}
+          - >-
+              Standard Attributes:
+              {{ query_result.bios_attributes |
+              selectattr('is_oem', 'equalto', false) |
+              list | length }}
 
   when:
     - is_idrac_10 | bool

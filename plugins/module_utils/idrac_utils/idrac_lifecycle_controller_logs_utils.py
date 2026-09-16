@@ -30,6 +30,7 @@ SCHEDULE_MSG = "The export lifecycle controller log job is submitted successfull
 NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 MANAGER_URI = '/redfish/v1/Managers'
+ODATA_ID = "@odata.id"
 
 import copy
 import datetime
@@ -148,11 +149,14 @@ class IDRACLifecycleControllerLogs(object):
         managers_details = get_dynamic_uri(
             self.idrac, MANAGER_URI, search_label='Members')
         if len(managers_details) > 0:
-            manager_uri = managers_details[0].get("@odata.id", "")
+            manager_uri = managers_details[0].get(ODATA_ID, "")
             manager_data = idrac.invoke_request(method='GET', uri=manager_uri).json_data
-            lc_service_uri = manager_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("DellLCService", {}).get("@odata.id", "")
-            lc_service_data = idrac.invoke_request(method='GET', uri=lc_service_uri).json_data
-            lc_logs_uri = lc_service_data.get("Actions", {}).get("#DellLCService.ExportLCLog", {}).get("target", "")
+            lc_service_uri = manager_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("DellLCService", {}).get(ODATA_ID, "")
+            lc_logs_response = idrac.invoke_request(
+                method='GET', uri=lc_service_uri)
+            lc_logs_uri = lc_logs_response.json_data.get(
+                "Actions", {}).get("#DellLCService.ExportLCLog", {}).get(
+                    "target", "")
             return lc_logs_uri
 
     def export_lc_logs_idrac_9_10(self, idrac, module, share_name, share_type, file_name, ip_address, file_path):
@@ -236,16 +240,13 @@ class IDRACLifecycleControllerLogs(object):
             managers_details = get_dynamic_uri(
                 self.idrac, MANAGER_URI, search_label='Members')
             if len(managers_details) > 0:
-                manager_uri = managers_details[0].get("@odata.id", "")
+                manager_uri = managers_details[0].get(ODATA_ID, "")
                 manager_data = idrac.invoke_request(method='GET', uri=manager_uri).json_data
-                lc_service_uri = manager_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("DellLCService", {}).get("@odata.id", "")
-                lc_service_data = idrac.invoke_request(method='GET', uri=lc_service_uri).json_data
-
                 # Get log entries URI
-                log_services_uri = manager_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("DellLCLogService", {}).get("@odata.id", "")
+                log_services_uri = manager_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("DellLCLogService", {}).get(ODATA_ID, "")
                 if log_services_uri:
                     log_service_data = idrac.invoke_request(method='GET', uri=log_services_uri).json_data
-                    entries_uri = log_service_data.get("Entries", {}).get("@odata.id", "")
+                    entries_uri = log_service_data.get("Entries", {}).get(ODATA_ID, "")
 
                     if entries_uri:
                         # Get total entries count
@@ -335,6 +336,66 @@ class IDRACLifecycleControllerLogs(object):
 
         return severity_counts
 
+    def _get_insert_comment_uri(self, idrac):
+        """
+        Resolve the DellLCService InsertComment action target URI.
+
+        Returns:
+            str or None: The InsertComment action URI, or None if the
+            DellLCService link is not available on this iDRAC.
+
+        Raises:
+            RuntimeError: If DellLCService is available but does not expose
+            the InsertComment action.
+        """
+        managers_details = get_dynamic_uri(
+            self.idrac, MANAGER_URI, search_label='Members')
+        if not managers_details:
+            return None
+
+        manager_uri = managers_details[0].get(ODATA_ID, "")
+        manager_data = idrac.invoke_request(method='GET', uri=manager_uri).json_data
+
+        # Get DellLCService URI for InsertComment action
+        lc_service_uri = manager_data.get("Links", {}).get("Oem", {}).get(
+            "Dell", {}).get("DellLCService", {}).get(ODATA_ID, "")
+        if not lc_service_uri:
+            return None
+
+        lc_service_data = idrac.invoke_request(method='GET', uri=lc_service_uri).json_data
+
+        # Get InsertComment action target
+        insert_comment_uri = lc_service_data.get("Actions", {}).get(
+            "#DellLCService.InsertComment", {}).get("target", "")
+        if not insert_comment_uri:
+            raise RuntimeError(
+                "InsertComment action not available on this iDRAC. "
+                "Requires ConfigureManager or Login+TestAlerts privilege."
+            )
+
+        return insert_comment_uri
+
+    def _invoke_insert_comment(self, idrac, insert_comment_uri, comment):
+        """Invoke the InsertComment action and return the entry details."""
+        result = {
+            'entry_id': None,
+            'timestamp': None
+        }
+        payload = {"Comment": comment}
+        response = idrac.invoke_request(
+            method='POST',
+            uri=insert_comment_uri,
+            data=payload
+        )
+
+        # Get the inserted entry details
+        if response.status_code in [200, 201, 202]:
+            response_data = response.json_data if hasattr(response, 'json_data') else {}
+            result['entry_id'] = response_data.get('Id', 'LC_COMMENT')
+            result['timestamp'] = datetime.datetime.now().isoformat() + 'Z'
+
+        return result
+
     def insert_lc_comment(self, idrac, module, comment: str) -> Dict[str, Any]:
         """
         Insert a custom comment into the LC logs.
@@ -353,44 +414,9 @@ class IDRACLifecycleControllerLogs(object):
         }
 
         try:
-            # Get LC log service URI
-            managers_details = get_dynamic_uri(
-                self.idrac, MANAGER_URI, search_label='Members')
-            if len(managers_details) > 0:
-                manager_uri = managers_details[0].get("@odata.id", "")
-                manager_data = idrac.invoke_request(method='GET', uri=manager_uri).json_data
-
-                # Get DellLCService URI for InsertComment action
-                lc_service_uri = manager_data.get("Links", {}).get("Oem", {}).get(
-                    "Dell", {}).get("DellLCService", {}).get("@odata.id", "")
-
-                if lc_service_uri:
-                    lc_service_data = idrac.invoke_request(method='GET', uri=lc_service_uri).json_data
-
-                    # Get InsertComment action target
-                    insert_comment_uri = lc_service_data.get("Actions", {}).get(
-                        "#DellLCService.InsertComment", {}).get("target", "")
-
-                    if insert_comment_uri:
-                        # Invoke InsertComment action
-                        payload = {"Comment": comment}
-                        response = idrac.invoke_request(
-                            method='POST',
-                            uri=insert_comment_uri,
-                            data=payload
-                        )
-
-                        # Get the inserted entry details
-                        if response.status_code in [200, 201, 202]:
-                            response_data = response.json_data if hasattr(response, 'json_data') else {}
-                            result['entry_id'] = response_data.get('Id', 'LC_COMMENT')
-                            result['timestamp'] = datetime.datetime.now().isoformat() + 'Z'
-                    else:
-                        raise RuntimeError(
-                            "InsertComment action not available on this iDRAC. "
-                            "Requires ConfigureManager or Login+TestAlerts privilege."
-                        )
-
+            insert_comment_uri = self._get_insert_comment_uri(idrac)
+            if insert_comment_uri:
+                result = self._invoke_insert_comment(idrac, insert_comment_uri, comment)
         except Exception as e:
             raise RuntimeError(f"Failed to insert comment into LC logs: {str(e)}")
 

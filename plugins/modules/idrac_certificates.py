@@ -664,17 +664,21 @@ def check_csr_generated(idrac):
     return generated
 
 
-def check_firmware_and_license_for_scep_ca(idrac, module):
+def check_firmware_and_license_for_scep_ca(idrac, _module):
     """
     Validate iDRAC firmware version and Datacenter license for SCEP_CA_CERT operations.
     Returns (is_compliant: bool, error_message: str)
     """
-    generation, firmware_version, hw_model = idrac.get_server_generation
+    server_generation = idrac.get_server_generation
+    firmware_version = server_generation[1]
+    hw_model = server_generation[2]
 
     # Check firmware version requirements using centralized utility
-    is_compliant, min_fw_version, error_msg = iDRACRedfishAPI.check_minimum_firmware_requirement(
+    firmware_check = iDRACRedfishAPI.check_minimum_firmware_requirement(
         hw_model, firmware_version
     )
+    is_compliant = firmware_check[0]
+    error_msg = firmware_check[2]
     if not is_compliant:
         return False, error_msg
 
@@ -777,36 +781,158 @@ def perform_operation_and_download_csr(idrac, cert_url, method, cert_payload, mo
     return resp
 
 
+def _exit_if_import_has_no_change(module, idrac, cert_type, cert_payload, res_id, cmd):
+    """Exit early when an 'import' would not change the certificate on the iDRAC."""
+    if cmd == 'import' and cert_type != 'SCEP_CA_CERT':
+        export_cert = get_export_data(idrac, cert_type, res_id)
+        if cert_payload.get('SSLCertificateFile') in export_cert:
+            module.exit_json(msg=NO_CHANGES_MSG)
+
+
+def _invoke_certificate_request(module, idrac, cert_url, cert_payload, method, cert_type, cmd):
+    """Invoke the certificate operation on the iDRAC and return the response."""
+    if cmd == 'reset' and cert_type == "Server":
+        return idrac.invoke_request(cert_url, method, data=cert_payload, dump=False)
+    return perform_operation_and_download_csr(idrac, cert_url, method, cert_payload, module)
+
+
+def _build_certificate_success_msg(cmd, cert_type, ssl_key, reset_msg):
+    """Build the success message for a completed certificate operation."""
+    if cmd == "import" and cert_type == "Server" and ssl_key:
+        return "{0} {1}".format(SUCCESS_MSG_SSL.format(command=cmd), reset_msg)
+    return "{0}{1}".format(SUCCESS_MSG.format(command=cmd), reset_msg)
+
+
 def exit_certificates(module, idrac, cert_url, cert_payload, method, cert_type, res_id):
-    resp = None
     cmd = module.params.get('command')
     changed = changed_map.get(cmd)
-    reset = changed_map.get(cmd) and module.params.get('reset')
+    reset = changed and module.params.get('reset')
     result = {"changed": changed}
     reset_msg = ""
     if changed and cert_type != 'SCEP_CA_CERT':
         reset_msg = "Reset iDRAC to apply the new certificate." \
                     " Until the iDRAC is reset, the old certificate will remain active."
-    if module.params.get('command') == 'import' and cert_type != 'SCEP_CA_CERT':
-        export_cert = get_export_data(idrac, cert_type, res_id)
-        if cert_payload.get('SSLCertificateFile') in export_cert:
-            module.exit_json(msg=NO_CHANGES_MSG)
+
+    _exit_if_import_has_no_change(module, idrac, cert_type, cert_payload, res_id, cmd)
+
     if module.check_mode and changed:
         module.exit_json(msg=CHANGES_MSG, changed=changed)
-    if module.params.get('command') == 'reset' and cert_type == "Server":
-        resp = idrac.invoke_request(cert_url, method, data=cert_payload, dump=False)
-    else:
-        resp = perform_operation_and_download_csr(idrac, cert_url, method, cert_payload, module)
+
+    resp = _invoke_certificate_request(module, idrac, cert_url, cert_payload, method, cert_type, cmd)
     cert_data = resp.json_data
     cert_output = format_output(module, cert_data)
     result.update(cert_output)
+
     if reset:
         reset, track_failed, reset_msg = reset_idrac(idrac, module.params.get('wait'), res_id)
-    if cmd == "import" and cert_type == "Server" and module.params.get('ssl_key'):
-        result['msg'] = "{0} {1}".format(SUCCESS_MSG_SSL.format(command=cmd), reset_msg)
-    else:
-        result['msg'] = "{0}{1}".format(SUCCESS_MSG.format(command=cmd), reset_msg)
+
+    result['msg'] = _build_certificate_success_msg(cmd, cert_type, module.params.get('ssl_key'), reset_msg)
     module.exit_json(**result)
+
+
+def _reject_unsupported_scep_ca_operations(module, operation):
+    """Exit early for SCEP_CA_CERT operations that are not supported."""
+    if operation == "delete":
+        module.exit_json(msg=DELETE_REJECTED_MSG, failed=True)
+    if operation == "export":
+        module.exit_json(msg=EXPORT_REJECTED_MSG, failed=True)
+
+
+def _handle_scep_ca_cert_view(idrac, module):
+    """Handle the 'view' command for SCEP_CA_CERT and exit with the metadata."""
+    cert_metadata = view_scep_ca_cert_metadata(idrac, module)
+    if not cert_metadata:
+        module.exit_json(msg="No SCEP_CA_CERT certificate found on this iDRAC.", changed=False)
+    module.exit_json(msg="Successfully retrieved SCEP_CA_CERT metadata.", changed=False, **cert_metadata)
+
+
+def _disable_scep_ca_cert_reset(module):
+    """SCEP_CA_CERT import never requires an iDRAC reset."""
+    if module.params.get('reset') is True:
+        module.warn("reset parameter is ignored for SCEP_CA_CERT import; SCEP_CA_CERT does not require iDRAC reset")
+        module.params['reset'] = False
+
+
+def _is_scep_ca_cert_no_change(current_metadata, import_cert_serial):
+    """Check whether the certificate to import matches the currently installed one."""
+    current_serial = current_metadata.get("serial_number", "")
+    if not (current_serial and import_cert_serial and isinstance(current_serial, str)):
+        return False
+    if not current_serial.strip():
+        return False
+    return current_serial.strip().upper() == import_cert_serial.strip().upper()
+
+
+def _check_scep_ca_cert_import_state(idrac, module):
+    """
+    Compare the certificate to be imported with the currently installed
+    SCEP_CA_CERT certificate.
+
+    Returns:
+        tuple: (no_change, predicted_change, current_metadata, import_cert_serial)
+    """
+    no_change = False
+    predicted_change = False
+    current_metadata, import_cert_serial = {}, None
+    try:
+        current_metadata = view_scep_ca_cert_metadata(idrac, module)
+        if current_metadata:
+            cert_path = module.params.get('certificate_path')
+            with open(cert_path, "r") as cert_file:
+                import_cert_content = cert_file.read()
+            import_cert_serial = get_pem_cert_serial_number(import_cert_content)
+            if _is_scep_ca_cert_no_change(current_metadata, import_cert_serial):
+                no_change = True
+            elif module.check_mode:
+                predicted_change = True
+    except Exception as e:
+        module.warn(f"Idempotency check failed, proceeding with import: {str(e)}")
+    return no_change, predicted_change, current_metadata, import_cert_serial
+
+
+def _handle_scep_ca_cert_import(idrac, module):
+    """Handle idempotency and check-mode prediction for a SCEP_CA_CERT import."""
+    _disable_scep_ca_cert_reset(module)
+
+    no_change, predicted_change, current_metadata, import_cert_serial = \
+        _check_scep_ca_cert_import_state(idrac, module)
+
+    if no_change:
+        module.exit_json(msg=NO_CHANGES_MSG, changed=False)
+    if predicted_change:
+        diff = {"before": current_metadata,
+                "after": {"certificate_type": "SCEP_CA_CERT", "serial_number": import_cert_serial}}
+        module.exit_json(msg=CHANGES_MSG, changed=True, diff=diff)
+
+
+def _handle_scep_ca_cert_operations(idrac, module, operation):
+    """
+    Handle all SCEP_CA_CERT-specific pre-flight checks and command handling.
+
+    Exits the module directly for terminal operations (delete, export, view,
+    no-op/predicted import). Returns normally when the caller should proceed
+    to certificate_action() (e.g. import with real changes, generate_csr, reset).
+    """
+    _reject_unsupported_scep_ca_operations(module, operation)
+
+    is_compliant, error_msg = check_firmware_and_license_for_scep_ca(idrac, module)
+    if not is_compliant:
+        module.exit_json(msg=error_msg, failed=True)
+
+    if operation == "view":
+        _handle_scep_ca_cert_view(idrac, module)
+
+    if operation == "import":
+        _handle_scep_ca_cert_import(idrac, module)
+
+
+def _validate_wait_and_upload_ssl_key(module, idrac, actions_map, operation, cert_type, res_id):
+    """Validate the reset wait time and upload the SSL key when applicable."""
+    if operation in ["import", "reset"] and module.params.get('reset') and module.params.get('wait') <= 0:
+        module.exit_json(msg=WAIT_NEGATIVE_OR_ZERO_MSG, failed=True)
+    ssl_key = module.params.get('ssl_key')
+    if operation == "import" and ssl_key is not None and cert_type == "Server":
+        upload_ssl_key(module, idrac, actions_map, ssl_key, res_id)
 
 
 def main():
@@ -852,67 +978,11 @@ def main():
                 res_id = get_res_id(idrac, cert_type)
             idrac_service_uri = get_idrac_service(idrac, res_id)
             actions_map = get_actions_map(idrac, idrac_service_uri)
-            if operation in ["import", "reset"] and module.params.get('reset') and module.params.get('wait') <= 0:
-                module.exit_json(msg=WAIT_NEGATIVE_OR_ZERO_MSG, failed=True)
-            ssl_key = module.params.get('ssl_key')
-            if operation == "import" and ssl_key is not None and cert_type == "Server":
-                upload_ssl_key(module, idrac, actions_map, ssl_key, res_id)
 
-            # SCEP_CA_CERT specific handling
+            _validate_wait_and_upload_ssl_key(module, idrac, actions_map, operation, cert_type, res_id)
+
             if cert_type == "SCEP_CA_CERT":
-                # Pre-flight rejection of delete (not supported for SCEP_CA_CERT)
-                if operation == "delete":
-                    module.exit_json(msg=DELETE_REJECTED_MSG, failed=True)
-
-                # Pre-flight rejection of export (not supported for SCEP_CA_CERT)
-                if operation == "export":
-                    module.exit_json(msg=EXPORT_REJECTED_MSG, failed=True)
-
-                # Firmware and license validation for SCEP_CA_CERT operations
-                is_compliant, error_msg = check_firmware_and_license_for_scep_ca(idrac, module)
-                if not is_compliant:
-                    module.exit_json(msg=error_msg, failed=True)
-
-                # View command handling
-                if operation == "view":
-                    cert_metadata = view_scep_ca_cert_metadata(idrac, module)
-                    if not cert_metadata:
-                        module.exit_json(msg="No SCEP_CA_CERT certificate found on this iDRAC.", changed=False)
-                    module.exit_json(msg="Successfully retrieved SCEP_CA_CERT metadata.", changed=False, **cert_metadata)
-
-                # Set reset: false default for SCEP_CA_CERT import
-                if operation == "import" and module.params.get('reset') is True:
-                    module.warn("reset parameter is ignored for SCEP_CA_CERT import; SCEP_CA_CERT does not require iDRAC reset")
-                    module.params['reset'] = False
-
-                # Idempotency check for import using Attributes API
-                if operation == "import":
-                    no_change = False
-                    predicted_change = False
-                    current_metadata, import_cert_serial = {}, None
-                    try:
-                        current_metadata = view_scep_ca_cert_metadata(idrac, module)
-                        if current_metadata:
-                            cert_path = module.params.get('certificate_path')
-                            with open(cert_path, "r") as cert_file:
-                                import_cert_content = cert_file.read()
-                            current_serial = current_metadata.get("serial_number", "")
-                            import_cert_serial = get_pem_cert_serial_number(import_cert_content)
-                            # Only treat as no-op if both serials are known, non-empty strings and match
-                            if (current_serial and import_cert_serial and isinstance(current_serial, str)
-                                    and current_serial.strip() and current_serial.strip().upper() == import_cert_serial.strip().upper()):
-                                no_change = True
-                            elif module.check_mode:
-                                predicted_change = True
-                    except Exception as e:
-                        module.warn(f"Idempotency check failed, proceeding with import: {str(e)}")
-                    if no_change:
-                        module.exit_json(msg=NO_CHANGES_MSG, changed=False)
-                    # Check mode: predict change
-                    if predicted_change:
-                        diff = {"before": current_metadata,
-                                "after": {"certificate_type": "SCEP_CA_CERT", "serial_number": import_cert_serial}}
-                        module.exit_json(msg=CHANGES_MSG, changed=True, diff=diff)
+                _handle_scep_ca_cert_operations(idrac, module, operation)
 
             certificate_action(module, idrac, actions_map, operation, cert_type, res_id)
     except HTTPError as err:
