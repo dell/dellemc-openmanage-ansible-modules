@@ -23,7 +23,9 @@
       ansible.builtin.assert:
         that:
           - auth_result is failed
-          - "'Authentication failed' in auth_result.msg or 'Network error' in auth_result.msg"
+          - >-
+              'Authentication failed' in auth_result.msg or
+              'Network error' in auth_result.msg
 
   module_defaults:
     dellemc.openmanage.idrac_bios_registry_info:

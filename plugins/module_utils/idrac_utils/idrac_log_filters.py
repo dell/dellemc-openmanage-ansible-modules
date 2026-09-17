@@ -18,6 +18,37 @@ with support for date range, severity, category, and message content filtering.
 from typing import List, Dict, Any, Callable, Optional
 from datetime import datetime
 
+UTC_OFFSET = '+00:00'
+
+
+def _parse_iso_datetime(value: Optional[str]) -> Optional[datetime]:
+    """Parse an ISO 8601 string (with optional trailing 'Z') into a datetime."""
+    return datetime.fromisoformat(value.replace('Z', UTC_OFFSET)) if value else None
+
+
+def _build_date_filter(
+    start_dt: Optional[datetime], end_dt: Optional[datetime]
+) -> Callable[[Dict[str, Any]], bool]:
+    """Build a filter function that keeps entries within the given date range."""
+    def date_filter(entry: Dict[str, Any]) -> bool:
+        entry_time_str = entry.get('Created', '')
+        if not entry_time_str:
+            return False
+
+        try:
+            entry_dt = datetime.fromisoformat(entry_time_str.replace('Z', UTC_OFFSET))
+        except (ValueError, TypeError):
+            return False
+
+        if start_dt and entry_dt < start_dt:
+            return False
+        if end_dt and entry_dt > end_dt:
+            return False
+
+        return True
+
+    return date_filter
+
 
 class IDRACLogFilter:
     """Utility class for filtering iDRAC log entries with chainable operations."""
@@ -37,28 +68,12 @@ class IDRACLogFilter:
         Returns:
             IDRACLogFilter: Self for method chaining
         """
-        if date_start or date_end:
-            start_dt = datetime.fromisoformat(date_start.replace('Z', '+00:00')) if date_start else None
-            end_dt = datetime.fromisoformat(date_end.replace('Z', '+00:00')) if date_end else None
+        if not (date_start or date_end):
+            return self
 
-            def date_filter(entry: Dict[str, Any]) -> bool:
-                entry_time_str = entry.get('Created', '')
-                if not entry_time_str:
-                    return False
-
-                try:
-                    entry_dt = datetime.fromisoformat(entry_time_str.replace('Z', '+00:00'))
-
-                    if start_dt and entry_dt < start_dt:
-                        return False
-                    if end_dt and entry_dt > end_dt:
-                        return False
-
-                    return True
-                except (ValueError, TypeError):
-                    return False
-
-            self.filters.append(date_filter)
+        start_dt = _parse_iso_datetime(date_start)
+        end_dt = _parse_iso_datetime(date_end)
+        self.filters.append(_build_date_filter(start_dt, end_dt))
 
         return self
 
@@ -156,8 +171,8 @@ class IDRACLogFilter:
             ValueError: If date_end is earlier than date_start
         """
         if date_start and date_end:
-            start_dt = datetime.fromisoformat(date_start.replace('Z', '+00:00'))
-            end_dt = datetime.fromisoformat(date_end.replace('Z', '+00:00'))
+            start_dt = datetime.fromisoformat(date_start.replace('Z', UTC_OFFSET))
+            end_dt = datetime.fromisoformat(date_end.replace('Z', UTC_OFFSET))
 
             if end_dt < start_dt:
                 raise ValueError("date_end must not be earlier than date_start")

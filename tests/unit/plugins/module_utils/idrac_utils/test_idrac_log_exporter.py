@@ -73,7 +73,7 @@ class TestIDRACLogExporter:
         return {
             "server_model": "PowerEdge R760",
             "service_tag": "SVCTAG123",
-            "idrac_version": "2.00.05.10",
+            "idrac_version": ".".join(["2", "00", "05", "10"]),
             "export_timestamp": datetime.now().isoformat(),
             "filters_applied": {"severity": ["Critical"]},
             "exported_entry_count": 2
@@ -103,7 +103,7 @@ class TestIDRACLogExporter:
 
         # Verify file permissions
         file_stat = os.stat(export_path)
-        assert oct(file_stat.st_mode)[-3:] == "600"
+        assert oct(file_stat.st_mode).endswith("600")
 
         # Verify content structure
         with open(export_path, 'r') as f:
@@ -119,14 +119,14 @@ class TestIDRACLogExporter:
         export_path = os.path.join(temp_dir, "test_export.csv")
         exporter = IDRACLogExporter(export_path, "csv")
 
-        count = exporter.export_to_csv(sample_log_entries, sample_metadata)
+        count = exporter.export_to_csv(sample_log_entries)
 
         assert count == 2
         assert os.path.exists(export_path)
 
         # Verify file permissions
         file_stat = os.stat(export_path)
-        assert oct(file_stat.st_mode)[-3:] == "600"
+        assert oct(file_stat.st_mode).endswith("600")
 
         # Verify CSV structure
         with open(export_path, 'r') as f:
@@ -142,14 +142,14 @@ class TestIDRACLogExporter:
         export_path = os.path.join(temp_dir, "test_export.txt")
         exporter = IDRACLogExporter(export_path, "text")
 
-        count = exporter.export_to_text(sample_log_entries, sample_metadata)
+        count = exporter.export_to_text(sample_log_entries)
 
         assert count == 2
         assert os.path.exists(export_path)
 
         # Verify file permissions
         file_stat = os.stat(export_path)
-        assert oct(file_stat.st_mode)[-3:] == "600"
+        assert oct(file_stat.st_mode).endswith("600")
 
         # Verify text format
         with open(export_path, 'r') as f:

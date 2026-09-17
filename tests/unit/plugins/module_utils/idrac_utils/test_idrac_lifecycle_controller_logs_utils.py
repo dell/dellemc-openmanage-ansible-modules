@@ -428,7 +428,7 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
         assert result["total_entries"] == 150
         assert result["oldest_timestamp"] == "2026-01-01T00:00:00Z"
         assert result["newest_timestamp"] == "2026-08-18T12:00:00Z"
-        assert result["storage_utilization_pct"] == 75.0
+        assert abs(result["storage_utilization_pct"] - 75.0) < 0.01
         assert result["max_records"] == 200
         assert result["overwrite_policy"] == "WrapsWhenFull"
         assert result["severity_breakdown"]["Critical"] == 1

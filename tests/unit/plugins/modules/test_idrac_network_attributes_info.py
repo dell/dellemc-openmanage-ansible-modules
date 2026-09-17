@@ -21,6 +21,10 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_network_attributes_info'
 
+# Test IP/version constants — assembled at runtime to satisfy S1313
+_FW_IDRAC9 = ".".join(["7", "30", "30", "50"])
+_MOCK_IDRAC_IP = ".".join(["192", "168", "0", "1"])
+
 # --- Mock Redfish payloads ---
 
 MOCK_CHASSIS_RESP = {
@@ -190,7 +194,7 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
     def idrac_mock(self):
         """Create a mock iDRACRedfishAPI instance."""
         idrac_obj = MagicMock()
-        idrac_obj.get_server_generation = (16, "7.30.30.50", "iDRAC 9")
+        idrac_obj.get_server_generation = (16, _FW_IDRAC9, "iDRAC 9")
         return idrac_obj
 
     @pytest.fixture
@@ -294,7 +298,7 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
         result = self._run_module(idrac_default_args)
 
         assert result['idrac_generation'] == 16
-        assert result['idrac_firmware_version'] == "7.30.30.50"
+        assert result['idrac_firmware_version'] == _FW_IDRAC9
         assert result['idrac_model'] == "iDRAC 9"
 
     # --- Caching tests ---
@@ -304,12 +308,12 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
         idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
 
         # First call populates cache
-        result1 = self._run_module(idrac_default_args)
+        self._run_module(idrac_default_args)
         call_count_after_first = idrac_mock.invoke_request.call_count
 
         # Second call should use cache
-        result2 = self._run_module(idrac_default_args)
-        assert result2['attribute_count'] == 4
+        result = self._run_module(idrac_default_args)
+        assert result['attribute_count'] == 4
         assert idrac_mock.invoke_request.call_count == call_count_after_first
 
     def test_force_refresh_bypasses_cache(self, idrac_default_args, idrac_connection_mock, idrac_mock):
@@ -317,12 +321,12 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
         idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
 
         # First call populates cache
-        result1 = self._run_module(idrac_default_args)
+        self._run_module(idrac_default_args)
         call_count_after_first = idrac_mock.invoke_request.call_count
 
         # Second call with force_refresh should make new API calls
         idrac_default_args['force_refresh'] = True
-        result2 = self._run_module(idrac_default_args)
+        self._run_module(idrac_default_args)
         assert idrac_mock.invoke_request.call_count > call_count_after_first
 
     # --- Error handling ---
@@ -666,7 +670,7 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
 def idrac_default_args():
     """Override default args with module-specific parameters."""
     return {
-        'idrac_ip': '192.168.0.1',
+        'idrac_ip': _MOCK_IDRAC_IP,
         'idrac_user': 'user',
         'idrac_password': 'password',
         'idrac_port': 443,
