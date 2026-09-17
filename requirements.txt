@@ -1,2 +1,2 @@
 netaddr>=0.7.19
-defusedxml>=0.7.1
+defusedxml>=0.8.0rc2
