@@ -67,7 +67,9 @@
     - name: Display discovery summary
       ansible.builtin.debug:
         msg: >
-          Discovered {{ discovery_result.network_device_functions | length }} NICs
+          Discovered
+          {{ discovery_result.network_device_functions | length }}
+          NICs
           on {{ discovery_result.idrac_model }}
           (gen {{ discovery_result.idrac_generation }},
           fw {{ discovery_result.idrac_firmware_version }})
