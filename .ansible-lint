@@ -1,8 +1,6 @@
 exclude_paths:
   - .github/
   - .ansible/
-kinds:
-  - tasks: "**/molecule/resources/_wait_for_port_to_open.yaml"
 skip_list:
   - var-naming[no-role-prefix]
   - jinja[spacing]
