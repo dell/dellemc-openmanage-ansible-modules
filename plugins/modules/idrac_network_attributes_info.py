@@ -389,22 +389,17 @@ def find_network_device_function_uri(idrac, target_ndf_id):
     return None
 
 
-def get_registry_attributes(idrac, ndf_detail, module=None):
-    """Resolve and fetch the attribute registry for a NIC.
+def _fetch_oem_attributes(idrac, ndf_detail, module=None):
+    """Fetch OEM DellNetworkAttributes resource for a NIC.
 
-    Follows the AttributeRegistry field from the OEM DellNetworkAttributes
-    response to locate the full registry via /redfish/v1/Registries.
-
-    Returns a tuple of (registry_name, registry_attributes_list).
+    Returns a tuple of (current_attributes_dict, registry_name_str)
+    or (None, None) if the OEM link is not available.
     """
-    # Get OEM link to DellNetworkAttributes
     oem_link = ndf_detail.get('Links', {}).get('Oem', {}).get(
         'Dell', {}).get('DellNetworkAttributes', {}).get(ODATA_ID)
-
     if not oem_link:
-        return None, []
+        return None, None
 
-    # Read the DellNetworkAttributes resource
     try:
         oem_resp = idrac.invoke_request(oem_link, 'GET').json_data
     except HTTPError as e:
@@ -416,31 +411,49 @@ def get_registry_attributes(idrac, ndf_detail, module=None):
             )
         raise
 
-    current_attributes = oem_resp.get('Attributes', {})
-    registry_name = oem_resp.get('AttributeRegistry', '')
+    return oem_resp.get('Attributes', {}), oem_resp.get('AttributeRegistry', '')
 
-    # Resolve the registry from /redfish/v1/Registries
+
+def _resolve_registry_attributes(idrac, registry_name):
+    """Resolve the full registry attributes list from /redfish/v1/Registries.
+
+    Returns a list of raw registry attribute dicts.
+    """
+    candidate_names = [
+        registry_name,
+        registry_name.replace('AttributeRegistry', 'AttributesRegistry'),
+    ]
+    for member in get_collection_members(idrac, REGISTRIES_URI):
+        member_uri = member.get(ODATA_ID, '')
+        if not any(name in member_uri for name in candidate_names):
+            continue
+        registry_detail = idrac.invoke_request(member_uri, 'GET').json_data
+        locations = registry_detail.get('Location', [])
+        if not locations:
+            break
+        registry_uri = locations[0].get('Uri', '')
+        if not registry_uri:
+            break
+        full_registry = idrac.invoke_request(registry_uri, 'GET').json_data
+        return full_registry.get('RegistryEntries', {}).get('Attributes', [])
+    return []
+
+
+def get_registry_attributes(idrac, ndf_detail, module=None):
+    """Resolve and fetch the attribute registry for a NIC.
+
+    Follows the AttributeRegistry field from the OEM DellNetworkAttributes
+    response to locate the full registry via /redfish/v1/Registries.
+
+    Returns a tuple of (registry_name, registry_attributes_list).
+    """
+    current_attributes, registry_name = _fetch_oem_attributes(idrac, ndf_detail, module)
+    if current_attributes is None:
+        return None, []
+
     registry_attributes = []
     if registry_name:
-        # Some iDRAC versions report the registry name as
-        # "NetworkAttributeRegistry_..." while the Redfish member Id uses the
-        # plural form "NetworkAttributesRegistry_...". Normalize and try both.
-        candidate_names = [
-            registry_name,
-            registry_name.replace('AttributeRegistry', 'AttributesRegistry'),
-        ]
-        for member in get_collection_members(idrac, REGISTRIES_URI):
-            member_uri = member.get(ODATA_ID, '')
-            if any(name in member_uri for name in candidate_names):
-                registry_detail = idrac.invoke_request(member_uri, 'GET').json_data
-                locations = registry_detail.get('Location', [])
-                if locations:
-                    registry_uri = locations[0].get('Uri', '')
-                    if registry_uri:
-                        full_registry = idrac.invoke_request(registry_uri, 'GET').json_data
-                        registry_attributes = full_registry.get(
-                            'RegistryEntries', {}).get('Attributes', [])
-                break
+        registry_attributes = _resolve_registry_attributes(idrac, registry_name)
 
     return registry_name, merge_attributes(registry_attributes, current_attributes)
 
@@ -504,6 +517,48 @@ def _validate_string_value(str_val, reg_attr, result):
     result['reason'] = f"Value '{str_val}' is valid for string attribute."
 
 
+def _validate_enum_value(attr_value, reg_attr, result):
+    """Validate an enumeration attribute value."""
+    valid_values = reg_attr.get('valid_values', [])
+    if str(attr_value) in valid_values:
+        result['status'] = 'valid'
+        result['reason'] = (
+            f"Value '{attr_value}' is valid for enumeration attribute.")
+    else:
+        result['reason'] = (
+            f"Invalid value '{attr_value}' for enumeration attribute. "
+            f"Allowed values: {valid_values}"
+        )
+
+
+def _validate_integer_value(attr_value, reg_attr, result):
+    """Validate an integer attribute value.
+
+    Returns True if early return is needed (non-numeric), False otherwise.
+    """
+    try:
+        int_val = int(attr_value)
+    except (ValueError, TypeError):
+        result['reason'] = f"Integer value is not numeric: '{attr_value}'"
+        return True
+
+    lower = reg_attr.get('lower_bound')
+    upper = reg_attr.get('upper_bound')
+    if lower is not None and upper is not None:
+        if lower <= int_val <= upper:
+            result['status'] = 'valid'
+            result['reason'] = (
+                f"Value {int_val} is within range [{lower}, {upper}].")
+        else:
+            result['reason'] = (
+                f"Value {int_val} is out of range. "
+                f"Expected range: [{lower}, {upper}].")
+    else:
+        result['status'] = 'valid'
+        result['reason'] = f"Value {int_val} is a valid integer."
+    return False
+
+
 def validate_attribute(attr_name, attr_value, registry_attrs, attr_by_name=None):
     """Validate a single attribute name-value pair against the registry.
 
@@ -534,47 +589,18 @@ def validate_attribute(attr_name, attr_value, registry_attrs, attr_by_name=None)
     reg_attr = attr_by_name[attr_name]
     attr_type = reg_attr.get('type', '')
 
-    if attr_type == 'Enumeration':
-        valid_values = reg_attr.get('valid_values', [])
-        if str(attr_value) in valid_values:
-            result['status'] = 'valid'
-            result['reason'] = (
-                f"Value '{attr_value}' is valid for enumeration attribute.")
-        else:
-            result['reason'] = (
-                f"Invalid value '{attr_value}' for enumeration attribute. "
-                f"Allowed values: {valid_values}"
-            )
+    _type_handlers = {
+        'Enumeration': lambda: _validate_enum_value(attr_value, reg_attr, result),
+        'Integer': lambda: _validate_integer_value(attr_value, reg_attr, result),
+        'String': lambda: _validate_string_value(str(attr_value), reg_attr, result),
+    }
 
-    elif attr_type == 'Integer':
-        try:
-            int_val = int(attr_value)
-        except (ValueError, TypeError):
-            result['reason'] = f"Integer value is not numeric: '{attr_value}'"
+    handler = _type_handlers.get(attr_type)
+    if handler:
+        early_return = handler()
+        if early_return:
             return result
-
-        lower = reg_attr.get('lower_bound')
-        upper = reg_attr.get('upper_bound')
-        if lower is not None and upper is not None:
-            if lower <= int_val <= upper:
-                result['status'] = 'valid'
-                result['reason'] = (
-                    f"Value {int_val} is within range [{lower}, {upper}]."
-                )
-            else:
-                result['reason'] = (
-                    f"Value {int_val} is out of range. "
-                    f"Expected range: [{lower}, {upper}]."
-                )
-        else:
-            result['status'] = 'valid'
-            result['reason'] = f"Value {int_val} is a valid integer."
-
-    elif attr_type == 'String':
-        _validate_string_value(str(attr_value), reg_attr, result)
-
     else:
-        # Unknown type — accept as valid
         result['status'] = 'valid'
         result['reason'] = f"Value accepted for attribute type '{attr_type}'."
 
@@ -622,6 +648,64 @@ def filter_attributes_by_source(attributes, source):
     return [attr for attr in attributes if attr['is_oem'] == (source == 'oem')]
 
 
+def _get_ndf_registry_data(idrac, module, ndf_id, force_refresh, cache_key):
+    """Get NDF registry data from cache or iDRAC.
+
+    Returns a tuple of (network_attributes, registry_name, cached_data).
+    """
+    cached_data = None
+    if not force_refresh:
+        cached_data = get_from_cache(cache_key)
+
+    if cached_data:
+        return cached_data['network_attributes'], cached_data['attribute_registry'], cached_data
+
+    ndf_uri = find_network_device_function_uri(idrac, ndf_id)
+    if not ndf_uri:
+        valid_ids = discover_valid_nic_ids(idrac)
+        valid_ids_str = ', '.join(valid_ids) if valid_ids else 'none discovered'
+        module.fail_json(
+            msg=f"Network device function '{ndf_id}' not found. "
+                f"Valid NIC IDs on this iDRAC: {valid_ids_str}"
+        )
+
+    ndf_detail = idrac.invoke_request(ndf_uri, 'GET').json_data
+    registry_name, network_attributes = get_registry_attributes(idrac, ndf_detail, module)
+    if not registry_name:
+        module.fail_json(
+            msg=f"Dell OEM network attributes link not found for NIC '{ndf_id}'. "
+                "This NIC may not support OEM attribute registry queries."
+        )
+
+    store_in_cache(cache_key, {
+        'network_attributes': network_attributes,
+        'attribute_registry': registry_name,
+    })
+    return network_attributes, registry_name, None
+
+
+def _handle_connection_errors(module, e):
+    """Handle common connection and HTTP errors."""
+    if isinstance(e, HTTPError):
+        redfish_error = {}
+        try:
+            redfish_error = json.load(e)
+        except Exception:
+            pass
+        if e.code in [401, 403]:
+            module.fail_json(msg=f"Authentication failed: {e.msg}", redfish_error=redfish_error)
+        else:
+            module.fail_json(msg=f"HTTP error {e.code}: {e.msg}", redfish_error=redfish_error)
+    elif isinstance(e, SSLValidationError):
+        module.fail_json(msg=f"SSL validation error: {str(e)}")
+    elif isinstance(e, ConnectionError):
+        module.fail_json(msg=f"Connection error: {str(e)}")
+    elif isinstance(e, URLError):
+        module.fail_json(msg=f"Network error: {str(e)}")
+    else:
+        module.fail_json(msg=f"Unexpected error: {str(e)}")
+
+
 def main():
     """Main entry point for the idrac_network_attributes_info module."""
     argument_spec = idrac_auth_params.copy()
@@ -649,115 +733,59 @@ def main():
 
     try:
         with iDRACRedfishAPI(module.params) as idrac:
-            # Fetch server generation info
             generation, firmware_version, hw_model = idrac.get_server_generation
 
-            # Check firmware version requirements
-            is_compliant, min_fw_version, error_msg = iDRACRedfishAPI.check_minimum_firmware_requirement(  # pylint: disable=unused-variable
+            is_compliant, _min_fw_version, error_msg = iDRACRedfishAPI.check_minimum_firmware_requirement(
                 hw_model, firmware_version
             )
             if not is_compliant:
                 module.fail_json(msg=error_msg)
 
             ndf_id = module.params['network_device_function_id']
-            force_refresh = module.params.get('force_refresh')
             cache_key = get_cache_key(
                 module.params['idrac_ip'], module.params['idrac_port'], ndf_id)
-            cached_data = None
 
-            if not force_refresh:
-                cached_data = get_from_cache(cache_key)
+            network_attributes, registry_name, cached_data = _get_ndf_registry_data(
+                idrac, module, ndf_id, module.params.get('force_refresh'), cache_key)
 
-            if cached_data:
-                network_attributes = cached_data['network_attributes']
-                registry_name = cached_data['attribute_registry']
-            else:
-                # Find the NIC URI
-                ndf_uri = find_network_device_function_uri(idrac, ndf_id)
-                if not ndf_uri:
-                    valid_ids = discover_valid_nic_ids(idrac)
-                    valid_ids_str = ', '.join(valid_ids) if valid_ids else 'none discovered'
-                    module.fail_json(
-                        msg=f"Network device function '{ndf_id}' not found. "
-                            f"Valid NIC IDs on this iDRAC: {valid_ids_str}"
-                    )
-
-                # Read the NDF detail to get OEM links
-                ndf_detail = idrac.invoke_request(ndf_uri, 'GET').json_data
-
-                # Query the registry
-                registry_name, network_attributes = get_registry_attributes(idrac, ndf_detail, module)
-                if not registry_name:
-                    module.fail_json(
-                        msg=f"Dell OEM network attributes link not found for NIC '{ndf_id}'. "
-                            "This NIC may not support OEM attribute registry queries."
-                    )
-
-                # Store in cache
-                store_in_cache(cache_key, {
-                    'network_attributes': network_attributes,
-                    'attribute_registry': registry_name,
-                })
-
-            # Save unfiltered attributes for validation
             all_network_attributes = list(network_attributes)
 
-            # Apply filters
             attribute_name = module.params.get('attribute_name')
             attribute_source = module.params.get('attribute_source')
-
             if attribute_name:
                 network_attributes = filter_attributes_by_name(network_attributes, attribute_name)
             if attribute_source:
                 network_attributes = filter_attributes_by_source(network_attributes, attribute_source)
 
-            attribute_count = len(network_attributes)
+            exit_kwargs = {
+                'msg': "Successfully queried network attribute registry.",
+                'changed': False,
+                'network_attributes': network_attributes,
+                'network_device_function_id': ndf_id,
+                'attribute_registry': registry_name,
+                'attribute_count': len(network_attributes),
+                'idrac_generation': generation,
+                'idrac_firmware_version': firmware_version,
+                'idrac_model': hw_model,
+            }
 
-            exit_kwargs = dict(
-                msg="Successfully queried network attribute registry.",
-                changed=False,
-                network_attributes=network_attributes,
-                network_device_function_id=ndf_id,
-                attribute_registry=registry_name,
-                attribute_count=attribute_count,
-                idrac_generation=generation,
-                idrac_firmware_version=firmware_version,
-                idrac_model=hw_model,
-            )
-
-            # Validation mode
             if module.params.get('validate'):
                 user_attrs = module.params.get('attributes')
                 if not user_attrs:
                     module.fail_json(
                         msg="'attributes' must be a non-empty dict when validate=true."
                     )
-                # Use unfiltered registry for validation
                 all_attrs = cached_data['network_attributes'] if cached_data else all_network_attributes
                 validation = validate_attributes(user_attrs, all_attrs)
                 exit_kwargs.update(validation)
 
             module.exit_json(**exit_kwargs)
-    except HTTPError as e:
-        redfish_error = {}
-        try:
-            redfish_error = json.load(e)
-        except Exception:
-            pass
-        if e.code in [401, 403]:
-            module.fail_json(msg=f"Authentication failed: {e.msg}", redfish_error=redfish_error)
-        else:
-            module.fail_json(msg=f"HTTP error {e.code}: {e.msg}", redfish_error=redfish_error)
-    except SSLValidationError as e:
-        module.fail_json(msg=f"SSL validation error: {str(e)}")
-    except ConnectionError as e:
-        module.fail_json(msg=f"Connection error: {str(e)}")
-    except URLError as e:
-        module.fail_json(msg=f"Network error: {str(e)}")
+    except (HTTPError, SSLValidationError, ConnectionError, URLError) as e:
+        _handle_connection_errors(module, e)
     except Exception as e:  # pylint: disable=broad-except
         if type(e).__name__ in ['AnsibleExitJson', 'AnsibleFailJson']:
             raise
-        module.fail_json(msg=f"Unexpected error: {str(e)}")
+        _handle_connection_errors(module, e)
 
 
 if __name__ == '__main__':

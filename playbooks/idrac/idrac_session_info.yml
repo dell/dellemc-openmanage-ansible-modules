@@ -3,7 +3,8 @@
 # Version 9.13.0
 # Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
 
 # Sample playbook: idrac_session_info
 # Demonstrates querying iDRAC session information,
@@ -76,7 +77,9 @@
     - name: Show session utilization
       ansible.builtin.debug:
         msg: >-
-          Session utilization: {{ all_sessions.session_limits.active_sessions }}/{{ all_sessions.session_limits.max_sessions }}
+          Session utilization:
+          {{ all_sessions.session_limits.active_sessions }}/
+          {{ all_sessions.session_limits.max_sessions }}
           ({{ all_sessions.session_limits.utilization_percent }}%)
 
     # Combined filtering example
@@ -195,5 +198,5 @@
           {{ s.session_age_minutes }}min
           {% endfor %}
         dest: "/tmp/idrac_sessions_report.csv"
-        mode: "0644"
+        mode: "0600"
       delegate_to: localhost

@@ -52,8 +52,10 @@
     - name: Display fuzzy match summary
       ansible.builtin.debug:
         msg: >
-          Misspelled suggestions: {{ fuzzy_result.validation_results[0].suggestions }},
-          Unrelated suggestions: {{ unrelated_result.validation_results[0].suggestions }}
+          Misspelled suggestions:
+          {{ fuzzy_result.validation_results[0].suggestions }},
+          Unrelated suggestions:
+          {{ unrelated_result.validation_results[0].suggestions }}
 
   module_defaults:
     dellemc.openmanage.idrac_network_attributes_info:

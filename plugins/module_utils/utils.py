@@ -797,11 +797,11 @@ def validate_time(time, module):
         module.exit_json(msg=INVALID_TIME_FORMAT_MSG, failed=True)
 
 
-def get_job_uri_id(rest_obj):
+def get_job_uri_id(_rest_obj):
     return MANAGER_JOB_ID_URI_10
 
 
-def get_job_uri(rest_obj):
+def get_job_uri(_rest_obj):
     return MANAGER_JOB_URI_10
 
 

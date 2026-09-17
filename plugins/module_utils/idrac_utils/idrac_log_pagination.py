@@ -35,6 +35,58 @@ class IDRACLogPagination:
         self.max_entries = max_entries
         self.entries_retrieved = 0
 
+    def _has_reached_max_entries(self):
+        """Check if the circuit breaker limit has been reached."""
+        return self.max_entries and self.entries_retrieved >= self.max_entries
+
+    @staticmethod
+    def _is_before_start_date(entry, date_start):
+        """Check if an entry's timestamp is before the start date.
+
+        Returns True if the entry should stop pagination (entry is older than
+        date_start), False otherwise.
+        """
+        entry_time_str = entry.get('Created', '')
+        if not entry_time_str:
+            return False
+        try:
+            entry_dt = datetime.fromisoformat(
+                entry_time_str.replace('Z', '+00:00'))
+            start_dt = datetime.fromisoformat(
+                date_start.replace('Z', '+00:00'))
+            return entry_dt < start_dt
+        except (ValueError, TypeError):
+            return False
+
+    def _fetch_page(self, uri, retry_count, retry_state):
+        """Fetch a single page with retry logic.
+
+        Args:
+            uri: URI to fetch.
+            retry_count: Maximum retry attempts.
+            retry_state: Mutable dict with 'attempts' and 'delay' keys.
+
+        Returns:
+            Response JSON data.
+
+        Raises:
+            RuntimeError: If all retry attempts fail.
+        """
+        while True:
+            try:
+                response = self.idrac_client.invoke_request(uri, 'GET')
+                retry_state['attempts'] = 0
+                retry_state['delay'] = retry_state['initial_delay']
+                return response.json_data
+            except Exception as e:
+                retry_state['attempts'] += 1
+                if retry_state['attempts'] >= retry_count:
+                    raise RuntimeError(
+                        f"Failed to retrieve LC logs after "
+                        f"{retry_count} attempts: {str(e)}")
+                time.sleep(retry_state['delay'])
+                retry_state['delay'] *= 2
+
     def paginate_lc_logs(
         self,
         base_uri: str,
@@ -46,7 +98,7 @@ class IDRACLogPagination:
         Generator function for paginated LC log retrieval.
 
         Args:
-            base_uri: Base URI for LC log entries (e.g., /redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries)
+            base_uri: Base URI for LC log entries
             date_start: Optional ISO 8601 string for early pagination termination
             retry_count: Number of retry attempts for transient failures
             retry_delay: Initial delay in seconds (exponential backoff)
@@ -58,58 +110,30 @@ class IDRACLogPagination:
             Exception: If all retry attempts fail
         """
         current_uri = base_uri
-        retry_attempts = 0
-        current_delay = retry_delay
+        retry_state = {
+            'attempts': 0,
+            'delay': retry_delay,
+            'initial_delay': retry_delay,
+        }
 
         while current_uri:
-            # Check circuit breaker
-            if self.max_entries and self.entries_retrieved >= self.max_entries:
+            if self._has_reached_max_entries():
                 break
 
-            # Fetch current page with retry logic
-            try:
-                response = self.idrac_client.invoke_request(current_uri, 'GET')
-                response_data = response.json_data
+            response_data = self._fetch_page(
+                current_uri, retry_count, retry_state)
+            entries = response_data.get('Members', [])
 
-                # Process entries
-                entries = response_data.get('Members', [])
+            for entry in entries:
+                if self._has_reached_max_entries():
+                    return
+                if date_start and self._is_before_start_date(entry, date_start):
+                    return
 
-                for entry in entries:
-                    # Check circuit breaker
-                    if self.max_entries and self.entries_retrieved >= self.max_entries:
-                        return
+                self.entries_retrieved += 1
+                yield entry
 
-                    # Early termination for date_start
-                    if date_start:
-                        entry_time_str = entry.get('Created', '')
-                        if entry_time_str:
-                            try:
-                                entry_dt = datetime.fromisoformat(entry_time_str.replace('Z', '+00:00'))
-                                start_dt = datetime.fromisoformat(date_start.replace('Z', '+00:00'))
-                                if entry_dt < start_dt:
-                                    return  # Stop pagination
-                            except (ValueError, TypeError):
-                                pass  # Continue if date parsing fails
-
-                    self.entries_retrieved += 1
-                    yield entry
-
-                # Get next page link
-                current_uri = response_data.get('Members@odata.nextLink')
-
-                # Reset retry counter on success
-                retry_attempts = 0
-                current_delay = retry_delay
-
-            except Exception as e:
-                retry_attempts += 1
-
-                if retry_attempts >= retry_count:
-                    raise Exception(f"Failed to retrieve LC logs after {retry_count} attempts: {str(e)}")
-
-                # Exponential backoff
-                time.sleep(current_delay)
-                current_delay *= 2
+            current_uri = response_data.get('Members@odata.nextLink')
 
     def get_total_entries_count(self, base_uri: str) -> int:
         """
