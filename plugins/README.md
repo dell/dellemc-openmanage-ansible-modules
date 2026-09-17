@@ -19,11 +19,6 @@ Here are the list of modules and module_utils supported by Dell.
     ├── redfish.py
     └── utils.py
 └── modules
-    ├── dellemc_configure_idrac_eventing.py
-    ├── dellemc_configure_idrac_services.py
-    ├── dellemc_idrac_lc_attributes.py
-    ├── dellemc_idrac_storage_volume.py
-    ├── dellemc_system_lockdown_mode.py
     ├── idrac_attributes.py
     ├── idrac_bios.py
     ├── idrac_boot.py
@@ -36,7 +31,6 @@ Here are the list of modules and module_utils supported by Dell.
     ├── idrac_lifecycle_controller_jobs.py
     ├── idrac_lifecycle_controller_logs.py
     ├── idrac_lifecycle_controller_status_info.py
-    ├── idrac_network.py
     ├── idrac_network_attributes.py
     ├── idrac_os_deployment.py
     ├── idrac_redfish_storage_controller.py
@@ -46,10 +40,8 @@ Here are the list of modules and module_utils supported by Dell.
     ├── idrac_session.py
     ├── idrac_storage_volume.py
     ├── idrac_support_assist.py
-    ├── idrac_syslog.py
     ├── idrac_system_erase.py
     ├── idrac_system_info.py
-    ├── idrac_timezone_ntp.py
     ├── idrac_user.py
     ├── idrac_user_info.py
     ├── idrac_virtual_media.py
