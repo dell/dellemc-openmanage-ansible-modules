@@ -43,8 +43,12 @@
     - name: Verify ProcVirtualization validation status
       ansible.builtin.assert:
         that:
-          - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization')
-            | map(attribute='status') | list | first == "valid"
+          - >-
+            validation_result.validation_results
+            | selectattr('attribute', 'equalto',
+            'ProcVirtualization')
+            | map(attribute='status')
+            | list | first == "valid"
 
     - name: Verify validation counts
       ansible.builtin.assert:

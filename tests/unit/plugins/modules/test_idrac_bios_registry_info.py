@@ -39,11 +39,11 @@ class TestFirmwareVersionComparison:
         """Test firmware version comparison with lesser version."""
         assert iDRACRedfishAPI.compare_firmware_version("7.10.89.00", "7.10.90.00") is False
 
-    def test_compare_firmware_version_iDRAC10_valid(self):
+    def test_compare_firmware_version_idrac10_valid(self):
         """Test iDRAC10 firmware version comparison with valid version."""
         assert iDRACRedfishAPI.compare_firmware_version("1.20.50.50", "1.20.50.50") is True
 
-    def test_compare_firmware_version_iDRAC10_below_minimum(self):
+    def test_compare_firmware_version_idrac10_below_minimum(self):
         """Test iDRAC10 firmware version comparison below minimum."""
         assert iDRACRedfishAPI.compare_firmware_version("1.20.49.99", "1.20.50.50") is False
 
