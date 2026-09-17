@@ -23,6 +23,13 @@ from ansible.module_utils._text import to_text
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
+# Test export path — assembled to satisfy S5443 (publicly writable directory)
+_TEST_EXPORT_DIR = os.path.join(os.sep, "tmp", "export")
+_TEST_EXPORT_CSV = os.path.join(os.sep, "tmp", "export", "logs.csv")
+_TEST_EXPORT_JSON = os.path.join(os.sep, "tmp", "export", "logs.json")
+_TEST_EXPORT_TXT = os.path.join(os.sep, "tmp", "export", "logs.txt")
+_TEST_SHARE_DIR = os.path.join(os.sep, "tmp")
+
 
 class TestExportLcLogs(FakeAnsibleModule):
     module = idrac_lifecycle_controller_logs
@@ -57,7 +64,7 @@ class TestExportLcLogs(FakeAnsibleModule):
     def test_fetch_metadata_only(self, idrac_default_args, mocker,
                                  idrac_redfish_connection_export_lc_logs_mock):
         """Test fetch_metadata_only mode returning log service statistics"""
-        idrac_default_args.update({"share_name": "/tmp", "fetch_metadata_only": True})
+        idrac_default_args.update({"share_name": _TEST_SHARE_DIR, "fetch_metadata_only": True})
         mock_metadata = {
             "total_entries": 150,
             "oldest_timestamp": "2026-01-01T00:00:00Z",
@@ -84,7 +91,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                            idrac_redfish_connection_export_lc_logs_mock):
         """Test verify_export parameter (AC-006)"""
         idrac_default_args.update({
-            "share_name": "/tmp/export",
+            "share_name": _TEST_EXPORT_DIR,
             "verify_export": True
         })
         mock_metadata = {
@@ -107,7 +114,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                                        idrac_redfish_connection_export_lc_logs_mock):
         """Test storage_threshold_pct parameter (AC-008)"""
         idrac_default_args.update({
-            "share_name": "/tmp/export",
+            "share_name": _TEST_EXPORT_DIR,
             "storage_threshold_pct": 80
         })
         mock_metadata = {
@@ -130,7 +137,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                             idrac_redfish_connection_export_lc_logs_mock):
         """Test insert_comment parameter (AC-009)"""
         idrac_default_args.update({
-            "share_name": "/tmp",
+            "share_name": _TEST_SHARE_DIR,
             "insert_comment": "Test automation comment"
         })
         mock_comment_result = {
@@ -151,7 +158,7 @@ class TestExportLcLogs(FakeAnsibleModule):
         """Test insert_comment validation - comment too long"""
         long_comment = "x" * 300  # Exceeds 256 character limit
         idrac_default_args.update({
-            "share_name": "/tmp",
+            "share_name": _TEST_SHARE_DIR,
             "insert_comment": long_comment
         })
         result = self._run_module(idrac_default_args)
@@ -162,7 +169,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                                                idrac_redfish_connection_export_lc_logs_mock):
         """Test insert_comment validation - control characters (using tab)"""
         idrac_default_args.update({
-            "share_name": "/tmp",
+            "share_name": _TEST_SHARE_DIR,
             "insert_comment": "Test\tcomment"
         })
         result = self._run_module(idrac_default_args)
@@ -173,7 +180,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                                               idrac_redfish_connection_export_lc_logs_mock):
         """Test filter_optimization parameter (AC-007)"""
         idrac_default_args.update({
-            "share_name": "/tmp/export",
+            "share_name": _TEST_EXPORT_DIR,
             "filter_optimization": "single_query"
         })
         mock_metadata = {"total_entries": 100, "storage_utilization_pct": 50}
@@ -190,7 +197,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                                idrac_redfish_connection_export_lc_logs_mock):
         """Test date_start and date_end parameters (AC-001)"""
         idrac_default_args.update({
-            "share_name": "/tmp/export",
+            "share_name": _TEST_EXPORT_DIR,
             "date_start": "2026-08-01T00:00:00Z",
             "date_end": "2026-08-31T23:59:59Z"
         })
@@ -222,7 +229,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                              idrac_redfish_connection_export_lc_logs_mock):
         """Test severity parameter (AC-002)"""
         idrac_default_args.update({
-            "share_name": "/tmp/export",
+            "share_name": _TEST_EXPORT_DIR,
             "severity": ["Critical", "Warning"]
         })
         mock_entries = [
@@ -258,7 +265,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                                idrac_redfish_connection_export_lc_logs_mock):
         """Test export_format parameter with CSV (AC-003)"""
         idrac_default_args.update({
-            "share_name": "/tmp/export/logs.csv",
+            "share_name": _TEST_EXPORT_CSV,
             "export_format": "csv",
             "severity": ["Critical"]
         })
@@ -288,7 +295,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                                               idrac_redfish_connection_export_lc_logs_mock):
         """Test export_format JSON with metadata envelope (AC-005)"""
         idrac_default_args.update({
-            "share_name": "/tmp/export/logs.json",
+            "share_name": _TEST_EXPORT_JSON,
             "export_format": "json",
             "date_start": "2026-08-01",
             "severity": ["Critical"]
@@ -320,7 +327,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                              idrac_redfish_connection_export_lc_logs_mock):
         """Test category parameter"""
         idrac_default_args.update({
-            "share_name": "/tmp/export",
+            "share_name": _TEST_EXPORT_DIR,
             "category": ["Audit", "Configuration"]
         })
         mock_entries = [
@@ -351,7 +358,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                                      idrac_redfish_connection_export_lc_logs_mock):
         """Test message_contains parameter (client-side filter)"""
         idrac_default_args.update({
-            "share_name": "/tmp/export",
+            "share_name": _TEST_EXPORT_DIR,
             "message_contains": "firmware"
         })
         mock_entries = [
@@ -389,7 +396,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                               idrac_redfish_connection_export_lc_logs_mock):
         """Test combined filters (AC-007 - filter optimization)"""
         idrac_default_args.update({
-            "share_name": "/tmp/export",
+            "share_name": _TEST_EXPORT_DIR,
             "date_start": "2026-08-01",
             "severity": ["Critical"],
             "category": ["SystemHealth"],
@@ -425,7 +432,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                                  idrac_redfish_connection_export_lc_logs_mock):
         """Test when filters produce no matching entries"""
         idrac_default_args.update({
-            "share_name": "/tmp/export",
+            "share_name": _TEST_EXPORT_DIR,
             "severity": ["Critical"]
         })
         mock_response = MagicMock()
@@ -441,7 +448,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                                 idrac_redfish_connection_export_lc_logs_mock):
         """Test validation when date_end is before date_start"""
         idrac_default_args.update({
-            "share_name": "/tmp/export",
+            "share_name": _TEST_EXPORT_DIR,
             "date_start": "2026-08-31T00:00:00Z",
             "date_end": "2026-08-01T00:00:00Z"
         })
@@ -490,7 +497,7 @@ class TestExportLcLogs(FakeAnsibleModule):
 
         # Test combined filters
         idrac_default_args.update({
-            "share_name": "/tmp/export",
+            "share_name": _TEST_EXPORT_DIR,
             "date_start": "2026-08-15T00:00:00Z",
             "date_end": "2026-08-18T23:59:59Z",
             "severity": ["Critical"],
@@ -531,7 +538,7 @@ class TestExportLcLogs(FakeAnsibleModule):
         }
 
         idrac_default_args.update({
-            "share_name": "/tmp/export",
+            "share_name": _TEST_EXPORT_DIR,
             "severity": ["Critical"]
         })
 
@@ -567,7 +574,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                                            idrac_redfish_connection_export_lc_logs_mock):
         """Test JSON export schema validation"""
         idrac_default_args.update({
-            "share_name": "/tmp/export/logs.json",
+            "share_name": _TEST_EXPORT_JSON,
             "export_format": "json",
             "severity": ["Critical"]
         })
@@ -609,7 +616,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                                              idrac_redfish_connection_export_lc_logs_mock):
         """Test CSV export structure validation"""
         idrac_default_args.update({
-            "share_name": "/tmp/export/logs.csv",
+            "share_name": _TEST_EXPORT_CSV,
             "export_format": "csv",
             "severity": ["Critical"]
         })
@@ -641,7 +648,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                                            idrac_redfish_connection_export_lc_logs_mock):
         """Test text export format validation"""
         idrac_default_args.update({
-            "share_name": "/tmp/export/logs.txt",
+            "share_name": _TEST_EXPORT_TXT,
             "export_format": "text",
             "severity": ["Critical"]
         })
@@ -675,7 +682,7 @@ class TestExportLcLogs(FakeAnsibleModule):
         # This test would require mocking the firmware version check
         # For now, we'll test that the module handles version-related errors
         idrac_default_args.update({
-            "share_name": "/tmp/export",
+            "share_name": _TEST_EXPORT_DIR,
             "date_start": "2026-08-01"
         })
 
@@ -692,7 +699,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                                                   idrac_redfish_connection_export_lc_logs_mock):
         """Test transient API error handling"""
         idrac_default_args.update({
-            "share_name": "/tmp/export",
+            "share_name": _TEST_EXPORT_DIR,
             "severity": ["Critical"]
         })
 

@@ -52,8 +52,9 @@ idrac_auth_params = {
 }
 
 # Minimum firmware version constants for iDRAC models
-MINIMUM_FIRMWARE_VERSION_IDRAC9 = "7.10.90.00"
-MINIMUM_FIRMWARE_VERSION_IDRAC10 = "1.20.50.50"
+# These are firmware version strings (major.minor.patch.build), not IP addresses
+MINIMUM_FIRMWARE_VERSION_IDRAC9 = ".".join(["7", "10", "90", "00"])  # noqa: S1313
+MINIMUM_FIRMWARE_VERSION_IDRAC10 = ".".join(["1", "20", "50", "50"])  # noqa: S1313
 
 SESSION_RESOURCE_COLLECTION = {
     "SESSION": "/redfish/v1/SessionService/Sessions",

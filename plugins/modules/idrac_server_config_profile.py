@@ -1223,7 +1223,6 @@ def main():
         module.fail_json(msg=NEGATIVE_TIMEOUT_MESSAGE)
     try:
         http_share = False
-        msg = None
         command = module.params.get("command")
         if module.params.get("share_name") is not None:
             http_share = module.params["share_name"].lower().startswith(('http://', 'https://'))

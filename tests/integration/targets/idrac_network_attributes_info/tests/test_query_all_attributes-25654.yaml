@@ -40,7 +40,9 @@
       ansible.builtin.assert:
         that:
           - query_result.attribute_count | int > 0
-          - query_result.network_attributes | length == query_result.attribute_count | int
+          - >-
+            query_result.network_attributes | length
+            == query_result.attribute_count | int
 
     - name: Verify attribute schema fields
       ansible.builtin.assert:

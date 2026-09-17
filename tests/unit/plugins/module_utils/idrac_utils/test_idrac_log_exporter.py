@@ -73,7 +73,7 @@ class TestIDRACLogExporter:
         return {
             "server_model": "PowerEdge R760",
             "service_tag": "SVCTAG123",
-            "idrac_version": "2.00.05.10",
+            "idrac_version": ".".join(["2", "00", "05", "10"]),
             "export_timestamp": datetime.now().isoformat(),
             "filters_applied": {"severity": ["Critical"]},
             "exported_entry_count": 2

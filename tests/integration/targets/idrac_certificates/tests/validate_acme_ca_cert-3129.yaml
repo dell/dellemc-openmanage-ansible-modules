@@ -18,7 +18,7 @@
       ansible.builtin.file:
         path: "{{ base_path_for_import_certificate }}"
         state: directory
-        mode: '0755'
+        mode: '0700'
       delegate_to: localhost
 
     - name: Set fact for ACME_CA_CERT download
@@ -33,7 +33,7 @@
         dest: >-
           {{ base_path_for_import_certificate }}/{{
           acme_ca_certificate_name }}
-        mode: '0644'
+        mode: '0600'
       delegate_to: localhost
 
     - name: Import ACME_CA_CERT certificate - Check mode

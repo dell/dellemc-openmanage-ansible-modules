@@ -25,10 +25,10 @@ jobs:
         ansible-version: [stable-2.18]
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c # v4
         with:
           python-version: 3.12
 
@@ -39,19 +39,19 @@ jobs:
         run: ansible-galaxy collection build --output-path .cache/collection-tarballs
 
       - name: Store migrated collection artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: collection
           path: .cache/collection-tarballs
   ansible-lint:
     needs: [build]
-    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@c105d6b8b887a36219224da17adc7518aab2401d # main
   sanity:
     needs: [build]
-    uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@c105d6b8b887a36219224da17adc7518aab2401d # main
   unit-galaxy:
     needs: [build]
-    uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@c105d6b8b887a36219224da17adc7518aab2401d # main
   codecov:
     name: Codecov
     runs-on: ubuntu-latest
@@ -64,12 +64,12 @@ jobs:
       matrix:
         ansible-version: [stable-2.18]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           path: ansible_collections/dellemc/openmanage
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c # v4
         with:
           python-version: 3.12
 
@@ -83,7 +83,7 @@ jobs:
         run: export PYTHONPATH="${GITHUB_WORKSPACE}":$PYTHONPATH && pytest -vvvv --cov --cov-branch --cov-report=xml:coverage.xml
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@04b047e8bb82a0c002c8312c1c880fbc6a999d45 # v5
         with:
           files: ./coverage.xml,
           token: ${{ secrets.CODECOV_TOKEN }}

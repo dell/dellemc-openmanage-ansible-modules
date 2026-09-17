@@ -323,6 +323,49 @@ def _fuzzy_attr_suggestions(attr, bios_attributes, n=3, cutoff=0.6):
     return difflib.get_close_matches(attr, all_names, n=n, cutoff=cutoff)
 
 
+def _validate_enum(attr, value, attr_def):
+    """Validate an enumeration attribute value."""
+    if value not in attr_def['valid_values']:
+        suggestions = [v for v in attr_def['valid_values']
+                       if value.lower() in v.lower() or v.lower() in value.lower()]
+        return _validation_result(attr, 'invalid',
+                                  f"Value '{value}' is not a valid enumeration value",
+                                  suggestions[:3])
+    return None
+
+
+def _validate_integer(attr, value, attr_def):
+    """Validate an integer attribute value."""
+    try:
+        int_value = int(value)
+    except (ValueError, TypeError):
+        return _validation_result(attr, 'invalid',
+                                  f"Value '{value}' is not a valid integer")
+
+    if attr_def['lower_bound'] is not None and int_value < attr_def['lower_bound']:
+        return _validation_result(attr, 'invalid',
+                                  f"Value {int_value} is below minimum {attr_def['lower_bound']}")
+    if attr_def['upper_bound'] is not None and int_value > attr_def['upper_bound']:
+        return _validation_result(attr, 'invalid',
+                                  f"Value {int_value} exceeds maximum {attr_def['upper_bound']}")
+    return None
+
+
+def _validate_string(attr, value, attr_def):
+    """Validate a string attribute value."""
+    str_value = str(value)
+    if attr_def['min_length'] is not None and len(str_value) < attr_def['min_length']:
+        return _validation_result(attr, 'invalid',
+                                  f"Value length {len(str_value)} is below minimum {attr_def['min_length']}")
+    if attr_def['max_length'] is not None and len(str_value) > attr_def['max_length']:
+        return _validation_result(attr, 'invalid',
+                                  f"Value length {len(str_value)} exceeds maximum {attr_def['max_length']}")
+    if attr_def['regex'] and not re.match(attr_def['regex'], str_value):
+        return _validation_result(attr, 'invalid',
+                                  f"Value '{value}' does not match required pattern")
+    return None
+
+
 def validate_attribute(attr, value, bios_attributes):
     """Validate a single attribute value against the registry."""
     attr_def = next((a for a in bios_attributes if a['name'] == attr), None)
@@ -337,36 +380,17 @@ def validate_attribute(attr, value, bios_attributes):
         return _validation_result(attr, 'invalid',
                                   f"Attribute '{attr}' is read-only and cannot be modified")
 
-    if attr_def['type'] == 'Enumeration':
-        if value not in attr_def['valid_values']:
-            suggestions = [v for v in attr_def['valid_values']
-                           if value.lower() in v.lower() or v.lower() in value.lower()]
-            return _validation_result(attr, 'invalid',
-                                      f"Value '{value}' is not a valid enumeration value",
-                                      suggestions[:3])
-    elif attr_def['type'] == 'Integer':
-        try:
-            int_value = int(value)
-            if attr_def['lower_bound'] is not None and int_value < attr_def['lower_bound']:
-                return _validation_result(attr, 'invalid',
-                                          f"Value {int_value} is below minimum {attr_def['lower_bound']}")
-            if attr_def['upper_bound'] is not None and int_value > attr_def['upper_bound']:
-                return _validation_result(attr, 'invalid',
-                                          f"Value {int_value} exceeds maximum {attr_def['upper_bound']}")
-        except (ValueError, TypeError):
-            return _validation_result(attr, 'invalid',
-                                      f"Value '{value}' is not a valid integer")
-    elif attr_def['type'] == 'String':
-        str_value = str(value)
-        if attr_def['min_length'] is not None and len(str_value) < attr_def['min_length']:
-            return _validation_result(attr, 'invalid',
-                                      f"Value length {len(str_value)} is below minimum {attr_def['min_length']}")
-        if attr_def['max_length'] is not None and len(str_value) > attr_def['max_length']:
-            return _validation_result(attr, 'invalid',
-                                      f"Value length {len(str_value)} exceeds maximum {attr_def['max_length']}")
-        if attr_def['regex'] and not re.match(attr_def['regex'], str_value):
-            return _validation_result(attr, 'invalid',
-                                      f"Value '{value}' does not match required pattern")
+    _type_validators = {
+        'Enumeration': _validate_enum,
+        'Integer': _validate_integer,
+        'String': _validate_string,
+    }
+
+    validator = _type_validators.get(attr_def['type'])
+    if validator:
+        result = validator(attr, value, attr_def)
+        if result:
+            return result
 
     return _validation_result(attr, 'valid', 'Value is valid')
 
@@ -408,13 +432,88 @@ def store_in_cache(cache_key, data):
     _REGISTRY_CACHE[cache_key] = data
 
 
-def main():
-    """Main entry point for the idrac_bios_registry_info module.
+def _fetch_registry_from_idrac(idrac, module):
+    """Fetch BIOS attribute registry from iDRAC.
 
-    This function initializes the Ansible module, connects to iDRAC,
-    queries the BIOS attribute registry, applies filters and validation,
-    and returns the results.
+    Returns a dict with bios_attributes, registry_version,
+    attribute_count, language, and owning_entity.
     """
+    registry_uri = "/redfish/v1/Systems/System.Embedded.1/Bios/BiosRegistry"
+    try:
+        response = idrac.invoke_request(registry_uri, 'GET')
+    except HTTPError as e:
+        if e.code == 404:
+            module.fail_json(
+                msg="BIOS attribute registry endpoint not supported on this system."
+            )
+        else:
+            module.fail_json(
+                msg=f"HTTP error {e.code} when querying registry: {e.msg}"
+            )
+
+    registry_data = response.json_data
+    registry_entries = registry_data.get('RegistryEntries', {})
+    attributes_list = registry_entries.get('Attributes', [])
+
+    return {
+        'bios_attributes': [map_attribute_to_dict(attr) for attr in attributes_list],
+        'registry_version': registry_data.get('RegistryVersion', ''),
+        'attribute_count': len(attributes_list),
+        'language': registry_data.get('Language', 'en'),
+        'owning_entity': registry_data.get('OwningEntity', 'Dell'),
+    }
+
+
+def _get_registry_data(idrac, module, force_refresh, cache_key):
+    """Get registry data from cache or iDRAC.
+
+    Returns a dict with bios_attributes, registry_version,
+    attribute_count, language, and owning_entity.
+    """
+    if not force_refresh:
+        cached_data = get_from_cache(cache_key)
+        if cached_data:
+            return cached_data
+
+    data = _fetch_registry_from_idrac(idrac, module)
+    store_in_cache(cache_key, data)
+    return data
+
+
+def _apply_filters(bios_attributes, module):
+    """Apply name, source, and category filters to BIOS attributes."""
+    attribute_name = module.params.get('attribute_name')
+    attribute_source = module.params.get('attribute_source')
+    category = module.params.get('category')
+
+    if attribute_name:
+        bios_attributes = filter_attributes_by_name(bios_attributes, attribute_name)
+    if attribute_source:
+        bios_attributes = filter_attributes_by_source(bios_attributes, attribute_source)
+    if category:
+        bios_attributes = filter_attributes_by_category(bios_attributes, category)
+    return bios_attributes
+
+
+def _handle_connection_errors(module, e):
+    """Handle common connection and HTTP errors."""
+    if isinstance(e, HTTPError):
+        if e.code in [401, 403]:
+            module.fail_json(msg=f"Authentication failed: {e.msg}")
+        else:
+            module.fail_json(msg=f"HTTP error {e.code}: {e.msg}")
+    elif isinstance(e, SSLValidationError):
+        module.fail_json(msg=f"SSL validation error: {str(e)}")
+    elif isinstance(e, ConnectionError):
+        module.fail_json(msg=f"Connection error: {str(e)}")
+    elif isinstance(e, URLError):
+        module.fail_json(msg=f"Network error: {str(e)}")
+    else:
+        module.fail_json(msg=f"Unexpected error: {str(e)}")
+
+
+def main():
+    """Main entry point for the idrac_bios_registry_info module."""
     argument_spec = idrac_auth_params.copy()
     argument_spec.update({
         'attribute_name': {'type': 'str', 'required': False},
@@ -435,111 +534,45 @@ def main():
         supports_check_mode=True
     )
 
-    # Initialize iDRAC connection
     try:
         with iDRACRedfishAPI(module.params) as idrac:
-            # Fetch firmware version and generation
             generation, firmware_version, hw_model = idrac.get_server_generation
 
-            # Check firmware version requirements using centralized utility
-            is_compliant, min_fw_version, error_msg = iDRACRedfishAPI.check_minimum_firmware_requirement(  # pylint: disable=unused-variable
+            is_compliant, _min_fw_version, error_msg = iDRACRedfishAPI.check_minimum_firmware_requirement(
                 hw_model, firmware_version
             )
             if not is_compliant:
                 module.fail_json(msg=error_msg)
 
-            # Query BIOS attribute registry
-            registry_uri = "/redfish/v1/Systems/System.Embedded.1/Bios/BiosRegistry"
-
-            # Check cache first (unless force_refresh is True)
-            force_refresh = module.params.get('force_refresh')
             cache_key = get_cache_key(module.params['idrac_ip'], firmware_version)
-            cached_data = None
+            registry_data = _get_registry_data(
+                idrac, module, module.params.get('force_refresh'), cache_key)
 
-            if not force_refresh:
-                cached_data = get_from_cache(cache_key)
-
-            if cached_data:
-                bios_attributes = cached_data['bios_attributes']
-                registry_version = cached_data['registry_version']
-                attribute_count = cached_data['attribute_count']
-                language = cached_data.get('language', 'en')
-                owning_entity = cached_data.get('owning_entity', 'Dell')
-            else:
-                try:
-                    response = idrac.invoke_request(registry_uri, 'GET')
-                except HTTPError as e:
-                    if e.code == 404:
-                        module.fail_json(
-                            msg="BIOS attribute registry endpoint not supported on this system."
-                        )
-                    else:
-                        module.fail_json(
-                            msg=f"HTTP error {e.code} when querying registry: {e.msg}"
-                        )
-
-                # Parse registry response
-                registry_data = response.json_data
-
-                # Extract registry metadata
-                registry_version = registry_data.get('RegistryVersion', '')
-                language = registry_data.get('Language', 'en')
-                owning_entity = registry_data.get('OwningEntity', 'Dell')
-                registry_entries = registry_data.get('RegistryEntries', {})
-                attributes_list = registry_entries.get('Attributes', [])
-                attribute_count = len(attributes_list)
-
-                # Map attributes to flat list
-                bios_attributes = [map_attribute_to_dict(attr) for attr in attributes_list]
-
-                # Store in cache
-                store_in_cache(cache_key, {
-                    'bios_attributes': bios_attributes,
-                    'registry_version': registry_version,
-                    'attribute_count': attribute_count,
-                    'language': language,
-                    'owning_entity': owning_entity
-                })
-
-            # Apply filters
-            attribute_name = module.params.get('attribute_name')
-            attribute_source = module.params.get('attribute_source')
-            category = module.params.get('category')
-
-            if attribute_name:
-                bios_attributes = filter_attributes_by_name(bios_attributes, attribute_name)
-
-            if attribute_source:
-                bios_attributes = filter_attributes_by_source(bios_attributes, attribute_source)
-
-            if category:
-                bios_attributes = filter_attributes_by_category(bios_attributes, category)
-
-            # Update attribute count after filtering
+            bios_attributes = _apply_filters(registry_data['bios_attributes'], module)
             attribute_count = len(bios_attributes)
 
             # Handle validation if requested
-            validate = module.params.get('validate')
-            attributes_to_validate = module.params.get('attributes')
             validation_results = None
             valid = None
             valid_count = None
             invalid_count = None
 
-            if validate and attributes_to_validate:
-                validation_data = validate_attributes(attributes_to_validate, bios_attributes)
+            if module.params.get('validate') and module.params.get('attributes'):
+                validation_data = validate_attributes(
+                    module.params['attributes'], bios_attributes)
                 validation_results = validation_data['validation_results']
                 valid = validation_data['valid']
                 valid_count = validation_data['valid_count']
                 invalid_count = validation_data['invalid_count']
+
             module.exit_json(
                 msg="Successfully queried BIOS attribute registry.",
                 changed=False,
                 bios_attributes=bios_attributes,
-                registry_version=registry_version,
+                registry_version=registry_data['registry_version'],
                 attribute_count=attribute_count,
-                language=language,
-                owning_entity=owning_entity,
+                language=registry_data['language'],
+                owning_entity=registry_data['owning_entity'],
                 idrac_generation=generation,
                 idrac_firmware_version=firmware_version,
                 idrac_model=hw_model,
@@ -548,22 +581,13 @@ def main():
                 valid_count=valid_count,
                 invalid_count=invalid_count
             )
-    except HTTPError as e:
-        if e.code in [401, 403]:
-            module.fail_json(msg=f"Authentication failed: {e.msg}")
-        else:
-            module.fail_json(msg=f"HTTP error {e.code}: {e.msg}")
-    except SSLValidationError as e:
-        module.fail_json(msg=f"SSL validation error: {str(e)}")
-    except ConnectionError as e:
-        module.fail_json(msg=f"Connection error: {str(e)}")
-    except URLError as e:
-        module.fail_json(msg=f"Network error: {str(e)}")
+    except (HTTPError, SSLValidationError, ConnectionError, URLError) as e:
+        _handle_connection_errors(module, e)
     except Exception as e:  # pylint: disable=broad-except
         # Re-raise AnsibleExitJson and AnsibleFailJson for test framework
         if type(e).__name__ in ['AnsibleExitJson', 'AnsibleFailJson']:
             raise
-        module.fail_json(msg=f"Unexpected error: {str(e)}")
+        _handle_connection_errors(module, e)
 
 
 if __name__ == '__main__':
