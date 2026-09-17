@@ -21,7 +21,8 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: false
-        network_device_function_id: "{{ nic_result.network_device_functions[0].id }}"
+        network_device_function_id: >-
+          {{ nic_result.network_device_functions[0].id }}
       register: attr_result
       tags:
         - two_step_workflow
@@ -29,7 +30,10 @@
 
     - name: Display attribute summary
       ansible.builtin.debug:
-        msg: "Found {{ attr_result.attribute_count }} attributes for {{ attr_result.network_device_function_id }}"
+        msg: >-
+          Found {{ attr_result.attribute_count }}
+          attributes for
+          {{ attr_result.network_device_function_id }}
       tags:
         - two_step_workflow
       delegate_to: localhost
@@ -40,7 +44,9 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: false
-        network_device_function_id: "{{ network_device_function_id | default('NIC.Embedded.1-1-1') }}"
+        network_device_function_id: >-
+          {{ network_device_function_id |
+          default('NIC.Embedded.1-1-1') }}
       tags:
         - query_specific
       delegate_to: localhost
@@ -51,7 +57,9 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: false
-        network_device_function_id: "{{ network_device_function_id | default('NIC.Embedded.1-1-1') }}"
+        network_device_function_id: >-
+          {{ network_device_function_id |
+          default('NIC.Embedded.1-1-1') }}
         attribute_name: "VLan*"
       tags:
         - filter_name
@@ -63,7 +71,9 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: false
-        network_device_function_id: "{{ network_device_function_id | default('NIC.Embedded.1-1-1') }}"
+        network_device_function_id: >-
+          {{ network_device_function_id |
+          default('NIC.Embedded.1-1-1') }}
         attribute_source: "oem"
       tags:
         - filter_oem
@@ -75,7 +85,9 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: false
-        network_device_function_id: "{{ network_device_function_id | default('NIC.Embedded.1-1-1') }}"
+        network_device_function_id: >-
+          {{ network_device_function_id |
+          default('NIC.Embedded.1-1-1') }}
         attribute_source: "standard"
       tags:
         - filter_standard
@@ -87,7 +99,9 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: false
-        network_device_function_id: "{{ network_device_function_id | default('NIC.Embedded.1-1-1') }}"
+        network_device_function_id: >-
+          {{ network_device_function_id |
+          default('NIC.Embedded.1-1-1') }}
         force_refresh: true
       tags:
         - force_refresh

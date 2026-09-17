@@ -10,7 +10,9 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: false
-        network_device_function_id: "{{ network_device_function_id | default('NIC.Embedded.1-1-1') }}"
+        network_device_function_id: >-
+          {{ network_device_function_id |
+          default('NIC.Embedded.1-1-1') }}
         validate: true
         attributes:
           VLanMode: "Enabled"
@@ -21,7 +23,9 @@
 
     - name: Show enumeration validation result
       ansible.builtin.debug:
-        msg: "Valid: {{ enum_result.valid }}, Results: {{ enum_result.validation_results }}"
+        msg: >-
+          Valid: {{ enum_result.valid }},
+          Results: {{ enum_result.validation_results }}
       tags:
         - validate_enum
       delegate_to: localhost
@@ -32,7 +36,9 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: false
-        network_device_function_id: "{{ network_device_function_id | default('NIC.Embedded.1-1-1') }}"
+        network_device_function_id: >-
+          {{ network_device_function_id |
+          default('NIC.Embedded.1-1-1') }}
         validate: true
         attributes:
           VLanId: "100"
@@ -43,7 +49,10 @@
 
     - name: Show integer validation result
       ansible.builtin.debug:
-        msg: "Valid: {{ int_result.valid }}, Results: {{ int_result.validation_results }}"
+        msg: >-
+          Valid: {{ int_result.valid }},
+          Results:
+          {{ int_result.validation_results }}
       tags:
         - validate_int
       delegate_to: localhost
@@ -54,7 +63,9 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: false
-        network_device_function_id: "{{ network_device_function_id | default('NIC.Embedded.1-1-1') }}"
+        network_device_function_id: >-
+          {{ network_device_function_id |
+          default('NIC.Embedded.1-1-1') }}
         validate: true
         attributes:
           VLanMoed: "Enabled"
@@ -65,7 +76,10 @@
 
     - name: Show fuzzy match suggestions
       ansible.builtin.debug:
-        msg: "Valid: {{ fuzzy_result.valid }}, Suggestions: {{ fuzzy_result.validation_results[0].suggestions }}"
+        msg: >-
+          Valid: {{ fuzzy_result.valid }},
+          Suggestions:
+          {{ fuzzy_result.validation_results[0].suggestions }}
       tags:
         - validate_fuzzy
       delegate_to: localhost
@@ -76,9 +90,15 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: false
-        network_device_function_id: "{{ network_device_function_id | default('NIC.Embedded.1-1-1') }}"
+        network_device_function_id: >-
+          {{ network_device_function_id |
+          default('NIC.Embedded.1-1-1') }}
         validate: true
-        attributes: "{{ validate_attributes | default({'VLanMode': 'Enabled', 'VLanId': '99999', 'VLanMoed': 'Enabled'}) }}"
+        attributes: >-
+          {{ validate_attributes |
+          default({'VLanMode': 'Enabled',
+          'VLanId': '99999',
+          'VLanMoed': 'Enabled'}) }}
       register: batch_result
       tags:
         - validate_batch

@@ -256,6 +256,60 @@ def discover_network_device_functions(idrac):
     return network_device_functions
 
 
+def _get_nic_data(idrac, module, force_refresh, cache_key):
+    """Get NIC discovery data from cache or iDRAC.
+
+    Returns a list of network device function dicts.
+    """
+    if not force_refresh:
+        cached_data = get_from_cache(cache_key)
+        if cached_data:
+            return cached_data['network_device_functions']
+
+    try:
+        network_device_functions = discover_network_device_functions(idrac)
+    except HTTPError as e:
+        redfish_error = {}
+        try:
+            redfish_error = json.load(e)
+        except Exception:
+            pass
+        if e.code == 404:
+            module.fail_json(
+                msg="NetworkAdapters endpoint not supported on this firmware. "
+                    "Please update iDRAC firmware.",
+                redfish_error=redfish_error
+            )
+        raise
+
+    store_in_cache(cache_key, {
+        'network_device_functions': network_device_functions,
+    })
+    return network_device_functions
+
+
+def _handle_connection_errors(module, e):
+    """Handle common connection and HTTP errors."""
+    if isinstance(e, HTTPError):
+        redfish_error = {}
+        try:
+            redfish_error = json.load(e)
+        except Exception:
+            pass
+        if e.code in [401, 403]:
+            module.fail_json(msg=f"Authentication failed: {e.msg}", redfish_error=redfish_error)
+        else:
+            module.fail_json(msg=f"HTTP error {e.code}: {e.msg}", redfish_error=redfish_error)
+    elif isinstance(e, SSLValidationError):
+        module.fail_json(msg=f"SSL validation error: {str(e)}")
+    elif isinstance(e, ConnectionError):
+        module.fail_json(msg=f"Connection error: {str(e)}")
+    elif isinstance(e, URLError):
+        module.fail_json(msg=f"Network error: {str(e)}")
+    else:
+        module.fail_json(msg=f"Unexpected error: {str(e)}")
+
+
 def main():
     """Main entry point for the idrac_network_info module."""
     argument_spec = idrac_auth_params.copy()
@@ -270,47 +324,17 @@ def main():
 
     try:
         with iDRACRedfishAPI(module.params) as idrac:
-            # Fetch server generation info
             generation, firmware_version, hw_model = idrac.get_server_generation
 
-            # Check firmware version requirements
-            is_compliant, min_fw_version, error_msg = iDRACRedfishAPI.check_minimum_firmware_requirement(  # pylint: disable=unused-variable
+            is_compliant, _min_fw_version, error_msg = iDRACRedfishAPI.check_minimum_firmware_requirement(
                 hw_model, firmware_version
             )
             if not is_compliant:
                 module.fail_json(msg=error_msg)
 
-            # Check cache first (unless force_refresh is True)
-            force_refresh = module.params.get('force_refresh')
             cache_key = get_cache_key(module.params['idrac_ip'], module.params['idrac_port'])
-            cached_data = None
-
-            if not force_refresh:
-                cached_data = get_from_cache(cache_key)
-
-            if cached_data:
-                network_device_functions = cached_data['network_device_functions']
-            else:
-                try:
-                    network_device_functions = discover_network_device_functions(idrac)
-                except HTTPError as e:
-                    redfish_error = {}
-                    try:
-                        redfish_error = json.load(e)
-                    except Exception:
-                        pass
-                    if e.code == 404:
-                        module.fail_json(
-                            msg="NetworkAdapters endpoint not supported on this firmware. "
-                                "Please update iDRAC firmware.",
-                            redfish_error=redfish_error
-                        )
-                    raise
-
-                # Store in cache
-                store_in_cache(cache_key, {
-                    'network_device_functions': network_device_functions,
-                })
+            network_device_functions = _get_nic_data(
+                idrac, module, module.params.get('force_refresh'), cache_key)
 
             module.exit_json(
                 msg="Successfully discovered network device functions.",
@@ -320,26 +344,12 @@ def main():
                 idrac_firmware_version=firmware_version,
                 idrac_model=hw_model
             )
-    except HTTPError as e:
-        redfish_error = {}
-        try:
-            redfish_error = json.load(e)
-        except Exception:
-            pass
-        if e.code in [401, 403]:
-            module.fail_json(msg=f"Authentication failed: {e.msg}", redfish_error=redfish_error)
-        else:
-            module.fail_json(msg=f"HTTP error {e.code}: {e.msg}", redfish_error=redfish_error)
-    except SSLValidationError as e:
-        module.fail_json(msg=f"SSL validation error: {str(e)}")
-    except ConnectionError as e:
-        module.fail_json(msg=f"Connection error: {str(e)}")
-    except URLError as e:
-        module.fail_json(msg=f"Network error: {str(e)}")
+    except (HTTPError, SSLValidationError, ConnectionError, URLError) as e:
+        _handle_connection_errors(module, e)
     except Exception as e:  # pylint: disable=broad-except
         if type(e).__name__ in ['AnsibleExitJson', 'AnsibleFailJson']:
             raise
-        module.fail_json(msg=f"Unexpected error: {str(e)}")
+        _handle_connection_errors(module, e)
 
 
 if __name__ == '__main__':
