@@ -757,17 +757,17 @@ def main():
             if attribute_source:
                 network_attributes = filter_attributes_by_source(network_attributes, attribute_source)
 
-            exit_kwargs = dict(
-                msg="Successfully queried network attribute registry.",
-                changed=False,
-                network_attributes=network_attributes,
-                network_device_function_id=ndf_id,
-                attribute_registry=registry_name,
-                attribute_count=len(network_attributes),
-                idrac_generation=generation,
-                idrac_firmware_version=firmware_version,
-                idrac_model=hw_model,
-            )
+            exit_kwargs = {
+                'msg': "Successfully queried network attribute registry.",
+                'changed': False,
+                'network_attributes': network_attributes,
+                'network_device_function_id': ndf_id,
+                'attribute_registry': registry_name,
+                'attribute_count': len(network_attributes),
+                'idrac_generation': generation,
+                'idrac_firmware_version': firmware_version,
+                'idrac_model': hw_model,
+            }
 
             if module.params.get('validate'):
                 user_attrs = module.params.get('attributes')
