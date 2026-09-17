@@ -7,8 +7,10 @@
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
     msg: 'Please define the following variables: idrac_ip, idrac_user,
-     idrac_password, network_device_function_id, valid_enum_attr, valid_enum_value,
-     valid_int_attr, invalid_int_value, misspelled_attr.'
+     idrac_password,
+     network_device_function_id, valid_enum_attr,
+     valid_enum_value, valid_int_attr,
+     invalid_int_value, misspelled_attr.'
   when: idrac_ip is not defined or idrac_user is not defined or
    idrac_password is not defined or network_device_function_id is not defined or
    valid_enum_attr is not defined or valid_enum_value is not defined or
@@ -23,7 +25,10 @@
       dellemc.openmanage.idrac_network_attributes_info:
         network_device_function_id: "{{ network_device_function_id }}"
         validate: true
-        attributes: "{{ {valid_enum_attr: valid_enum_value, valid_int_attr: invalid_int_value, misspelled_attr: 'value'} }}"
+        attributes: >-
+          {{ {valid_enum_attr: valid_enum_value,
+          valid_int_attr: invalid_int_value,
+          misspelled_attr: 'value'} }}
       register: batch_result
 
     - name: Verify batch validation overall result

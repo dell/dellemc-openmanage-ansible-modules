@@ -39,7 +39,9 @@
     - name: Verify attribute_count matches results
       ansible.builtin.assert:
         that:
-          - pattern_result.attribute_count == pattern_result.network_attributes | length
+          - >-
+            pattern_result.attribute_count ==
+            pattern_result.network_attributes | length
 
   module_defaults:
     dellemc.openmanage.idrac_network_attributes_info:
