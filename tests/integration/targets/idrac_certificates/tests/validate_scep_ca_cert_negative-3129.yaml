@@ -18,7 +18,7 @@
       ansible.builtin.file:
         path: "{{ base_path_for_import_certificate }}"
         state: directory
-        mode: '0755'
+        mode: '0700'
       register: created_directory
       delegate_to: localhost
 
@@ -34,7 +34,7 @@
         dest: >-
           {{ base_path_for_import_certificate }}/{{
           scep_ca_certificate_name }}
-        mode: '0644'
+        mode: '0600'
       delegate_to: localhost
 
     # AC-004: Test file not found error (AC-007)
@@ -63,7 +63,7 @@
       ansible.builtin.copy:
         content: "This is not a valid certificate"
         dest: "{{ base_path_for_import_certificate }}/invalid_cert.pem"
-        mode: '0644'
+        mode: '0600'
       delegate_to: localhost
 
     - name: Test import with invalid certificate content

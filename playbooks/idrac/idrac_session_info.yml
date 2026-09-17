@@ -198,5 +198,5 @@
           {{ s.session_age_minutes }}min
           {% endfor %}
         dest: "/tmp/idrac_sessions_report.csv"
-        mode: "0644"
+        mode: "0600"
       delegate_to: localhost
