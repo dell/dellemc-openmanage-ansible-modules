@@ -406,6 +406,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac i
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
     idrac_lifecycle_controller_logs_utils import IDRACLifecycleControllerLogs
@@ -475,7 +476,9 @@ def get_filtered_log_entries(idrac, _module, odata_filter=None):
     uri = LC_LOG_ENTRIES_URI
 
     if odata_filter:
-        uri = f"{uri}?$filter={odata_filter}"
+        # URL-encode the OData filter to handle spaces and special characters
+        encoded_filter = urlencode({'$filter': odata_filter}).replace('+', '%20')
+        uri = f"{uri}?{encoded_filter}"
 
     while uri:
         response = idrac.invoke_request(uri, 'GET')
