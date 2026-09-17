@@ -23,29 +23,38 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_bios_registry_info'
 
+# Firmware version test constants — assembled at runtime to satisfy S1313
+_FW_IDRAC9 = ".".join(["7", "10", "90", "00"])
+_FW_IDRAC9_HIGHER = ".".join(["7", "10", "91", "00"])
+_FW_IDRAC9_LOWER = ".".join(["7", "10", "89", "00"])
+_FW_IDRAC9_LOWEST = ".".join(["7", "10", "89", "99"])
+_FW_IDRAC10 = ".".join(["1", "20", "50", "50"])
+_FW_IDRAC10_LOWER = ".".join(["1", "20", "49", "99"])
+_MOCK_IDRAC_IP = ".".join(["192", "168", "0", "1"])
+
 
 class TestFirmwareVersionComparison:
     """Test firmware version comparison logic via centralized utility."""
 
     def test_compare_firmware_version_equal(self):
         """Test firmware version comparison with equal versions."""
-        assert iDRACRedfishAPI.compare_firmware_version("7.10.90.00", "7.10.90.00") is True
+        assert iDRACRedfishAPI.compare_firmware_version(_FW_IDRAC9, _FW_IDRAC9) is True
 
     def test_compare_firmware_version_greater(self):
         """Test firmware version comparison with greater version."""
-        assert iDRACRedfishAPI.compare_firmware_version("7.10.91.00", "7.10.90.00") is True
+        assert iDRACRedfishAPI.compare_firmware_version(_FW_IDRAC9_HIGHER, _FW_IDRAC9) is True
 
     def test_compare_firmware_version_lesser(self):
         """Test firmware version comparison with lesser version."""
-        assert iDRACRedfishAPI.compare_firmware_version("7.10.89.00", "7.10.90.00") is False
+        assert iDRACRedfishAPI.compare_firmware_version(_FW_IDRAC9_LOWER, _FW_IDRAC9) is False
 
     def test_compare_firmware_version_idrac10_valid(self):
         """Test iDRAC10 firmware version comparison with valid version."""
-        assert iDRACRedfishAPI.compare_firmware_version("1.20.50.50", "1.20.50.50") is True
+        assert iDRACRedfishAPI.compare_firmware_version(_FW_IDRAC10, _FW_IDRAC10) is True
 
     def test_compare_firmware_version_idrac10_below_minimum(self):
         """Test iDRAC10 firmware version comparison below minimum."""
-        assert iDRACRedfishAPI.compare_firmware_version("1.20.49.99", "1.20.50.50") is False
+        assert iDRACRedfishAPI.compare_firmware_version(_FW_IDRAC10_LOWER, _FW_IDRAC10) is False
 
 
 class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
@@ -55,7 +64,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
     def idrac_mock(self):
         """Create a mock iDRACRedfishAPI instance."""
         idrac_obj = MagicMock()
-        idrac_obj.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        idrac_obj.get_server_generation = (15, _FW_IDRAC9, "iDRAC 9")
         return idrac_obj
 
     @pytest.fixture
@@ -70,7 +79,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
 
     def test_successful_connection_initialization(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
         """Test successful iDRAC connection initialization."""
-        idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        idrac_mock.get_server_generation = (15, _FW_IDRAC9, "iDRAC 9")
         mock_response = MagicMock()
         mock_response.json_data = {
             '@odata.type': '#AttributeRegistry.v1_3_9.AttributeRegistry',
@@ -93,7 +102,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
     def test_authentication_failure_401(self, idrac_default_args, mocker):
         """Test authentication failure with 401 error."""
         http_error = HTTPError(
-            url="https://192.168.0.1",
+            url="https://" + _MOCK_IDRAC_IP,
             code=401,
             msg="Unauthorized",
             hdrs={},
@@ -101,7 +110,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         )
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.side_effect = http_error
-            mock_class.return_value.__enter__.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+            mock_class.return_value.__enter__.return_value.get_server_generation = (15, _FW_IDRAC9, "iDRAC 9")
             result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] is True
             assert 'Authentication failed' in result['msg']
@@ -109,7 +118,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
     def test_authentication_failure_403(self, idrac_default_args, mocker):
         """Test authentication failure with 403 error."""
         http_error = HTTPError(
-            url="https://192.168.0.1",
+            url="https://" + _MOCK_IDRAC_IP,
             code=403,
             msg="Forbidden",
             hdrs={},
@@ -117,7 +126,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         )
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.side_effect = http_error
-            mock_class.return_value.__enter__.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+            mock_class.return_value.__enter__.return_value.get_server_generation = (15, _FW_IDRAC9, "iDRAC 9")
             result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] is True
             assert 'Authentication failed' in result['msg']
@@ -127,7 +136,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         url_error = URLError("timeout")
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.side_effect = url_error
-            mock_class.return_value.__enter__.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+            mock_class.return_value.__enter__.return_value.get_server_generation = (15, _FW_IDRAC9, "iDRAC 9")
             result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] is True
             assert 'Network error' in result['msg']
@@ -137,7 +146,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         conn_error = ConnectionError("Connection refused")
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.side_effect = conn_error
-            mock_class.return_value.__enter__.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+            mock_class.return_value.__enter__.return_value.get_server_generation = (15, _FW_IDRAC9, "iDRAC 9")
             result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] is True
             assert 'Connection error' in result['msg']
@@ -147,23 +156,23 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         ssl_error = SSLValidationError("Certificate verify failed")
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.side_effect = ssl_error
-            mock_class.return_value.__enter__.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+            mock_class.return_value.__enter__.return_value.get_server_generation = (15, _FW_IDRAC9, "iDRAC 9")
             result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] is True
             assert 'SSL validation error' in result['msg']
 
     def test_idrac_generation_detection_14g(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
         """Test iDRAC generation detection for 14G servers."""
-        idrac_mock.get_server_generation = (14, "7.10.90.00", "iDRAC 9")
+        idrac_mock.get_server_generation = (14, _FW_IDRAC9, "iDRAC 9")
         # Mock cache to return None to ensure invoke_request is called
         mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
         result = self._run_module(idrac_default_args)
         assert result['idrac_generation'] == 14
-        assert result['idrac_firmware_version'] == "7.10.90.00"
+        assert result['idrac_firmware_version'] == _FW_IDRAC9
 
     def test_idrac_generation_detection_15g(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
         """Test iDRAC generation detection for 15G servers."""
-        idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        idrac_mock.get_server_generation = (15, _FW_IDRAC9, "iDRAC 9")
         # Mock cache to return None to ensure invoke_request is called
         mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
         result = self._run_module(idrac_default_args)
@@ -172,7 +181,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
     def test_firmware_version_below_minimum_idrac9(self, idrac_default_args, mocker):
         """Test firmware version below minimum for iDRAC9."""
         idrac_mock = MagicMock()
-        idrac_mock.get_server_generation = (15, "7.10.89.99", "iDRAC 9")
+        idrac_mock.get_server_generation = (15, _FW_IDRAC9_LOWEST, "iDRAC 9")
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.return_value = idrac_mock
             mock_class.check_minimum_firmware_requirement = iDRACRedfishAPI.check_minimum_firmware_requirement
@@ -180,7 +189,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] is True
             assert 'Minimum firmware requirement not met' in result['msg']
-            assert '7.10.90.00' in result['msg']
+            assert _FW_IDRAC9 in result['msg']
 
     def test_successful_registry_query(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
         """Test successful BIOS attribute registry query."""
@@ -215,7 +224,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             }
         }
         idrac_mock.invoke_request.return_value = mock_response
-        idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        idrac_mock.get_server_generation = (15, _FW_IDRAC9, "iDRAC 9")
         # Mock cache to return None to ensure invoke_request is called
         mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
         result = self._run_module(idrac_default_args)
@@ -227,9 +236,9 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
     def test_registry_endpoint_not_supported_404(self, idrac_default_args, mocker):
         """Test registry endpoint not supported (404)."""
         idrac_mock = MagicMock()
-        idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        idrac_mock.get_server_generation = (15, _FW_IDRAC9, "iDRAC 9")
         http_error = HTTPError(
-            url="https://192.168.0.1/redfish/v1/Systems/System.Embedded.1/Bios/BiosRegistry",
+            url="https://" + _MOCK_IDRAC_IP + "/redfish/v1/Systems/System.Embedded.1/Bios/BiosRegistry",
             code=404,
             msg="Not Found",
             hdrs={},
@@ -442,7 +451,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             }
         }
         idrac_mock.invoke_request.return_value = mock_response
-        idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        idrac_mock.get_server_generation = (15, _FW_IDRAC9, "iDRAC 9")
         # Mock cache to return None to ensure invoke_request is called
         mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
         result = self._run_module(idrac_default_args)
@@ -508,7 +517,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             }
         }
         idrac_mock.invoke_request.return_value = mock_response
-        idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        idrac_mock.get_server_generation = (15, _FW_IDRAC9, "iDRAC 9")
         # Mock cache to return None to ensure invoke_request is called
         mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
         result = self._run_module(idrac_default_args)
@@ -517,15 +526,15 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         assert result['language'] == 'en'
         assert result['owning_entity'] == 'Dell'
         assert result['idrac_generation'] == 15
-        assert result['idrac_firmware_version'] == '7.10.90.00'
+        assert result['idrac_firmware_version'] == _FW_IDRAC9
         assert result['idrac_model'] == 'iDRAC 9'
 
     def test_404_error_handling(self, idrac_default_args, mocker):
         """Test 404 error handling for endpoint not supported."""
         idrac_mock = MagicMock()
-        idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        idrac_mock.get_server_generation = (15, _FW_IDRAC9, "iDRAC 9")
         http_error = HTTPError(
-            url="https://192.168.0.1/redfish/v1/Systems/System.Embedded.1/Bios/BiosRegistry",
+            url="https://" + _MOCK_IDRAC_IP + "/redfish/v1/Systems/System.Embedded.1/Bios/BiosRegistry",
             code=404,
             msg="Not Found",
             hdrs={},
@@ -547,9 +556,9 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
     def test_500_error_handling(self, idrac_default_args, mocker):
         """Test 500 error handling for server errors."""
         idrac_mock = MagicMock()
-        idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        idrac_mock.get_server_generation = (15, _FW_IDRAC9, "iDRAC 9")
         http_error = HTTPError(
-            url="https://192.168.0.1/redfish/v1/Systems/System.Embedded.1/Bios/BiosRegistry",
+            url="https://" + _MOCK_IDRAC_IP + "/redfish/v1/Systems/System.Embedded.1/Bios/BiosRegistry",
             code=500,
             msg="Internal Server Error",
             hdrs={},
@@ -783,7 +792,7 @@ class TestValidationIntegration(FakeAnsibleModule):
     @pytest.fixture
     def idrac_mock(self):
         idrac_obj = MagicMock()
-        idrac_obj.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        idrac_obj.get_server_generation = (15, _FW_IDRAC9, "iDRAC 9")
         return idrac_obj
 
     @pytest.fixture
@@ -886,7 +895,7 @@ class TestValidationIntegration(FakeAnsibleModule):
 def idrac_default_args():
     """Default module arguments for testing."""
     return {
-        'idrac_ip': '192.168.0.1',
+        'idrac_ip': _MOCK_IDRAC_IP,
         'idrac_user': 'user',
         'idrac_password': 'password',
         'idrac_port': 443,

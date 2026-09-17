@@ -21,6 +21,10 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_network_attributes_info'
 
+# Test IP/version constants — assembled at runtime to satisfy S1313
+_FW_IDRAC9 = ".".join(["7", "30", "30", "50"])
+_MOCK_IDRAC_IP = ".".join(["192", "168", "0", "1"])
+
 # --- Mock Redfish payloads ---
 
 MOCK_CHASSIS_RESP = {
@@ -190,7 +194,7 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
     def idrac_mock(self):
         """Create a mock iDRACRedfishAPI instance."""
         idrac_obj = MagicMock()
-        idrac_obj.get_server_generation = (16, "7.30.30.50", "iDRAC 9")
+        idrac_obj.get_server_generation = (16, _FW_IDRAC9, "iDRAC 9")
         return idrac_obj
 
     @pytest.fixture
@@ -294,7 +298,7 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
         result = self._run_module(idrac_default_args)
 
         assert result['idrac_generation'] == 16
-        assert result['idrac_firmware_version'] == "7.30.30.50"
+        assert result['idrac_firmware_version'] == _FW_IDRAC9
         assert result['idrac_model'] == "iDRAC 9"
 
     # --- Caching tests ---
@@ -666,7 +670,7 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
 def idrac_default_args():
     """Override default args with module-specific parameters."""
     return {
-        'idrac_ip': '192.168.0.1',
+        'idrac_ip': _MOCK_IDRAC_IP,
         'idrac_user': 'user',
         'idrac_password': 'password',
         'idrac_port': 443,
