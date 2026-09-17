@@ -285,14 +285,14 @@ class TestIdracNetworkInfo(FakeAnsibleModule):
         idrac_mock.invoke_request.side_effect = build_invoke_side_effect(uri_map)
 
         # First call populates cache
-        result1 = self._run_module(idrac_default_args)
+        self._run_module(idrac_default_args)
         call_count_after_first = idrac_mock.invoke_request.call_count
 
         # Second call with force_refresh should make new API calls
         idrac_default_args['force_refresh'] = True
-        result2 = self._run_module(idrac_default_args)
+        result = self._run_module(idrac_default_args)
         assert idrac_mock.invoke_request.call_count > call_count_after_first
-        assert len(result2['network_device_functions']) == 2
+        assert len(result['network_device_functions']) == 2
 
     # --- Error handling ---
 

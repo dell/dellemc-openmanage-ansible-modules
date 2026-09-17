@@ -304,12 +304,12 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
         idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
 
         # First call populates cache
-        result1 = self._run_module(idrac_default_args)
+        self._run_module(idrac_default_args)
         call_count_after_first = idrac_mock.invoke_request.call_count
 
         # Second call should use cache
-        result2 = self._run_module(idrac_default_args)
-        assert result2['attribute_count'] == 4
+        result = self._run_module(idrac_default_args)
+        assert result['attribute_count'] == 4
         assert idrac_mock.invoke_request.call_count == call_count_after_first
 
     def test_force_refresh_bypasses_cache(self, idrac_default_args, idrac_connection_mock, idrac_mock):
@@ -317,12 +317,12 @@ class TestIdracNetworkAttributesInfo(FakeAnsibleModule):
         idrac_mock.invoke_request.side_effect = build_invoke_side_effect(FULL_URI_MAP)
 
         # First call populates cache
-        result1 = self._run_module(idrac_default_args)
+        self._run_module(idrac_default_args)
         call_count_after_first = idrac_mock.invoke_request.call_count
 
         # Second call with force_refresh should make new API calls
         idrac_default_args['force_refresh'] = True
-        result2 = self._run_module(idrac_default_args)
+        self._run_module(idrac_default_args)
         assert idrac_mock.invoke_request.call_count > call_count_after_first
 
     # --- Error handling ---
