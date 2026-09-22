@@ -1,0 +1,158 @@
+  This module allows you to query storage controllers, physical disks,
+  and virtual disks on iDRAC.
+  Returns merged Redfish and Dell OEM attributes for the requested
+  resource type.
+
+[1mOPTIONS[0m (red indicates it is required):
+
+   ca_path  The Privacy Enhanced Mail (PEM) file that contains a CA
+            certificate to be used for the validation.
+        default: null
+        type: path
+
+   controller_id  Fully Qualified Device Descriptor (FQDD) of the
+                  storage controller, for example
+                  'RAID.Integrated.1-1'.
+                  This is required when [4mresource_type[0m is
+                  `physical_disk' or `virtual_disk'.
+        default: null
+        type: str
+
+   [1midrac_ip[0m  iDRAC IP Address.
+        type: str
+
+   idrac_password  iDRAC user password.
+                   If the password is not provided, then the
+                   environment variable `IDRAC_PASSWORD' is used.
+                   Example: export IDRAC_PASSWORD=password
+        aliases: [idrac_pwd]
+        default: null
+        type: str
+
+   idrac_port  iDRAC port.
+        default: 443
+        type: int
+
+   idrac_user  iDRAC username.
+               If the username is not provided, then the environment
+               variable `IDRAC_USERNAME' is used.
+               Example: export IDRAC_USERNAME=username
+        default: null
+        type: str
+
+   [1mresource_type[0m  `controller', returns details of all storage
+                  controllers.
+                  `physical_disk', returns details of all physical
+                  disks attached to the specified
+                  [4mcontroller_id[0m.
+                  `virtual_disk', returns details of all virtual disks
+                  on the specified [4mcontroller_id[0m.
+        choices: [controller, physical_disk, virtual_disk]
+        type: str
+
+   timeout  The socket level timeout in seconds.
+        default: 30
+        type: int
+
+   validate_certs  If `false', the SSL certificates will not be
+                   validated.
+                   Configure `false' only on personally controlled
+                   sites where self-signed certificates are used.
+                   Prior to collection version `5.0.0', the
+                   [4mvalidate_certs[0m is `false' by default.
+        default: true
+        type: bool
+
+   x_auth_token  Authentication token.
+                 If the x_auth_token is not provided, then the
+                 environment variable `IDRAC_X_AUTH_TOKEN' is used.
+                 Example: export IDRAC_X_AUTH_TOKEN=x_auth_token
+        default: null
+        type: str
+
+[1mNOTES:[0m
+      * Run this module from a system that has direct access to
+        Integrated Dell Remote Access Controller.
+      * This module supports both IPv4 and IPv6 address for
+        [4midrac_ip[0m.
+      * This module supports `check_mode'.
+      * This module requires a minimum iDRAC firmware version of
+        7.10.90.00 for iDRAC9, or 1.20.50.50 for iDRAC10. A
+        descriptive error is returned if the installed firmware
+        version does not meet this requirement.
+      * Transient errors (HTTP 503) are automatically retried up
+        to 3 times with exponential backoff.
+
+[1mREQUIREMENTS:[0m  python >= 3.9.6
+
+
+[1mAUTHOR[0m: Dell OpenManage Ansible Team
+
+[1mEXAMPLES:[0m
+---
+- name: Get all storage controllers
+  dellemc.openmanage.idrac_storage_info:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    resource_type: "controller"
+
+- name: Get all physical disks for a controller
+  dellemc.openmanage.idrac_storage_info:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    resource_type: "physical_disk"
+    controller_id: "RAID.Slot.1-1"
+
+- name: Get all virtual disks for a controller
+  dellemc.openmanage.idrac_storage_info:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    resource_type: "virtual_disk"
+    controller_id: "RAID.Slot.1-1"
+
+[1mRETURN VALUES:[0m
+
+   error_info  Details of the HTTP Error.
+        returned: on HTTP error
+        sample:
+          error:
+            '@Message.ExtendedInfo':
+            - Message: Unable to process the request because an error occurred.
+              MessageArgs: []
+              MessageId: GEN1234
+              RelatedProperties: []
+              Resolution: Retry the operation. If the issue persists, contact your system
+                administrator.
+              Severity: Critical
+            code: Base.1.0.GeneralError
+            message: A general error has occurred. See ExtendedInfo for more information.
+        type: dict
+
+   msg     Overall status of the storage information query operation.
+        returned: always
+        sample: Successfully fetched the storage information.
+        type: str
+
+   storage_info  Details of the requested storage resource(s).
+        returned: success
+        sample:
+          available_capacity: null
+          idrac_firmware_version: 7.10.90.00
+          idrac_generation: 17
+          idrac_model: iDRAC 9
+          resource_count: 1
+          resources:
+          - FirmwareVersion: 25.5.9.0001
+            Id: RAID.Slot.1-1
+            Model: PERC H755
+            Status:
+              Health: OK
+          total_capacity: null
+        type: dict
+

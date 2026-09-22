@@ -28,9 +28,12 @@
           - 'invalid_unsupported_argument.msg == "Unsupported parameters
             for (dellemc.openmanage.idrac_storage_volume) module:
             unsupported_argument. Supported parameters include: ca_path,
-            capacity, controller_id, disk_cache_policy, idrac_ip,
-            idrac_password, idrac_port, idrac_user, job_wait,
-            job_wait_timeout, media_type, number_dedicated_hot_spare,
+            capacity, controller_id, disk_cache_policy, display_name,
+            enable_encryption, encryption_mode, idrac_ip, idrac_password,
+            idrac_port, idrac_user, initialization_type, initialize_method,
+            job_wait, job_wait_timeout, media_type,
+            modify_disk_cache_policy, modify_read_cache_policy,
+            modify_write_cache_policy, number_dedicated_hot_spare,
             protocol, raid_init_operation, raid_reset_config,
             read_cache_policy, span_depth, span_length, state, stripe_size,
             time_to_wait, timeout, validate_certs, volume_id, volume_type,
@@ -114,8 +117,7 @@
 
     - ansible.builtin.set_fact:
         invalid_validate_certs_expected_msg: "argument 'validate_certs' is of
-          type str and we were unable to convert to bool: The value
-          'invalid' is not a valid boolean. Valid booleans include: "
+          type"
 
     - name: Verify task status - Negative - invalid validate_certs
       ansible.builtin.assert:
@@ -123,6 +125,7 @@
           - invalid_validate_certs.failed
           - not invalid_validate_certs.changed
           - invalid_validate_certs_expected_msg in invalid_validate_certs.msg
+          - "'not a valid boolean' in invalid_validate_certs.msg"
 
     - name: Negative - invalid ca_path path
       dellemc.openmanage.idrac_storage_volume:
@@ -156,8 +159,7 @@
 
     - name: Set fact for invalid timeout type msg
       ansible.builtin.set_fact:
-        invalid_timeout_type_expected_msg: "argument 'timeout' is of type
-          str and we were unable to convert to int: "
+        invalid_timeout_type_expected_msg: "argument 'timeout' is of type"
 
     - name: Verify task status - Negative - invalid timeout type
       ansible.builtin.assert:
@@ -165,6 +167,7 @@
           - invalid_timeout_type.failed
           - not invalid_timeout_type.changed
           - invalid_timeout_type_expected_msg in invalid_timeout_type.msg
+          - "'unable to convert to int' in invalid_timeout_type.msg"
 
     - name: Negative - invalid timeout value
       dellemc.openmanage.idrac_storage_volume:
