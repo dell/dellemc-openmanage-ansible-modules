@@ -694,10 +694,10 @@ def get_apply_time(module, session_obj, controller_id, greater_version):
     try:
         uri = APPLY_TIME_INFO_API.format(storage_base_uri=storage_collection_map["storage_base_uri"], controller_id=controller_id)
         resp = session_obj.invoke_request("GET", uri)
-        if greater_version:
-            supported_apply_time_values = resp.json_data['@Redfish.OperationApplyTimeSupport']['SupportedValues']
-        else:
+        apply_time_support = resp.json_data.get('@Redfish.OperationApplyTimeSupport')
+        if not greater_version or apply_time_support is None:
             return apply_time
+        supported_apply_time_values = apply_time_support['SupportedValues']
         if apply_time:
             if apply_time not in supported_apply_time_values:
                 module.exit_json(msg=APPLY_TIME_NOT_SUPPORTED_MSG.format(apply_time=apply_time, supported_apply_time_values=supported_apply_time_values),
