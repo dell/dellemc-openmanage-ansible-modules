@@ -871,8 +871,8 @@ class TestStorageVolume(FakeAnsibleModule):
                                    greater_version=True)
 
     def test_get_apply_time_missing_operation_apply_time_support_returns_requested_value(self, redfish_response_mock,
-                                                                                           redfish_connection_mock_for_storage_volume,
-                                                                                           storage_volume_base_uri, greater_version):
+                                                                                         redfish_connection_mock_for_storage_volume,
+                                                                                         storage_volume_base_uri, greater_version):
         param = {"controller_id": "controller_id", "apply_time": "OnReset"}
         f_module = self.get_module_mock(params=param)
         redfish_response_mock.success = True
