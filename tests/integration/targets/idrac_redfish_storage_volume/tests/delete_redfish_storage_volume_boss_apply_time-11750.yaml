@@ -1,0 +1,99 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+# Regression test for ECS02C-1211 / GitHub issue #1130:
+# redfish_storage_volume failed with an unhandled KeyError on
+# '@Redfish.OperationApplyTimeSupport' when deleting a volume on a BOSS
+# controller whose Redfish response does not advertise that property.
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Set prerequisite facts
+  ansible.builtin.set_fact:
+    search_in_name: "BOSS"
+    raid_type: "{{ raid_type_1 }}"
+
+- name: Wait for iDRAC lifecycle controller readiness
+  ansible.builtin.include_role:
+    name=prepare_idrac_lifecycle_controller_status
+
+- name: Check disk count and retry if insufficient
+  ansible.builtin.include_tasks: _prereq_verify_disks_availability.yml
+  vars:
+    required_disk_length: 2
+
+- block:
+    - name: Create a RAID1 volume on the BOSS controller
+      dellemc.openmanage.redfish_storage_volume:
+        state: present
+        raid_type: "{{ raid_type_1 }}"
+        name: "{{ raid_1_vol }}"
+        controller_id: "{{ controller_name }}"
+        drives: "{{ physical_disks_1_list }}"
+      register: result_volume
+
+    - name: Track the job
+      ansible.builtin.include_tasks: _job_track.yml
+      vars:
+        job_id: "{{ result_volume.task.id }}"
+        reboot_server: "{{ b_true }}"
+      when: 'result_volume.msg == "Successfully submitted create volume task."'
+
+    - name: Wait for iDRAC lifecycle controller readiness
+      ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
+    - name: Fetch volume details
+      ansible.builtin.include_tasks: _get_volume_details.yml
+
+    - name: Verify task status - Create a RAID1 volume on the BOSS controller
+      ansible.builtin.assert:
+        that:
+          - result_volume.changed
+          - uri_data.Name == raid_1_vol
+
+    - name: Delete the volume matching the reported customer playbook
+      dellemc.openmanage.redfish_storage_volume:
+        state: absent
+        volume_id: "{{ uri_data.Id }}"
+        reboot_server: "{{ b_true }}"
+        force_reboot: "{{ b_true }}"
+        job_wait: "{{ b_true }}"
+      register: result_delete_volume
+
+    - name: Verify the delete does not fail with the OperationApplyTimeSupport
+        KeyError
+      ansible.builtin.assert:
+        that:
+          - result_delete_volume.failed is not true
+          - result_delete_volume.changed
+          - "'OperationApplyTimeSupport' not in (result_delete_volume.msg | default(''))"
+
+    - name: Delete the volume (Idempotence)
+      dellemc.openmanage.redfish_storage_volume:
+        state: absent
+        volume_id: "{{ uri_data.Id }}"
+        reboot_server: "{{ b_true }}"
+        force_reboot: "{{ b_true }}"
+        job_wait: "{{ b_true }}"
+      register: idempotence_result_delete_volume
+
+    - name: Verify task status - Delete the volume (Idempotence)
+      ansible.builtin.assert:
+        that:
+          - not idempotence_result_delete_volume.changed
+          - idempotence_result_delete_volume.msg == no_changes
+
+  module_defaults:
+    dellemc.openmanage.redfish_storage_volume:
+      baseuri: "{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
