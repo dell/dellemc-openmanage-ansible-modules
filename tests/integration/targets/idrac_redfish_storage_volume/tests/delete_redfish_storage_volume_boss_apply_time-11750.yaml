@@ -74,7 +74,8 @@
         that:
           - result_delete_volume.failed is not true
           - result_delete_volume.changed
-          - "'OperationApplyTimeSupport' not in (result_delete_volume.msg | default(''))"
+          - "'OperationApplyTimeSupport' not in (result_delete_volume.msg"
+            " | default(''))"
 
     - name: Delete the volume (Idempotence)
       dellemc.openmanage.redfish_storage_volume:
