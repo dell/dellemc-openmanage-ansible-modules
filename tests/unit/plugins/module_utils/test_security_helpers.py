@@ -122,8 +122,17 @@ class TestWarnIfInsecureFirmwareTransfer:
         module.warn.assert_not_called()
 
     def test_warning_on_http_uri(self):
+        # NOSONAR: this http:// literal is test fixture data verifying that an
+        # insecure scheme is correctly *detected*; it is never used to open a
+        # connection, so it is not a clear-text-protocol usage (S5332).
         module = self._make_module()
-        warn_if_insecure_firmware_transfer(module, "http://example.com/fw.exe", "HTTPS")
+        warn_if_insecure_firmware_transfer(module, "http://example.com/fw.exe", "HTTPS")  # NOSONAR
+        module.warn.assert_called_once()
+
+    def test_warning_on_uppercase_http_uri(self):
+        # Scheme detection is case-insensitive (urlsplit + .lower()).
+        module = self._make_module()
+        warn_if_insecure_firmware_transfer(module, "HTTP://example.com/fw.exe", "HTTPS")  # NOSONAR
         module.warn.assert_called_once()
 
     def test_no_warning_on_local_path(self):
@@ -142,7 +151,7 @@ class TestVerifyCertFingerprint:
         expected = hashlib.sha256(fake_cert).hexdigest()
 
         mock_ctx = MagicMock()
-        mock_ssl._create_unverified_context.return_value = mock_ctx
+        mock_ssl.SSLContext.return_value = mock_ctx
         mock_sock = MagicMock()
         mock_socket.create_connection.return_value.__enter__ = MagicMock(return_value=mock_sock)
         mock_socket.create_connection.return_value.__exit__ = MagicMock(return_value=False)
@@ -153,13 +162,18 @@ class TestVerifyCertFingerprint:
 
         verify_cert_fingerprint("example.com", 443, expected)
 
+        # The probe context must not perform hostname/chain validation -
+        # that's the whole point of this fingerprint-pinning path.
+        assert mock_ctx.check_hostname is False
+        assert mock_ctx.verify_mode == mock_ssl.CERT_NONE
+
     @patch('ansible_collections.dellemc.openmanage.plugins.module_utils.utils.socket')
     @patch('ansible_collections.dellemc.openmanage.plugins.module_utils.utils.ssl')
     def test_mismatching_fingerprint(self, mock_ssl, mock_socket):
         fake_cert = b"fake certificate bytes"
 
         mock_ctx = MagicMock()
-        mock_ssl._create_unverified_context.return_value = mock_ctx
+        mock_ssl.SSLContext.return_value = mock_ctx
         mock_sock = MagicMock()
         mock_socket.create_connection.return_value.__enter__ = MagicMock(return_value=mock_sock)
         mock_socket.create_connection.return_value.__exit__ = MagicMock(return_value=False)
