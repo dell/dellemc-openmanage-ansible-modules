@@ -21,7 +21,7 @@ Requirements
 The below requirements are needed on the host that executes this module.
 
 - python \>= 3.9.6
-- netaddr \>= 0.7.19
+- netaddr \>= 1.3.0
 
 
 

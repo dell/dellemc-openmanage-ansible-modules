@@ -218,6 +218,7 @@ import re
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import warn_if_cert_validation_disabled
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
     iDRACRedfishAPI, idrac_auth_params
 )
@@ -533,6 +534,7 @@ def main():
         argument_spec=argument_spec,
         supports_check_mode=True
     )
+    warn_if_cert_validation_disabled(module)
 
     try:
         with iDRACRedfishAPI(module.params) as idrac:

@@ -101,6 +101,9 @@ notes:
       auth session to detect self-termination. This temporary session is cleaned up automatically.
     - B(Troubleshooting) - If you receive "Max Sessions Reached", use
       C(idrac_session_info) to identify and clean up stale sessions.
+    - The I(x_auth_token) returned by this module is a credential that can authenticate subsequent API requests.
+      Set C(no_log) to C(true) on tasks that create or delete a session, and do not print the registered result
+      using C(ansible.builtin.debug), because job logs and runner artifacts may retain the token.
 """
 
 EXAMPLES = r"""
@@ -112,6 +115,7 @@ EXAMPLES = r"""
     password: password
     ca_path: "/path/to/ca_cert.pem"
     state: present
+  no_log: true
 
 - name: Delete a session
   dellemc.openmanage.idrac_session:
@@ -120,6 +124,7 @@ EXAMPLES = r"""
     state: absent
     x_auth_token: aed4aa802b748d2f3b31deec00a6b28a
     session_id: 2
+  no_log: true
 
 - name: Create a session and execute other modules
   block:
@@ -130,7 +135,8 @@ EXAMPLES = r"""
         password: password
         ca_path: "/path/to/ca_cert.pem"
         state: present
-        register: authData
+      register: authData
+      no_log: true
 
     - name: Call idrac_firmware_info module
       dellemc.openmanage.idrac_firmware_info:
@@ -151,6 +157,7 @@ EXAMPLES = r"""
         state: absent
         x_auth_token: "{{ authData.x_auth_token }}"
         session_id: "{{ authData.session_data.Id }}"
+      no_log: true
 
 - name: Delete a session using username/password (with self-session protection)
   dellemc.openmanage.idrac_session:
@@ -160,6 +167,7 @@ EXAMPLES = r"""
     ca_path: "/path/to/ca_cert.pem"
     state: absent
     session_id: 74
+  no_log: true
 
 - name: Troubleshoot - Query sessions when "Max Sessions Reached" error occurs
   block:
@@ -168,7 +176,7 @@ EXAMPLES = r"""
         idrac_ip: 198.162.0.1
         idrac_user: username
         idrac_password: password
-        validate_certs: false
+        ca_path: "/path/to/ca_cert.pem"
         stale_threshold_minutes: 480
       register: session_info
 
@@ -220,7 +228,9 @@ session_data:
             "UserName": "root"
         }
 x_auth_token:
-    description: Authentication token.
+    description:
+      - Authentication token.
+      - This value is a credential. Protect it with C(no_log) and do not print it in job output.
     returned: For session creation operation
     type: str
     sample: "d15f17f01cd627c30173b1582642497d"
@@ -250,6 +260,7 @@ error_info:
 
 import json
 from urllib.error import HTTPError, URLError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import warn_if_cert_validation_disabled
 from ansible_collections.dellemc.openmanage.plugins.module_utils.session_utils import SessionAPI
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -519,6 +530,7 @@ def main():
         ],
         supports_check_mode=True
     )
+    warn_if_cert_validation_disabled(module)
 
     try:
         idrac = SessionAPI(module.params)

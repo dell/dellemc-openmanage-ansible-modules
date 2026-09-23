@@ -94,6 +94,7 @@ Notes
    - This module supports IPv4 and IPv6 addresses.
    - This module supports \ :literal:`check\_mode`\ .
    - This module will always report changes found to be applied when \ :emphasis:`state`\  is \ :literal:`present`\ .
+   - The :emphasis:`x\_auth\_token` returned by this module is a credential that can authenticate subsequent API requests. Set :literal:`no\_log` to :literal:`true` on tasks that create or delete a session, and do not print the registered result using :literal:`ansible.builtin.debug`\ , because job logs and runner artifacts may retain the token.
 
 
 
@@ -112,6 +113,7 @@ Examples
         password: password
         ca_path: "/path/to/ca_cert.pem"
         state: present
+      no_log: true
 
     - name: Delete a session
       dellemc.openmanage.ome_session:
@@ -120,6 +122,7 @@ Examples
         state: absent
         x_auth_token: aed4aa802b748d2f3b31deec00a6b28a
         session_id: 4b48e9ab-809e-4087-b7c4-201a16e0143d
+      no_log: true
 
     - name: Create a session and execute other modules
       block:
@@ -130,7 +133,8 @@ Examples
             password: password
             ca_path: "/path/to/ca_cert.pem"
             state: present
-            register: authData
+          register: authData
+          no_log: true
 
         - name: Call ome_user_info module
           dellemc.openmanage.ome_user_info:
@@ -151,6 +155,7 @@ Examples
             state: absent
             x_auth_token: "{{ authData.x_auth_token }}"
             session_id: "{{ authData.session_data.Id }}"
+          no_log: true
 
 
 
@@ -167,6 +172,8 @@ session_data (For session creation operation, dict, {'Id': 'd5c28d8e-1084-4055-9
 
 x_auth_token (For session creation operation, str, d15f17f01cd627c30173b1582642497d)
   Authentication token.
+
+  This value is a credential. Protect it with :literal:`no\_log` and do not print it in job output.
 
 
 error_info (On HTTP error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to complete the operation because an invalid username and/or password is entered, and therefore authentication failed.', 'MessageArgs': [], 'MessageArgs@odata.count': 0, 'MessageId': 'IDRAC.2.7.SYS415', 'RelatedProperties': [], 'RelatedProperties@odata.count': 0, 'Resolution': 'Enter valid user name and password and retry the operation.', 'Severity': 'Warning'}], 'code': 'Base.1.12.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information'}})

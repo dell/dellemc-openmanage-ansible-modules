@@ -105,6 +105,7 @@ error_info:
 '''
 
 import json
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import warn_if_cert_validation_disabled
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import GET_IDRAC_FIRMWARE_DETAILS_URI_10, GET_IDRAC_FIRMWARE_URI_10, remove_key
@@ -184,6 +185,7 @@ def main():
         argument_spec=specs,
         supports_check_mode=True
     )
+    warn_if_cert_validation_disabled(module)
 
     try:
         with iDRACRedfishAPI(module.params) as idrac:
