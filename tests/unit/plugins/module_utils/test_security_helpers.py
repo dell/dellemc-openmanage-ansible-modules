@@ -24,7 +24,6 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     verify_local_image_checksum,
     CERT_VALIDATION_DISABLED_WARNING,
     TOKEN_NO_LOG_WARNING,
-    INSECURE_FIRMWARE_TRANSFER_WARNING,
 )
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import AnsibleFailJSonException
 
