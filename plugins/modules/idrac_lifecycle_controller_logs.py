@@ -402,6 +402,7 @@ error_info:
 import json
 import os
 import re
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import warn_if_cert_validation_disabled
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
@@ -753,6 +754,7 @@ def main():
     module = AnsibleModule(
         argument_spec=specs,
         supports_check_mode=False)
+    warn_if_cert_validation_disabled(module)
 
     try:
         insert_comment = _validate_module_params(module)

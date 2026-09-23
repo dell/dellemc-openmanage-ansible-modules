@@ -86,6 +86,9 @@ notes:
     - This module supports IPv4 and IPv6 addresses.
     - This module supports C(check_mode).
     - This module will always report changes found to be applied when I(state) is C(present).
+    - The I(x_auth_token) returned by this module is a credential that can authenticate subsequent API requests.
+      Set C(no_log) to C(true) on tasks that create or delete a session, and do not print the registered result
+      using C(ansible.builtin.debug), because job logs and runner artifacts may retain the token.
 """
 
 EXAMPLES = r"""
@@ -97,6 +100,7 @@ EXAMPLES = r"""
     password: password
     ca_path: "/path/to/ca_cert.pem"
     state: present
+  no_log: true
 
 - name: Delete a session
   dellemc.openmanage.ome_session:
@@ -105,6 +109,7 @@ EXAMPLES = r"""
     state: absent
     x_auth_token: aed4aa802b748d2f3b31deec00a6b28a
     session_id: 4b48e9ab-809e-4087-b7c4-201a16e0143d
+  no_log: true
 
 - name: Create a session and execute other modules
   block:
@@ -115,7 +120,8 @@ EXAMPLES = r"""
         password: password
         ca_path: "/path/to/ca_cert.pem"
         state: present
-        register: authData
+      register: authData
+      no_log: true
 
     - name: Call ome_user_info module
       dellemc.openmanage.ome_user_info:
@@ -136,6 +142,7 @@ EXAMPLES = r"""
         state: absent
         x_auth_token: "{{ authData.x_auth_token }}"
         session_id: "{{ authData.session_data.Id }}"
+      no_log: true
 """
 
 RETURN = r'''
@@ -165,7 +172,9 @@ session_data:
         "DirectoryGroup": []
             }
 x_auth_token:
-    description: Authentication token.
+    description:
+      - Authentication token.
+      - This value is a credential. Protect it with C(no_log) and do not print it in job output.
     returned: For session creation operation
     type: str
     sample: "d15f17f01cd627c30173b1582642497d"
@@ -196,6 +205,7 @@ error_info:
 
 import json
 from urllib.error import HTTPError, URLError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import warn_if_cert_validation_disabled
 from ansible_collections.dellemc.openmanage.plugins.module_utils.session_utils import Session
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -347,6 +357,7 @@ def main():
         ],
         supports_check_mode=True
     )
+    warn_if_cert_validation_disabled(module)
     try:
         ome = OMESession(module)
         session_operation = module.params.get("state")

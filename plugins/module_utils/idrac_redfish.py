@@ -37,7 +37,7 @@ from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationEr
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible.module_utils.common.parameters import env_fallback
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6, warn_if_cert_validation_disabled
 from ansible.module_utils.basic import AnsibleModule
 
 idrac_auth_params = {
@@ -560,3 +560,4 @@ class IdracAnsibleModule(AnsibleModule):
                          mutually_exclusive, required_together,
                          required_one_of, add_file_common_args,
                          supports_check_mode, required_if, required_by)
+        warn_if_cert_validation_disabled(self)

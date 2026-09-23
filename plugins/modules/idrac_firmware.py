@@ -237,6 +237,7 @@ try:
     import defusedxml.ElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import warn_if_cert_validation_disabled
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible.module_utils.basic import AnsibleModule
@@ -640,6 +641,7 @@ def main():
             ['proxy_support', 'ParametersProxy', ('proxy_server', 'proxy_type', 'proxy_port',)],
         ],
         supports_check_mode=True)
+    warn_if_cert_validation_disabled(module)
 
     try:
         with iDRACRedfishAPI(module.params) as obj:
