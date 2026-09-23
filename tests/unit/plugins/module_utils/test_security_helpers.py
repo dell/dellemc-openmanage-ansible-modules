@@ -271,3 +271,43 @@ class TestVerifyLocalImageChecksum:
         with pytest.raises(AnsibleFailJSonException, match="Cannot read"):
             verify_local_image_checksum(module, "/nonexistent/fw.exe",
                                         {"algorithm": "sha256", "value": "abc123"})
+
+
+class TestCheckCertFingerprintModuleCoverage:
+    """Regression guard for the NET-01 Tier 2 coverage gap: modules that build a
+    plain AnsibleModule() (rather than IdracAnsibleModule) and merge in
+    idrac_auth_params directly must still call check_cert_fingerprint() themselves,
+    since the plain AnsibleModule constructor never does this on their behalf.
+    If a new module is added following this pattern without wiring the call in,
+    this test will fail and flag the gap."""
+
+    # Modules that build iDRACRedfishAPI/similar client from a plain AnsibleModule
+    # (i.e. do NOT go through IdracAnsibleModule, whose __init__ already calls
+    # check_cert_fingerprint on their behalf).
+    PLAIN_MODULE_FILES = [
+        "idrac_session_info.py",
+        "idrac_network_info.py",
+        "idrac_network_attributes_info.py",
+        "idrac_lifecycle_controller_status_info.py",
+        "idrac_lifecycle_controller_jobs.py",
+        "idrac_lifecycle_controller_logs.py",
+        "idrac_lifecycle_controller_job_status_info.py",
+        "idrac_firmware_info.py",
+        "idrac_bios_registry_info.py",
+        "idrac_firmware.py",
+        "idrac_bios.py",
+    ]
+
+    def _modules_dir(self):
+        import ansible_collections.dellemc.openmanage.plugins.modules as modules_pkg
+        return os.path.dirname(modules_pkg.__file__)
+
+    @pytest.mark.parametrize("filename", PLAIN_MODULE_FILES)
+    def test_module_wires_in_check_cert_fingerprint(self, filename):
+        module_path = os.path.join(self._modules_dir(), filename)
+        with open(module_path, "r", encoding="utf-8") as f:
+            source = f.read()
+        assert "check_cert_fingerprint" in source, (
+            "{0} merges idrac_auth_params into a plain AnsibleModule but does not "
+            "call check_cert_fingerprint(); users setting cert_fingerprint on this "
+            "module would get no MITM verification.".format(filename))

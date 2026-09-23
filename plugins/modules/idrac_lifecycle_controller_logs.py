@@ -402,7 +402,8 @@ error_info:
 import json
 import os
 import re
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import warn_if_cert_validation_disabled
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
+    warn_if_cert_validation_disabled, check_cert_fingerprint)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
@@ -755,6 +756,7 @@ def main():
         argument_spec=specs,
         supports_check_mode=False)
     warn_if_cert_validation_disabled(module)
+    check_cert_fingerprint(module, module.params.get("idrac_ip", ""), module.params.get("idrac_port", 443))
 
     try:
         insert_comment = _validate_module_params(module)
