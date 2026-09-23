@@ -4,7 +4,7 @@
   gather_facts: false
   tasks:
     - name: Install Netaddr using pip
-      ansible.builtin.command: pip install netaddr
+      ansible.builtin.command: pip install "netaddr>=1.3.0"
       register: netaddr_install
       changed_when: "'Successfully installed' in netaddr_install.stdout or 'Requirement already satisfied' in netaddr_install.stdout"
 

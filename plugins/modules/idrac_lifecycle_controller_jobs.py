@@ -96,6 +96,7 @@ error_info:
 
 
 import json
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import warn_if_cert_validation_disabled
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     dellemc_idrac import idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish \
@@ -115,6 +116,7 @@ def main():
     module = AnsibleModule(
         argument_spec=specs,
         supports_check_mode=False)
+    warn_if_cert_validation_disabled(module)
     job_id = module.params.get('job_id')
     try:
         with iDRACRedfishAPI(module.params) as idrac:

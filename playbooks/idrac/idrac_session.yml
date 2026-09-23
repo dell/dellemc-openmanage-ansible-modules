@@ -11,6 +11,7 @@
         password: password
         state: present
       register: session
+      no_log: true
       delegate_to: localhost
 
     - name: Delete a session
@@ -19,4 +20,5 @@
         state: absent
         auth_token: "{{ session.x_auth_token }}"
         session_id: "{{ session.session_data.Id }}"
+      no_log: true
       delegate_to: localhost

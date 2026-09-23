@@ -70,7 +70,7 @@ options:
         list are available in OpenManage Enterprise.
 requirements:
   - "python >= 3.9.6"
-  - "netaddr >= 0.7.19"
+  - "netaddr >= 1.3.0"
 author:
   - "Felix Stephen (@felixs88)"
   - "Sajna Shetty(@Sajna-Shetty)"

@@ -96,6 +96,7 @@ Notes
    - This module will always report changes found to be applied when :emphasis:`state` is :literal:`present`.
    - When :emphasis:`state` is :literal:`absent`\ , self\-session termination protection is applied. If the target :emphasis:`session\_id` is determined to be the caller's own auth session, the deletion is rejected to prevent accidental lockout.
    - Self\-session protection is skipped when using :emphasis:`x\_auth\_token` because the caller's auth session ID cannot be determined from the token alone.
+   - The :emphasis:`x\_auth\_token` returned by this module is a credential that can authenticate subsequent API requests. Set :literal:`no\_log` to :literal:`true` on tasks that create or delete a session, and do not print the registered result using :literal:`ansible.builtin.debug`\ , because job logs and runner artifacts may retain the token.
 
 
 
@@ -114,6 +115,7 @@ Examples
         password: password
         ca_path: "/path/to/ca_cert.pem"
         state: present
+      no_log: true
 
     - name: Delete a session
       dellemc.openmanage.idrac_session:
@@ -122,6 +124,7 @@ Examples
         state: absent
         x_auth_token: aed4aa802b748d2f3b31deec00a6b28a
         session_id: 2
+      no_log: true
 
     - name: Create a session and execute other modules
       block:
@@ -132,7 +135,8 @@ Examples
             password: password
             ca_path: "/path/to/ca_cert.pem"
             state: present
-            register: authData
+          register: authData
+          no_log: true
 
         - name: Call idrac_firmware_info module
           dellemc.openmanage.idrac_firmware_info:
@@ -153,6 +157,7 @@ Examples
             state: absent
             x_auth_token: "{{ authData.x_auth_token }}"
             session_id: "{{ authData.session_data.Id }}"
+          no_log: true
 
 
 
@@ -169,6 +174,8 @@ session_data (For session creation operation, dict, {'@Message.ExtendedInfo': [{
 
 x_auth_token (For session creation operation, str, d15f17f01cd627c30173b1582642497d)
   Authentication token.
+
+  This value is a credential. Protect it with :literal:`no\_log` and do not print it in job output.
 
 
 error_info (On HTTP error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to complete the operation because an invalid username and/or password is entered, and therefore authentication failed.', 'MessageArgs': [], 'MessageId': 'IDRAC.2.9.SYS415', 'RelatedProperties': [], 'Resolution': 'Enter valid user name and password and retry the operation.', 'Severity': 'Warning'}], 'code': 'Base.1.12.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information'}})
