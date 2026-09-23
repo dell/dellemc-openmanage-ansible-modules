@@ -66,4 +66,17 @@ options:
     type: int
     default: 30
     version_added: 5.0.0
+  cert_fingerprint:
+    description:
+     - SHA-256 fingerprint of the expected TLS certificate (hex digest, with or without colons).
+     - When supplied together with C(validate_certs=false), the module verifies the remote
+       certificate's fingerprint instead of performing full CA validation.
+    type: str
+    required: false
+  enforce_validate_certs:
+    description:
+     - If C(true) and C(validate_certs) is C(false), the module will fail with an error instead
+       of just emitting a warning.
+    type: bool
+    default: false
 '''

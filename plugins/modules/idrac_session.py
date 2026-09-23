@@ -81,6 +81,25 @@ options:
      - Session ID of the iDRAC.
      - I(session_id) is required when I(state) is C(absent).
     type: str
+  enforce_no_log:
+    description:
+     - If C(true), the module will fail with an error when I(state) is C(present) and the task
+       was not invoked with C(no_log=true). This prevents accidental token exposure in job logs.
+    type: bool
+    default: false
+  cert_fingerprint:
+    description:
+     - SHA-256 fingerprint of the expected TLS certificate (hex digest, with or without colons).
+     - When supplied together with C(validate_certs=false), the module verifies the remote
+       certificate's fingerprint instead of performing full CA validation.
+    type: str
+    required: false
+  enforce_validate_certs:
+    description:
+     - If C(true) and C(validate_certs) is C(false), the module will fail with an error instead
+       of just emitting a warning.
+    type: bool
+    default: false
 requirements:
   - "python >= 3.9.6"
 author:
@@ -260,13 +279,13 @@ error_info:
 
 import json
 from urllib.error import HTTPError, URLError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import warn_if_cert_validation_disabled
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
+    warn_if_cert_validation_disabled, warn_if_token_return_without_no_log,
+    check_cert_fingerprint, get_dynamic_uri, remove_key)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.session_utils import SessionAPI
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.common.parameters import env_fallback
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_dynamic_uri, remove_key)
 
 REDFISH = "/redfish/v1"
 SESSIONS = "Sessions"
@@ -353,6 +372,7 @@ class CreateSession(Session):
             session_details = session_response.json_data
             session_data = remove_key(session_details, regex_pattern=ODATA_REGEX)
             x_auth_token = session_response.headers.get('X-Auth-Token')
+            warn_if_token_return_without_no_log(self.module)
             self.module.exit_json(msg=CREATE_SUCCESS_MSG,
                                   changed=True,
                                   session_data=session_data,
@@ -531,6 +551,8 @@ def main():
         supports_check_mode=True
     )
     warn_if_cert_validation_disabled(module)
+    check_cert_fingerprint(module, module.params.get("hostname", ""),
+                           module.params.get("port", 443))
 
     try:
         idrac = SessionAPI(module.params)
@@ -585,7 +607,10 @@ def get_argument_spec():
         "timeout": {"type": "int", "default": 30},
         "session_id": {"type": "str"},
         "state": {"type": 'str', "default": "present", "choices": ["present", "absent"]},
-        "x_auth_token": {"type": "str", "no_log": True, "aliases": ['auth_token']}
+        "x_auth_token": {"type": "str", "no_log": True, "aliases": ['auth_token']},
+        "enforce_no_log": {"type": "bool", "default": False},
+        "cert_fingerprint": {"type": "str", "required": False},
+        "enforce_validate_certs": {"type": "bool", "default": False},
     }
 
 
