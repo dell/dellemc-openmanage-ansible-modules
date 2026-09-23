@@ -52,6 +52,20 @@ Parameters
     Note: If a firmware update needs a reboot, the job will get scheduled and waits for no of seconds specfied in \ :emphasis:`job\_wait\_time`\ . to reduce the wait time either give \ :emphasis:`job\_wait\_time`\  minimum or make \ :emphasis:`job\_wait`\ as false and retrigger.
 
 
+  image_checksum (optional, dict, None)
+    Optional checksum to verify a local firmware image before uploading.
+
+    When specified, the module computes the digest of the local file and fails if it does not match.
+
+    Not applicable for URI-based transfers (iDRAC fetches the image directly).
+
+    \ :sub:`algorithm` (optional, str, sha256)
+      Hash algorithm to use.
+
+    \ :sub:`value` (True, str, None)
+      Expected hex digest of the firmware image.
+
+
   baseuri (True, str, None)
     IP address of the target out-of-band controller. For example- \<ipaddress\>:\<port\>.
 
@@ -96,6 +110,16 @@ Parameters
     The socket level timeout in seconds.
 
 
+  cert_fingerprint (optional, str, None)
+    SHA-256 fingerprint of the expected TLS certificate (hex digest, with or without colons).
+
+    When supplied together with \ :literal:`validate\_certs=false`\ , the module verifies the remote certificate's fingerprint instead of performing full CA validation.
+
+
+  enforce_validate_certs (optional, bool, False)
+    If \ :literal:`true`\  and \ :literal:`validate\_certs`\  is \ :literal:`false`\ , the module will fail with an error instead of just emitting a warning.
+
+
 
 
 
@@ -118,6 +142,15 @@ Examples
 
     
     ---
+    - name: Update the firmware from a single executable file available over HTTPS (recommended)
+      dellemc.openmanage.redfish_firmware:
+        baseuri: "192.168.0.1"
+        username: "user_name"
+        password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        image_uri: "https://192.168.0.2/firmware_repo/component.exe"
+        transfer_protocol: "HTTPS"
+
     - name: Update the firmware from a single executable file available in a HTTP protocol
       dellemc.openmanage.redfish_firmware:
         baseuri: "192.168.0.1"
@@ -145,6 +178,17 @@ Examples
         password: "user_password"
         ca_path: "/path/to/ca_cert.pem"
         image_uri: "/home/firmware_repo/component.exe"
+
+    - name: Update the firmware from a local file, verifying its checksum before upload
+      dellemc.openmanage.redfish_firmware:
+        baseuri: "192.168.0.1"
+        username: "user_name"
+        password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        image_uri: "/home/firmware_repo/component.exe"
+        image_checksum:
+          algorithm: "sha256"
+          value: "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
 
 
 

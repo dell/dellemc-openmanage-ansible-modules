@@ -83,6 +83,15 @@ notes:
 
 EXAMPLES = """
 ---
+- name: Update the firmware from a single executable file available over HTTPS (recommended)
+  dellemc.openmanage.redfish_firmware:
+    baseuri: "192.168.0.1"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    image_uri: "https://192.168.0.2/firmware_repo/component.exe"
+    transfer_protocol: "HTTPS"
+
 - name: Update the firmware from a single executable file available in a HTTP protocol
   dellemc.openmanage.redfish_firmware:
     baseuri: "192.168.0.1"
@@ -110,6 +119,17 @@ EXAMPLES = """
     password: "user_password"
     ca_path: "/path/to/ca_cert.pem"
     image_uri: "/home/firmware_repo/component.exe"
+
+- name: Update the firmware from a local file, verifying its checksum before upload
+  dellemc.openmanage.redfish_firmware:
+    baseuri: "192.168.0.1"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    image_uri: "/home/firmware_repo/component.exe"
+    image_checksum:
+      algorithm: "sha256"
+      value: "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
 """
 
 RETURN = """
