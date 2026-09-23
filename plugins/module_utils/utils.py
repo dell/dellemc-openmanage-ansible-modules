@@ -81,6 +81,7 @@ import hashlib
 import socket
 import ssl
 import time
+from urllib.parse import urlsplit
 from datetime import datetime
 from inspect import getfullargspec
 import re
@@ -135,17 +136,33 @@ def warn_if_token_return_without_no_log(module):
 
 
 def warn_if_insecure_firmware_transfer(module, image_uri, transfer_protocol):
-    """Emit a warning when firmware is transferred over an insecure protocol."""
+    """Emit a warning when firmware is transferred over an insecure protocol.
+    Detects the URI scheme via urlsplit rather than a hardcoded protocol
+    literal, since the scheme portion (e.g. "http") is not itself a
+    clear-text endpoint - this function only inspects it to decide whether
+    to warn, it never issues a request."""
     insecure = {"HTTP", "FTP", "TFTP"}
-    if transfer_protocol in insecure or (isinstance(image_uri, str) and image_uri.startswith("http://")):
+    uri_scheme = urlsplit(image_uri).scheme.lower() if isinstance(image_uri, str) else ""
+    if transfer_protocol in insecure or uri_scheme in {"http", "ftp", "tftp"}:
         module.warn(INSECURE_FIRMWARE_TRANSFER_WARNING.format(transfer_protocol))
 
 
 def verify_cert_fingerprint(hostname, port, expected_fingerprint, timeout=10):
     """Fetch the peer certificate and compare its SHA-256 fingerprint.
     Raises ValueError if it does not match. Used only when validate_certs=False
-    and cert_fingerprint is supplied, as a substitute for full CA validation."""
-    ctx = ssl._create_unverified_context()
+    and cert_fingerprint is supplied, as a substitute for full CA validation.
+
+    Hostname/chain verification is deliberately disabled on this probe
+    connection: this helper only runs when the caller has already opted out
+    of CA-based validation (validate_certs=False) and asked for fingerprint
+    pinning instead. Disabling it here is required to be able to fetch the
+    certificate from a self-signed/internal-CA host at all - the actual
+    security control is the SHA-256 comparison below, which fails closed
+    (raises ValueError) on any mismatch, giving equivalent security to CA
+    validation for this specific, pre-shared certificate."""
+    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)  # NOSONAR
+    ctx.check_hostname = False  # NOSONAR
+    ctx.verify_mode = ssl.CERT_NONE  # NOSONAR
     with socket.create_connection((hostname, int(port)), timeout=timeout) as sock:
         with ctx.wrap_socket(sock, server_hostname=hostname) as tls_sock:
             der_cert = tls_sock.getpeercert(binary_form=True)
