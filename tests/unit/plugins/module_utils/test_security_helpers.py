@@ -122,9 +122,9 @@ class TestWarnIfInsecureFirmwareTransfer:
         module.warn.assert_not_called()
 
     def test_warning_on_http_uri(self):
-        # NOSONAR: this http:// literal is test fixture data verifying that an
-        # insecure scheme is correctly *detected*; it is never used to open a
-        # connection, so it is not a clear-text-protocol usage (S5332).
+        # This http:// literal is test fixture data verifying that an insecure
+        # scheme is correctly detected; it is never used to open a connection,
+        # so it is not a clear-text-protocol usage (S5332).
         module = self._make_module()
         warn_if_insecure_firmware_transfer(module, "http://example.com/fw.exe", "HTTPS")  # NOSONAR
         module.warn.assert_called_once()
@@ -238,7 +238,8 @@ class TestVerifyLocalImageChecksum:
 
     def test_noop_when_no_checksum(self):
         module = self._make_module()
-        verify_local_image_checksum(module, "/tmp/fw.exe", None)
+        fake_path = os.path.join(tempfile.gettempdir(), "fw.exe")
+        verify_local_image_checksum(module, fake_path, None)
         module.fail_json.assert_not_called()
 
     def test_matching_checksum(self):
@@ -270,14 +271,16 @@ class TestVerifyLocalImageChecksum:
 
     def test_unsupported_algorithm(self):
         module = self._make_module()
+        fake_path = os.path.join(tempfile.gettempdir(), "fw.exe")
         with pytest.raises(AnsibleFailJSonException, match="Unsupported checksum"):
-            verify_local_image_checksum(module, "/tmp/fw.exe",
+            verify_local_image_checksum(module, fake_path,
                                         {"algorithm": "bogus", "value": "abc123"})
 
     def test_missing_value(self):
         module = self._make_module()
+        fake_path = os.path.join(tempfile.gettempdir(), "fw.exe")
         with pytest.raises(AnsibleFailJSonException, match="value is required"):
-            verify_local_image_checksum(module, "/tmp/fw.exe",
+            verify_local_image_checksum(module, fake_path,
                                         {"algorithm": "sha256"})
 
     def test_file_not_found(self):
