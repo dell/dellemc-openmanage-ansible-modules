@@ -59,6 +59,10 @@ GET_IDRAC_FIRMWARE_DETAILS_URI_10 = "/redfish/v1/UpdateService/Oem/Dell/DellSoft
 GET_IDRAC_FIRMWARE_URI_10 = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
 INVALID_TIME_FORMAT_MSG = "Invalid value for time. Enter the value in positive integer."
+CERT_VALIDATION_DISABLED_WARNING = "TLS certificate validation is disabled (validate_certs=false). " \
+    "The connection is encrypted but the identity of the remote endpoint is not verified, " \
+    "which can expose credentials and session tokens to man-in-the-middle attacks. " \
+    "Set validate_certs=true and use ca_path to trust internally issued or self-signed certificates."
 
 import time
 from datetime import datetime
@@ -92,6 +96,13 @@ def strip_substr_dict(odata_dict, chkstr='@odata.', case_sensitive=False):
         if chkstr in lk:
             odata_dict.pop(k, None)
     return odata_dict
+
+
+def warn_if_cert_validation_disabled(module):
+    """Emit a module warning when TLS certificate validation is explicitly disabled."""
+    params = getattr(module, "params", None)
+    if params and params.get("validate_certs") is False:
+        module.warn(CERT_VALIDATION_DISABLED_WARNING)
 
 
 def config_ipv6(hostname):

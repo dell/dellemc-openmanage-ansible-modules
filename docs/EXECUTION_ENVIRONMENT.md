@@ -56,7 +56,7 @@ Build a image with the required Ansible collections and libraries, and then uplo
 
     **requirements.txt**
     ```yaml
-    netaddr>=0.7.19
+    netaddr>=1.3.0
     ```
 
     Note: The content of the *requirements.txt* can be found [here](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/requirements.txt)
