@@ -232,7 +232,8 @@ from urllib.error import HTTPError, URLError  # noqa: E402
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402
 from ansible.module_utils.urls import ConnectionError, SSLValidationError  # noqa: E402
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import warn_if_cert_validation_disabled  # noqa: E402
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (  # noqa: E402
+    warn_if_cert_validation_disabled, check_cert_fingerprint)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (  # noqa: E402
     iDRACRedfishAPI, idrac_auth_params,
 )
@@ -374,6 +375,7 @@ def main():
         supports_check_mode=True,
     )
     warn_if_cert_validation_disabled(module)
+    check_cert_fingerprint(module, module.params.get("idrac_ip", ""), module.params.get("idrac_port", 443))
 
     stale_threshold = module.params.get("stale_threshold_minutes")
     if stale_threshold is not None and stale_threshold <= 0:
