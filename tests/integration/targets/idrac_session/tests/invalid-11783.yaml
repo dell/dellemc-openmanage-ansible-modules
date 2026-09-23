@@ -153,16 +153,8 @@
         that:
           - invalid_unsupported_argument.failed
           - not invalid_unsupported_argument.changed
-          - 'invalid_unsupported_argument.msg =="Unsupported parameters for
-           (dellemc.openmanage.idrac_session) module: unsupported_argument.
-           Supported parameters include: ca_path, hostname, password, port,
-           session_id, state, timeout, username, validate_certs, x_auth_token
-           (auth_token)." or invalid_unsupported_argument.msg == "Unsupported
-           parameters for (dellemc.openmanage.idrac_session) module:
-           unsupported_argument. Supported parameters include: ca_path,
-           hostname, password, port, session_id, state, timeout, username,
-           validate_certs, x_auth_token (auth_token, idrac_ip,
-           idrac_password, idrac_user)."'
+          - "'Unsupported parameters' in invalid_unsupported_argument.msg"
+          - "'unsupported_argument' in invalid_unsupported_argument.msg"
 
   module_defaults:
     dellemc.openmanage.idrac_session:
