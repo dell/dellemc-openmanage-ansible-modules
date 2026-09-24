@@ -106,6 +106,10 @@ Parameters
     The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
 
 
+  use_proxy (optional, bool, True)
+    If \ :literal:`false`\ , no proxy is used, even if one is defined in an environment variable on the target host.
+
+
   timeout (optional, int, 30)
     The socket level timeout in seconds.
 
