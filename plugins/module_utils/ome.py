@@ -40,7 +40,8 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import warn_if_cert_validation_disabled, check_cert_fingerprint
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import warn_if_cert_validation_disabled, \
+    check_cert_fingerprint, warn_if_credential_from_env
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -79,6 +80,7 @@ ome_auth_params = {
     "timeout": {"type": "int", "default": 30},
     "cert_fingerprint": {"type": "str", "required": False},
     "enforce_validate_certs": {"type": "bool", "default": False},
+    "use_proxy": {"type": "bool", "default": True},
 }
 
 SESSION_RESOURCE_COLLECTION = {
@@ -122,7 +124,12 @@ class OpenURLResponse(object):
 
 
 class RestOME(object):
-    """Handles OME API requests"""
+    """Handles OME API requests.
+
+    Note on redirects: requests use follow_redirects='safe', so redirects are
+    only followed automatically for safe HTTP methods (GET/HEAD); a redirect
+    response to a POST/PUT/DELETE (which would carry credentials/session
+    headers) is not silently re-sent to a new location."""
 
     def __init__(self, module_params=None, req_session=False):
         self.module_params = module_params
@@ -134,6 +141,7 @@ class RestOME(object):
         self.validate_certs = self.module_params.get("validate_certs", True)
         self.ca_path = self.module_params.get("ca_path")
         self.timeout = self.module_params.get("timeout", 30)
+        self.use_proxy = self.module_params.get("use_proxy", True)
         self.req_session = req_session
         self.session_id = None
         self.protocol = 'https'
@@ -169,10 +177,15 @@ class RestOME(object):
             "method": method,
             "validate_certs": self.validate_certs,
             "ca_path": self.ca_path,
-            "use_proxy": True,
+            "use_proxy": self.use_proxy,
             "headers": req_header,
             "timeout": api_timeout,
-            "follow_redirects": 'all',
+            # follow_redirects='safe' follows redirects only for safe HTTP
+            # methods (e.g. GET/HEAD), and refuses to re-send a request body
+            # (with credentials/session headers) to a redirect target for
+            # unsafe methods (POST/PUT/DELETE). This limits the impact of a
+            # compromised or misconfigured OME endpoint issuing a redirect.
+            "follow_redirects": 'safe',
         }
         return url_kwargs
 
@@ -497,6 +510,7 @@ class OmeAnsibleModule(AnsibleModule):
                          required_one_of, add_file_common_args,
                          supports_check_mode, required_if, required_by)
         warn_if_cert_validation_disabled(self)
+        warn_if_credential_from_env(self, ['OME_USERNAME', 'OME_PASSWORD', 'OME_X_AUTH_TOKEN'])
         _params = getattr(self, "params", None) or {}
         check_cert_fingerprint(self, _params.get("hostname", ""),
                                _params.get("port", 443))

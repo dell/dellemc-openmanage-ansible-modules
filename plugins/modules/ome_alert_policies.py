@@ -478,7 +478,7 @@ import csv
 import os
 import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination, strip_substr_dict
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule, _escape_odata_string
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.common.dict_transformations import recursive_diff
@@ -561,7 +561,7 @@ def validate_ome_data(module, rest_obj, item_list, filter_param, return_param_tu
     if mset and next_link:
         if len(mset) < (all_item_count // dvdr):
             for item_id in mset:
-                query_param = {"$filter": f"{filter_param} eq '{item_id}'"}
+                query_param = {"$filter": f"{filter_param} eq '{_escape_odata_string(item_id)}'"}
                 resp = rest_obj.invoke_request('GET', ome_uri, query_param=query_param)
                 one_item = resp.json_data.get("value", [])
                 collector = collector | get_items_to_remove(filter_param, return_param_tuple, return_dict, one_item, mset)

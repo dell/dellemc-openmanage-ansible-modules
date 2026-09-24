@@ -138,6 +138,7 @@ import json
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import scrub_nested_secrets
 from ansible.module_utils.common.dict_transformations import recursive_diff
 
 SUCCESS_MSG = "Successfully updated the SMTP settings."
@@ -193,8 +194,7 @@ def _diff_payload(curr_resp, update_resp):
 
 
 def password_no_log(attributes):
-    if isinstance(attributes, dict) and 'password' in attributes:
-        attributes['password'] = "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
+    scrub_nested_secrets(attributes)
 
 
 def exit_module(module, **existmsg):

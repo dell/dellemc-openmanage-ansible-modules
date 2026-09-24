@@ -277,7 +277,7 @@ error_info:
 
 import json
 from ssl import SSLError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule, _escape_odata_string
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 
@@ -318,7 +318,7 @@ def get_group_id(rest_obj, module):
     group_id = module.params.get("group_id")
     if group_name is not None:
         group_resp = rest_obj.invoke_request("GET", GROUP_URI,
-                                             query_param={"$filter": "Name eq '{0}'".format(group_name)})
+                                             query_param={"$filter": "Name eq '{0}'".format(_escape_odata_string(group_name))})
         value = group_resp.json_data.get("value")
         if value:
             value = value[0]

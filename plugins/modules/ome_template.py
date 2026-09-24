@@ -549,7 +549,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
     RestOME, OmeAnsibleModule, _escape_odata_string)
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import apply_diff_key, job_tracking
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import apply_diff_key, job_tracking, \
+    scrub_nested_secrets
 
 
 TEMPLATES_URI = "TemplateService/Templates"
@@ -942,12 +943,7 @@ def _validate_inputs(module):
 
 
 def password_no_log(attributes):
-    if isinstance(attributes, dict):
-        netdict = attributes.get("NetworkBootIsoModel")
-        if isinstance(netdict, dict):
-            sharedet = netdict.get("ShareDetail")
-            if isinstance(sharedet, dict) and 'Password' in sharedet:
-                sharedet['Password'] = "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
+    scrub_nested_secrets(attributes)
 
 
 def fail_module(module, **failmsg):

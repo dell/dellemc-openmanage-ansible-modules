@@ -41,4 +41,5 @@ idrac_auth_params = {
     "timeout": {"type": "int", "default": 30},
     "cert_fingerprint": {"type": "str", "required": False},
     "enforce_validate_certs": {"type": "bool", "default": False},
+    "use_proxy": {"type": "bool", "default": True},
 }

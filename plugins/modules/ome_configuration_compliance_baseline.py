@@ -359,7 +359,7 @@ import time
 import re
 import datetime
 from ssl import SSLError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule, _escape_odata_string
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.compat.version import LooseVersion
@@ -435,7 +435,7 @@ def get_template_details(module, rest_obj):
     identifier = 'Id'
     if not template_identifier:
         template_identifier = module.params.get('template_name')
-        query_param = {"$filter": "Name eq '{0}'".format(template_identifier)}
+        query_param = {"$filter": "Name eq '{0}'".format(_escape_odata_string(template_identifier))}
         identifier = 'Name'
     resp = rest_obj.invoke_request('GET', TEMPLATE_VIEW, query_param=query_param)
     if resp.success and resp.json_data.get('value'):

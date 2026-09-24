@@ -403,7 +403,7 @@ import copy
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, OmeAnsibleModule)
+    RestOME, OmeAnsibleModule, _escape_odata_string)
 from ansible.module_utils.common.dict_transformations import recursive_diff
 
 DEVICE_URI = "DeviceService/Devices"
@@ -481,7 +481,7 @@ def get_device_details(module, rest_obj):
     if not device_id:
         device_id = module.params.get('device_service_tag')
         srch = 'Identifier'
-        query_param = {"$filter": "{0} eq '{1}'".format(srch, device_id)}
+        query_param = {"$filter": "{0} eq '{1}'".format(srch, _escape_odata_string(device_id))}
     resp = rest_obj.invoke_request('GET', DEVICE_URI, query_param=query_param)
     if resp.success and resp.json_data.get('value'):
         tlist = resp.json_data.get('value', [])

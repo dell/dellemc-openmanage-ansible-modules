@@ -104,6 +104,8 @@ class TestServerConfigProfile(FakeAnsibleModule):
         idrac_default_args.update(params['mparams'])
         mocker.patch(MODULE_PATH_COMP + "_get_server_version", return_value=16)
         mocker.patch(OPEN_KEY, mocker.mock_open())
+        mocker.patch("os.chmod")
+        mocker.patch("os.rename")
         idrac_redfish_job_tracking_mock.status_code = 202
         idrac_redfish_job_tracking_mock.success = True
         mocker.patch(MODULE_PATH + REDFISH_JOB_TRACKING,
@@ -832,6 +834,8 @@ class TestExportCustomDefaultCommand(FakeAnsibleModule):
         mocker.patch(MODULE_PATH_COMP + "get_buffer_text", return_value=self.custom_default_content)
         mocker.patch(MODULE_PATH_COMP + "idrac_custom_option", return_value=obj)
         mocker.patch(OPEN_KEY, mocker.mock_open())
+        mocker.patch("os.chmod")
+        mocker.patch("os.rename")
         f_module = self.get_module_mock(params=idrac_default_args)
         scp_obj = self.module.ExportCustomDefaultCommand(idrac_connection_server_config_profile_mock, f_module, generation=16)
         msg_resp, resp = scp_obj.execute()

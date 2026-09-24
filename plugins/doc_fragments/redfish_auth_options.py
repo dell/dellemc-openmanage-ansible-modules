@@ -78,4 +78,10 @@ options:
        enforce certificate validation as a hard requirement.
     type: bool
     default: false
+  use_proxy:
+    description:
+     - If C(false), no proxy is used, even if one is defined in an environment variable on the
+       target host.
+    type: bool
+    default: true
 '''

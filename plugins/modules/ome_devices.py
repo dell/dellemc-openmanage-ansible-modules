@@ -231,7 +231,7 @@ import json
 from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule, _escape_odata_string
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict, job_tracking
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import CHANGES_MSG, NO_CHANGES_MSG
 
@@ -274,7 +274,8 @@ def get_dev_ids(module, rest_obj, types):
         srch = 'Identifier'
     devs = []
     for st in sts:
-        resp = rest_obj.invoke_request("GET", DEVICE_URI, query_param={"$filter": param.format(srch, st)})
+        resp = rest_obj.invoke_request("GET", DEVICE_URI,
+                                       query_param={"$filter": param.format(srch, _escape_odata_string(st))})
         val = resp.json_data.get('value')
         if not val:
             invalids.add(st)

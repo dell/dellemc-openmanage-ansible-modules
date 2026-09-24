@@ -347,7 +347,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish i
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    config_ipv6, get_current_time, get_dynamic_uri, validate_and_get_first_resource_id_uri, remove_key, idrac_redfish_job_tracking)
+    config_ipv6, get_current_time, get_dynamic_uri, validate_and_get_first_resource_id_uri, remove_key,
+    idrac_redfish_job_tracking, secure_write_file)
 from datetime import datetime
 
 MANAGERS_URI = "/redfish/v1/Managers"
@@ -633,8 +634,7 @@ class ExportDiagnostics(Diagnostics):
         diagnostics_file_name = payload.get("FileName")
         diagnostics_data = self.idrac.invoke_request(diagnostics_status.headers.get("Location"), "GET")
         file_name = os.path.join(file_path, diagnostics_file_name)
-        with open(file_name, "w") as fp:
-            fp.write(diagnostics_data.body.decode().replace("\r", ""))
+        secure_write_file(file_name, lambda f: f.write(diagnostics_data.body.decode().replace("\r", "")))
         return diagnostics_status
 
     def __export_diagnostics_http(self):

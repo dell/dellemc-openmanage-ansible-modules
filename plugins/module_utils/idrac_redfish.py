@@ -37,7 +37,8 @@ from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationEr
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible.module_utils.common.parameters import env_fallback
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6, warn_if_cert_validation_disabled, check_cert_fingerprint
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6, warn_if_cert_validation_disabled, \
+    check_cert_fingerprint, warn_if_credential_from_env
 from ansible.module_utils.basic import AnsibleModule
 
 idrac_auth_params = {
@@ -50,6 +51,7 @@ idrac_auth_params = {
     "timeout": {"type": "int", "default": 30},
     "cert_fingerprint": {"type": "str", "required": False},
     "enforce_validate_certs": {"type": "bool", "default": False},
+    "use_proxy": {"type": "bool", "default": True},
 }
 
 # Minimum firmware version constants for iDRAC models
@@ -142,7 +144,12 @@ def process_scp_target(target) -> list[str]:
 
 
 class iDRACRedfishAPI(object):
-    """REST api for iDRAC modules."""
+    """REST api for iDRAC modules.
+
+    Note on redirects: requests use follow_redirects='safe', so redirects are
+    only followed automatically for safe HTTP methods (GET/HEAD); a redirect
+    response to a POST/PUT/DELETE (which would carry credentials/session
+    headers) is not silently re-sent to a new location."""
 
     def __init__(self, module_params, req_session=False):
         self.ipaddress = module_params['idrac_ip']
@@ -189,7 +196,9 @@ class iDRACRedfishAPI(object):
             "use_proxy": self.use_proxy,
             "headers": req_header,
             "timeout": api_timeout,
-            "follow_redirects": 'all',
+            # See class docstring: 'safe' avoids re-sending unsafe-method
+            # requests (with credentials) to a redirect target.
+            "follow_redirects": 'safe',
         }
         return url_kwargs
 
@@ -564,6 +573,7 @@ class IdracAnsibleModule(AnsibleModule):
                          required_one_of, add_file_common_args,
                          supports_check_mode, required_if, required_by)
         warn_if_cert_validation_disabled(self)
+        warn_if_credential_from_env(self, ['IDRAC_USERNAME', 'IDRAC_PASSWORD', 'IDRAC_X_AUTH_TOKEN'])
         _params = getattr(self, "params", None) or {}
         check_cert_fingerprint(self, _params.get("idrac_ip", "").split(":")[0],
                                _params.get("idrac_port", 443))

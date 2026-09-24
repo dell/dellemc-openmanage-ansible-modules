@@ -136,7 +136,7 @@ import json
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, OmeAnsibleModule
+    RestOME, OmeAnsibleModule, _escape_odata_string
 )
 
 NETWORK_HIERARCHY_VIEW = 4  # For Network hierarchy View in a Template
@@ -157,7 +157,7 @@ def get_template_details(module, rest_obj):
     srch = 'Id'
     if not templt_id:
         templt_id = module.params.get('template_name')
-        query_param = {"$filter": "Name eq '{0}'".format(templt_id)}
+        query_param = {"$filter": "Name eq '{0}'".format(_escape_odata_string(templt_id))}
         srch = 'Name'
     resp = rest_obj.invoke_request('GET', TEMPLATE_VIEW, query_param=query_param)
     if resp.success and resp.json_data.get('value'):
