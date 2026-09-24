@@ -48,6 +48,22 @@ options:
               no of seconds specfied in I(job_wait_time). to reduce the wait time either give
               I(job_wait_time) minimum or make I(job_wait)as false and retrigger."
         default: 3600
+    image_checksum:
+        description:
+            - Optional checksum to verify a local firmware image before uploading.
+            - When specified, the module computes the digest of the local file and fails if it does not match.
+            - Not applicable for URI-based transfers (iDRAC fetches the image directly).
+        type: dict
+        required: false
+        suboptions:
+            algorithm:
+                description: Hash algorithm to use.
+                type: str
+                default: sha256
+            value:
+                description: Expected hex digest of the firmware image.
+                type: str
+                required: true
 requirements:
     - "python >= 3.9.6"
     - "urllib3"
@@ -67,6 +83,15 @@ notes:
 
 EXAMPLES = """
 ---
+- name: Update the firmware from a single executable file available over HTTPS (recommended)
+  dellemc.openmanage.redfish_firmware:
+    baseuri: "192.168.0.1"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    image_uri: "https://192.168.0.2/firmware_repo/component.exe"
+    transfer_protocol: "HTTPS"
+
 - name: Update the firmware from a single executable file available in a HTTP protocol
   dellemc.openmanage.redfish_firmware:
     baseuri: "192.168.0.1"
@@ -94,6 +119,17 @@ EXAMPLES = """
     password: "user_password"
     ca_path: "/path/to/ca_cert.pem"
     image_uri: "/home/firmware_repo/component.exe"
+
+- name: Update the firmware from a local file, verifying its checksum before upload
+  dellemc.openmanage.redfish_firmware:
+    baseuri: "192.168.0.1"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    image_uri: "/home/firmware_repo/component.exe"
+    image_checksum:
+      algorithm: "sha256"
+      value: "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
 """
 
 RETURN = """
@@ -145,6 +181,8 @@ import os
 import time
 from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
+    warn_if_insecure_firmware_transfer, verify_local_image_checksum)
 from ansible.module_utils.basic import missing_required_lib
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -213,11 +251,13 @@ def firmware_update(obj, module):
     generation = gen_details[0]
     image_path = module.params.get("image_uri")
     trans_proto = module.params["transfer_protocol"]
+    warn_if_insecure_firmware_transfer(module, image_path, trans_proto)
     inventory_uri, push_uri, update_uri = _get_update_service_target(obj, module, generation)
     if image_path.startswith("http"):
         payload = {"ImageURI": image_path, "TransferProtocol": trans_proto}
         update_status = obj.invoke_request("POST", update_uri, data=payload)
     else:
+        verify_local_image_checksum(module, image_path, module.params.get("image_checksum"))
         payload_file_header = FILE_PAYLOAD_HEADER
         headers = {}
         if generation <= 16:
@@ -282,7 +322,14 @@ def main():
         "image_uri": {"required": True, "type": "str"},
         "transfer_protocol": {"type": "str", "default": "HTTP", "choices": ["CIFS", "FTP", "HTTP", "HTTPS", "NSF", "OEM", "SCP", "SFTP", "TFTP"]},
         "job_wait": {"required": False, "type": 'bool', "default": True},
-        "job_wait_timeout": {"required": False, "type": "int", "default": 3600}
+        "job_wait_timeout": {"required": False, "type": "int", "default": 3600},
+        "image_checksum": {
+            "required": False, "type": "dict",
+            "options": {
+                "algorithm": {"type": "str", "default": "sha256"},
+                "value": {"type": "str", "required": True},
+            },
+        },
     }
 
     module = RedfishAnsibleModule(

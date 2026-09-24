@@ -320,7 +320,8 @@ import time
 from ansible.module_utils.common.dict_transformations import recursive_diff
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import warn_if_cert_validation_disabled
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
+    warn_if_cert_validation_disabled, check_cert_fingerprint)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible.module_utils.basic import AnsibleModule
@@ -951,6 +952,7 @@ def main():
                      ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]],
         supports_check_mode=True)
     warn_if_cert_validation_disabled(module)
+    check_cert_fingerprint(module, module.params.get("idrac_ip", ""), module.params.get("idrac_port", 443))
     validate_negative_job_time_out(module)
     boot_sources = module.params.get("boot_sources")
     if boot_sources:

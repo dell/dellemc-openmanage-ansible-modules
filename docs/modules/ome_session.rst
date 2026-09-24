@@ -83,6 +83,20 @@ Parameters
     \ :emphasis:`session\_id`\  is required when \ :emphasis:`state`\  is \ :literal:`absent`\ .
 
 
+  enforce_no_log (optional, bool, False)
+    If \ :literal:`true`\ , the module will fail with an error when \ :emphasis:`state`\  is \ :literal:`present`\  and the task was not invoked with \ :literal:`no\_log=true`\ . This prevents accidental token exposure in job logs.
+
+
+  cert_fingerprint (optional, str, None)
+    SHA-256 fingerprint of the expected TLS certificate (hex digest, with or without colons).
+
+    When supplied together with \ :literal:`validate\_certs=false`\ , the module verifies the remote certificate's fingerprint instead of performing full CA validation.
+
+
+  enforce_validate_certs (optional, bool, False)
+    If \ :literal:`true`\  and \ :literal:`validate\_certs`\  is \ :literal:`false`\ , the module will fail with an error instead of just emitting a warning.
+
+
 
 
 

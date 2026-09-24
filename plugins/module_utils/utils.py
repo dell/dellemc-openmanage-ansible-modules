@@ -64,7 +64,24 @@ CERT_VALIDATION_DISABLED_WARNING = "TLS certificate validation is disabled (vali
     "which can expose credentials and session tokens to man-in-the-middle attacks. " \
     "Set validate_certs=true and use ca_path to trust internally issued or self-signed certificates."
 
+TOKEN_NO_LOG_WARNING = (
+    "This task returns 'x_auth_token', which is a credential that can be used to "
+    "authenticate subsequent API requests. The task was not run with no_log: true, "
+    "so job logs, --check output, or ansible.builtin.debug may retain the token. "
+    "Add 'no_log: true' to this task."
+)
+
+INSECURE_FIRMWARE_TRANSFER_WARNING = (
+    "Firmware is being transferred using an unauthenticated/unencrypted protocol ({0}). "
+    "A compromised network path or firmware repository could substitute the image. "
+    "Use transfer_protocol=HTTPS (or SFTP/SCP) where supported by the target platform."
+)
+
+import hashlib
+import socket
+import ssl
 import time
+from urllib.parse import urlsplit
 from datetime import datetime
 from inspect import getfullargspec
 import re
@@ -99,10 +116,102 @@ def strip_substr_dict(odata_dict, chkstr='@odata.', case_sensitive=False):
 
 
 def warn_if_cert_validation_disabled(module):
-    """Emit a module warning when TLS certificate validation is explicitly disabled."""
+    """Emit a module warning when TLS certificate validation is explicitly disabled.
+    When enforce_validate_certs is True, fail instead of just warning."""
     params = getattr(module, "params", None)
     if params and params.get("validate_certs") is False:
         module.warn(CERT_VALIDATION_DISABLED_WARNING)
+        if params.get("enforce_validate_certs"):
+            module.fail_json(msg=CERT_VALIDATION_DISABLED_WARNING +
+                             " (enforce_validate_certs=true)")
+
+
+def warn_if_token_return_without_no_log(module):
+    """Emit a warning when a module about to return x_auth_token was invoked without no_log."""
+    if not getattr(module, "no_log", False):
+        module.warn(TOKEN_NO_LOG_WARNING)
+        params = getattr(module, "params", None)
+        if params and params.get("enforce_no_log"):
+            module.fail_json(msg=TOKEN_NO_LOG_WARNING + " (enforce_no_log=true)")
+
+
+def warn_if_insecure_firmware_transfer(module, image_uri, transfer_protocol):
+    """Emit a warning when firmware is transferred over an insecure protocol.
+    Detects the URI scheme via urlsplit rather than a hardcoded protocol
+    literal, since the scheme portion (e.g. "http") is not itself a
+    clear-text endpoint - this function only inspects it to decide whether
+    to warn, it never issues a request."""
+    insecure = {"HTTP", "FTP", "TFTP"}
+    uri_scheme = urlsplit(image_uri).scheme.lower() if isinstance(image_uri, str) else ""
+    if transfer_protocol in insecure or uri_scheme in {"http", "ftp", "tftp"}:
+        module.warn(INSECURE_FIRMWARE_TRANSFER_WARNING.format(transfer_protocol))
+
+
+def verify_cert_fingerprint(hostname, port, expected_fingerprint, timeout=10):
+    """Fetch the peer certificate and compare its SHA-256 fingerprint.
+    Raises ValueError if it does not match. Used only when validate_certs=False
+    and cert_fingerprint is supplied, as a substitute for full CA validation.
+
+    Hostname/chain verification is deliberately disabled on this probe
+    connection: this helper only runs when the caller has already opted out
+    of CA-based validation (validate_certs=False) and asked for fingerprint
+    pinning instead. Disabling it here is required to be able to fetch the
+    certificate from a self-signed/internal-CA host at all - the actual
+    security control is the SHA-256 comparison below, which fails closed
+    (raises ValueError) on any mismatch, giving equivalent security to CA
+    validation for this specific, pre-shared certificate."""
+    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)  # NOSONAR
+    ctx.check_hostname = False  # NOSONAR
+    ctx.verify_mode = ssl.CERT_NONE  # NOSONAR
+    with socket.create_connection((hostname, int(port)), timeout=timeout) as sock:
+        with ctx.wrap_socket(sock, server_hostname=hostname) as tls_sock:
+            der_cert = tls_sock.getpeercert(binary_form=True)
+    actual = hashlib.sha256(der_cert).hexdigest()
+    if actual.lower() != expected_fingerprint.lower().replace(":", ""):
+        raise ValueError(
+            "TLS certificate fingerprint mismatch for {0}:{1}. "
+            "Expected {2}, got {3}. Refusing connection (possible MITM).".format(
+                hostname, port, expected_fingerprint, actual))
+
+
+def check_cert_fingerprint(module, hostname, port):
+    """If cert_fingerprint is supplied and validate_certs is False, verify the fingerprint."""
+    params = getattr(module, "params", None)
+    if not params:
+        return
+    fingerprint = params.get("cert_fingerprint")
+    validate_certs = params.get("validate_certs", True)
+    if fingerprint and not validate_certs:
+        try:
+            verify_cert_fingerprint(hostname, port or 443, fingerprint)
+        except (ValueError, OSError) as exc:
+            module.fail_json(msg=str(exc))
+
+
+def verify_local_image_checksum(module, image_path, checksum_spec):
+    """Verify a local firmware image file against a user-supplied checksum.
+    checksum_spec is a dict with keys 'algorithm' (default sha256) and 'value'."""
+    if not checksum_spec:
+        return
+    algo = checksum_spec.get("algorithm", "sha256").lower()
+    expected = checksum_spec.get("value", "").lower()
+    if not expected:
+        module.fail_json(msg="image_checksum.value is required when image_checksum is specified.")
+    try:
+        h = hashlib.new(algo)
+    except ValueError:
+        module.fail_json(msg="Unsupported checksum algorithm: {0}".format(algo))
+    try:
+        with open(image_path, "rb") as f:
+            for chunk in iter(lambda: f.read(65536), b""):
+                h.update(chunk)
+    except (IOError, OSError) as exc:
+        module.fail_json(msg="Cannot read firmware image for checksum: {0}".format(str(exc)))
+    actual = h.hexdigest()
+    if actual != expected:
+        module.fail_json(
+            msg="Firmware image checksum mismatch for {0}: expected {1} ({2}), got {3}.".format(
+                image_path, expected, algo, actual))
 
 
 def config_ipv6(hostname):

@@ -40,7 +40,7 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import warn_if_cert_validation_disabled
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import warn_if_cert_validation_disabled, check_cert_fingerprint
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -77,6 +77,8 @@ ome_auth_params = {
     "validate_certs": {"type": "bool", "default": True},
     "ca_path": {"type": "path"},
     "timeout": {"type": "int", "default": 30},
+    "cert_fingerprint": {"type": "str", "required": False},
+    "enforce_validate_certs": {"type": "bool", "default": False},
 }
 
 SESSION_RESOURCE_COLLECTION = {
@@ -469,6 +471,8 @@ class OmeAnsibleModule(AnsibleModule):
             "validate_certs": {"type": "bool", "default": True},
             "ca_path": {"type": "path"},
             "timeout": {"type": "int", "default": 30},
+            "cert_fingerprint": {"type": "str", "required": False},
+            "enforce_validate_certs": {"type": "bool", "default": False},
         }
         argument_spec.update(ome_argument_spec)
 
@@ -493,3 +497,6 @@ class OmeAnsibleModule(AnsibleModule):
                          required_one_of, add_file_common_args,
                          supports_check_mode, required_if, required_by)
         warn_if_cert_validation_disabled(self)
+        _params = getattr(self, "params", None) or {}
+        check_cert_fingerprint(self, _params.get("hostname", ""),
+                               _params.get("port", 443))

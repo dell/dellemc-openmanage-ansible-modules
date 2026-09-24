@@ -33,7 +33,7 @@ __metaclass__ = type
 from ansible_collections.dellemc.openmanage.plugins.module_utils.rest_api import RestAPI
 from ansible.module_utils.common.parameters import env_fallback
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import warn_if_cert_validation_disabled
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import warn_if_cert_validation_disabled, check_cert_fingerprint
 
 root_omevv_uri = "/omevv/GatewayService/v1"
 
@@ -88,7 +88,9 @@ class OMEVVAnsibleModule(AnsibleModule):
             "port": {"default": 443, "type": "int"},
             "validate_certs": {"default": True, "type": "bool"},
             "ca_path": {"type": "path"},
-            "timeout": {"default": 30, "type": "int"}
+            "timeout": {"default": 30, "type": "int"},
+            "cert_fingerprint": {"type": "str", "required": False},
+            "enforce_validate_certs": {"type": "bool", "default": False},
         }
         argument_spec.update(omevv_argument_spec)
         if uuid_required:
@@ -110,3 +112,6 @@ class OMEVVAnsibleModule(AnsibleModule):
                          required_one_of, add_file_common_args,
                          supports_check_mode, required_if, required_by)
         warn_if_cert_validation_disabled(self)
+        _params = getattr(self, "params", None) or {}
+        check_cert_fingerprint(self, _params.get("hostname", ""),
+                               _params.get("port", 443))

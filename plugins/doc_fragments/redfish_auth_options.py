@@ -61,4 +61,21 @@ options:
     type: int
     default: 30
     version_added: 5.0.0
+  cert_fingerprint:
+    description:
+     - SHA-256 fingerprint of the expected TLS certificate (hex digest, with or without colons).
+     - When supplied together with C(validate_certs=false), the module verifies the remote
+       certificate's fingerprint instead of performing full CA validation. This allows secure
+       connections to hosts with self-signed certificates without trusting any arbitrary certificate.
+     - Obtain the fingerprint with C(openssl s_client -connect <host>:<port> </dev/null 2>/dev/null
+       | openssl x509 -noout -fingerprint -sha256).
+    type: str
+    required: false
+  enforce_validate_certs:
+    description:
+     - If C(true) and C(validate_certs) is C(false), the module will fail with an error instead
+       of just emitting a warning. Use this in CI/CD pipelines or production inventories to
+       enforce certificate validation as a hard requirement.
+    type: bool
+    default: false
 '''
