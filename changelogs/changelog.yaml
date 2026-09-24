@@ -2626,6 +2626,19 @@ releases:
           and idrac_network_info.'
         - 'Added BIOS registry info module: idrac_bios_registry_info.'
         - 'Added session info module: idrac_session_info.'
+      security_changes:
+        - Added enforce_no_log parameter to idrac_session and ome_session modules to
+          enforce token protection in CI/CD pipelines (EE-01 Tier 2).
+        - Added cert_fingerprint parameter to all auth specs to enable certificate
+          fingerprint pinning for self-signed certificates (NET-01 Tier 2).
+        - Added enforce_validate_certs parameter to all auth specs to enforce TLS
+          validation in CI/CD pipelines (NET-01 Tier 1).
+        - Added image_checksum parameter to redfish_firmware module to verify firmware
+          image integrity before upload (INJ-02 Tier 2).
+        - Added warning when firmware is transferred over insecure protocols (HTTP/FTP/TFTP)
+          (INJ-02 Tier 1).
+        - Added automatic detection and warning when session modules return x_auth_token
+          without no_log enabled (EE-01 Tier 1).
       minor_changes:
         - Enhanced idrac_firmware module with improved error handling and cleanup.
         - Enhanced idrac_lifecycle_controller_jobs module with improved job tracking.
