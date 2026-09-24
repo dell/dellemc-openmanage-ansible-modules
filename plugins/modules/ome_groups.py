@@ -196,7 +196,7 @@ import time
 from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule, _escape_odata_string
 
 GROUP_URI = "GroupService/Groups"
 OP_URI = "GroupService/Actions/GroupService.{op}Group"
@@ -296,7 +296,7 @@ def get_parent_id(rest_obj, module, parent, static_root):
 def get_ome_group_by_name(rest_obj, name):
     grp = {}
     try:
-        resp = rest_obj.invoke_request("GET", GROUP_URI, query_param={"$filter": "Name eq '{0}'".format(name)})
+        resp = rest_obj.invoke_request("GET", GROUP_URI, query_param={"$filter": "Name eq '{0}'".format(_escape_odata_string(name))})
         group_resp = resp.json_data.get('value')
         if group_resp:
             grp = group_resp[0]

@@ -77,7 +77,21 @@ INSECURE_FIRMWARE_TRANSFER_WARNING = (
     "Use transfer_protocol=HTTPS (or SFTP/SCP) where supported by the target platform."
 )
 
+CREDENTIAL_FROM_ENV_WARNING = (
+    "A credential for this task was sourced from an environment variable. "
+    "Environment variables can be captured in CI/AAP job artifacts (e.g. env.list) "
+    "and are visible to other processes on the same host. "
+    "Prefer Ansible Vault or an external credential store for production use."
+)
+
+SENSITIVE_KEYS = {"password", "Password", "passwd", "secret", "Secret", "token", "Token",
+                  "community_string", "CommunityString", "auth_pass", "priv_pass",
+                  "SharePassword", "sharePassword"}
+
+SECRET_PLACEHOLDER = "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
+
 import hashlib
+import os
 import socket
 import ssl
 import time
@@ -212,6 +226,50 @@ def verify_local_image_checksum(module, image_path, checksum_spec):
         module.fail_json(
             msg="Firmware image checksum mismatch for {0}: expected {1} ({2}), got {3}.".format(
                 image_path, expected, algo, actual))
+
+
+def scrub_nested_secrets(data, sensitive_keys=None, placeholder=SECRET_PLACEHOLDER):
+    """Recursively replace known-sensitive keys in a dict/list structure in place.
+    Used to prevent secrets nested inside free-form dict/list module parameters
+    (e.g. 'attributes', 'share_parameters') from being echoed back verbatim in
+    module return values, which bypasses the top-level no_log protection."""
+    if sensitive_keys is None:
+        sensitive_keys = SENSITIVE_KEYS
+    if isinstance(data, dict):
+        for key in list(data.keys()):
+            if key in sensitive_keys and isinstance(data[key], str):
+                data[key] = placeholder
+            else:
+                scrub_nested_secrets(data[key], sensitive_keys, placeholder)
+    elif isinstance(data, list):
+        for item in data:
+            scrub_nested_secrets(item, sensitive_keys, placeholder)
+    return data
+
+
+def warn_if_credential_from_env(module, env_var_names):
+    """Warn if any of the given env vars are actually set (meaning env_fallback was used
+    to source a credential for this task), rather than the credential being passed
+    explicitly via the play (e.g. from Ansible Vault)."""
+    if any(os.environ.get(name) for name in env_var_names):
+        module.warn(CREDENTIAL_FROM_ENV_WARNING)
+
+
+def secure_write_file(export_path, write_callable, mode=0o600, binary=False):
+    """Write to a temp file, chmod it to restrictive permissions, then atomically
+    rename into place. write_callable receives an open file handle in 'w'/'wb' mode.
+    Ensures sensitive exported artifacts (logs, support-assist bundles, SCP files,
+    license files) are never briefly world/group readable on disk."""
+    temp_path = "{0}.tmp".format(export_path)
+    try:
+        with open(temp_path, 'wb' if binary else 'w') as f:
+            write_callable(f)
+        os.chmod(temp_path, mode)
+        os.rename(temp_path, export_path)
+    except Exception:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        raise
 
 
 def config_ipv6(hostname):

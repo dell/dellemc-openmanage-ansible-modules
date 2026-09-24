@@ -36,7 +36,8 @@ from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationEr
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible.module_utils.common.parameters import env_fallback
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6, warn_if_cert_validation_disabled, check_cert_fingerprint
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6, warn_if_cert_validation_disabled, \
+    check_cert_fingerprint, warn_if_credential_from_env
 from ansible.module_utils.basic import AnsibleModule
 
 redfish_auth_params = {
@@ -48,6 +49,7 @@ redfish_auth_params = {
     "timeout": {"type": "int", "default": 30},
     "cert_fingerprint": {"type": "str", "required": False},
     "enforce_validate_certs": {"type": "bool", "default": False},
+    "use_proxy": {"type": "bool", "default": True},
 }
 
 SESSION_RESOURCE_COLLECTION = {
@@ -95,7 +97,12 @@ class OpenURLResponse(object):
 
 
 class Redfish(object):
-    """Handles iDRAC Redfish API requests"""
+    """Handles iDRAC Redfish API requests.
+
+    Note on redirects: requests use follow_redirects='safe', so redirects are
+    only followed automatically for safe HTTP methods (GET/HEAD); a redirect
+    response to a POST/PUT/DELETE (which would carry credentials/session
+    headers) is not silently re-sent to a new location."""
 
     def __init__(self, module_params=None, req_session=False):
         self.module_params = module_params
@@ -134,7 +141,9 @@ class Redfish(object):
             "use_proxy": self.use_proxy,
             "headers": req_header,
             "timeout": api_timeout,
-            "follow_redirects": 'all',
+            # See class docstring: 'safe' avoids re-sending unsafe-method
+            # requests (with credentials) to a redirect target.
+            "follow_redirects": 'safe',
         }
         return url_kwargs
 
@@ -292,6 +301,7 @@ class RedfishAnsibleModule(AnsibleModule):
                          required_one_of, add_file_common_args,
                          supports_check_mode, required_if, required_by)
         warn_if_cert_validation_disabled(self)
+        warn_if_credential_from_env(self, ['IDRAC_USERNAME', 'IDRAC_PASSWORD', 'IDRAC_X_AUTH_TOKEN'])
         _params = getattr(self, "params", None) or {}
         _baseuri = _params.get("baseuri", "")
         check_cert_fingerprint(self, _baseuri.split(":")[0],

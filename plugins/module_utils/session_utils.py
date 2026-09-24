@@ -121,6 +121,11 @@ class OpenURLResponse():
 class SessionAPI():
     """
     Main class for session operations.
+
+    Note on redirects: requests use follow_redirects='safe', so redirects are
+    only followed automatically for safe HTTP methods (GET/HEAD); a redirect
+    response to a POST/PUT/DELETE (which would carry credentials/session
+    headers) is not silently re-sent to a new location.
     """
     def __init__(self, module_params):
         """
@@ -258,7 +263,9 @@ class SessionAPI():
             "use_proxy": self.use_proxy,
             "headers": req_header,
             "timeout": api_timeout,
-            "follow_redirects": 'all'
+            # See class docstring: 'safe' avoids re-sending unsafe-method
+            # requests (with credentials) to a redirect target.
+            "follow_redirects": 'safe'
         }
         if url_kwargs:
             url_params.update(url_kwargs)

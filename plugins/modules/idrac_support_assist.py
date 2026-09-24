@@ -327,7 +327,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish i
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_dynamic_uri, validate_and_get_first_resource_id_uri, remove_key, idrac_redfish_job_tracking)
+    get_dynamic_uri, validate_and_get_first_resource_id_uri, remove_key, idrac_redfish_job_tracking,
+    secure_write_file)
 
 MANAGERS_URI = "/redfish/v1/Managers"
 
@@ -696,8 +697,7 @@ class RunSupportAssist(SupportAssist):
                 headers={"Content-Type": "application/x-tar"},
                 api_timeout=200)
             if file_dnld.status_code == 200:
-                with open(file_name, "wb") as file:
-                    file.write(file_dnld.body)
+                secure_write_file(file_name, lambda f: f.write(file_dnld.body), binary=True)
 
     def expand_ipv6(self, ip):
         sections = ip.split(':')

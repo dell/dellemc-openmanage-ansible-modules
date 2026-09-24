@@ -375,7 +375,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish i
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_dynamic_uri, get_manager_res_id,
-    validate_and_get_first_resource_id_uri, remove_key, idrac_redfish_job_tracking)
+    validate_and_get_first_resource_id_uri, remove_key, idrac_redfish_job_tracking,
+    secure_write_file)
 
 REDFISH = "/redfish/v1"
 MANAGERS_URI = "/redfish/v1/Managers"
@@ -621,8 +622,7 @@ class ExportLicense(License):
         license_data = license_status.body
         license_file = license_data.decode("utf-8")
         file_name = os.path.join(path, license_file_name)
-        with open(file_name, "w") as fp:
-            fp.write(license_file)
+        secure_write_file(file_name, lambda f: f.write(license_file))
         return license_status
 
     def __export_license_http(self, export_license_url):

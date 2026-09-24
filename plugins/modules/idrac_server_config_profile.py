@@ -582,7 +582,7 @@ except ImportError:
 from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking, \
-    strip_substr_dict, get_idrac_firmware_version, get_dynamic_uri, validate_job_wait
+    strip_substr_dict, get_idrac_firmware_version, get_dynamic_uri, validate_job_wait, secure_write_file
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.parse import urlparse
@@ -812,12 +812,14 @@ def export_scp_redfish(module, idrac):
 def wait_for_response(scp_resp, module, share, idrac):
     task_uri = scp_resp.headers["Location"]
     wait_resp = idrac.wait_for_job_complete(task_uri, job_wait=True)
-    with open("{0}/{1}".format(share["share_name"], share["file_name"]), "w") as file_obj:
+
+    def _write_scp_response(file_obj):
         if module.params["export_format"] == "JSON":
             json.dump(wait_resp.json_data, file_obj, indent=4)
         else:
-            wait_resp_value = wait_resp.decode("utf-8")
-            file_obj.write(wait_resp_value)
+            file_obj.write(wait_resp.decode("utf-8"))
+
+    secure_write_file("{0}/{1}".format(share["share_name"], share["file_name"]), _write_scp_response)
     return scp_resp
 
 
@@ -1080,8 +1082,8 @@ def export_custom_defaults(module, idrac):
     if share["share_type"] == "LOCAL":
         if isinstance(idrac_resp_cds, bytes):
             idrac_resp_cds = idrac_resp_cds.decode('utf-8')
-        with open("{0}/{1}".format(share["share_name"], share["file_name"]), "w") as file_obj:
-            file_obj.write(idrac_resp_cds)
+        secure_write_file("{0}/{1}".format(share["share_name"], share["file_name"]),
+                          lambda f: f.write(idrac_resp_cds))
     res = get_file(module.params, res, _scp_file_name_format)
     return res
 

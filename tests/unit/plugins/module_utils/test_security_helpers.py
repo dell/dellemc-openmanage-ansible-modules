@@ -22,8 +22,13 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     verify_cert_fingerprint,
     check_cert_fingerprint,
     verify_local_image_checksum,
+    scrub_nested_secrets,
+    warn_if_credential_from_env,
+    secure_write_file,
     CERT_VALIDATION_DISABLED_WARNING,
     TOKEN_NO_LOG_WARNING,
+    CREDENTIAL_FROM_ENV_WARNING,
+    SECRET_PLACEHOLDER,
 )
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import AnsibleFailJSonException
 
@@ -328,3 +333,151 @@ class TestCheckCertFingerprintModuleCoverage:
             "{0} merges idrac_auth_params into a plain AnsibleModule but does not "
             "call check_cert_fingerprint(); users setting cert_fingerprint on this "
             "module would get no MITM verification.".format(filename))
+
+
+class TestScrubNestedSecrets:
+    """Tests for EE-02: scrub_nested_secrets recursively masks known-sensitive
+    keys inside free-form dict/list module parameters before they can be
+    echoed back in exit_json()/fail_json() output."""
+
+    def test_top_level_password_scrubbed(self):
+        data = {"username": "admin", "password": "supersecret"}
+        result = scrub_nested_secrets(data)
+        assert result["password"] == SECRET_PLACEHOLDER
+        assert result["username"] == "admin"
+
+    def test_nested_password_scrubbed_regardless_of_depth(self):
+        data = {
+            "NetworkBootIsoModel": {
+                "ShareDetail": {"Password": "supersecret", "UserName": "admin"}
+            }
+        }
+        result = scrub_nested_secrets(data)
+        assert result["NetworkBootIsoModel"]["ShareDetail"]["Password"] == SECRET_PLACEHOLDER
+        assert result["NetworkBootIsoModel"]["ShareDetail"]["UserName"] == "admin"
+
+    def test_secrets_inside_list_of_dicts_scrubbed(self):
+        data = {"credentials": [{"token": "abc123"}, {"token": "def456"}]}
+        result = scrub_nested_secrets(data)
+        assert result["credentials"][0]["token"] == SECRET_PLACEHOLDER
+        assert result["credentials"][1]["token"] == SECRET_PLACEHOLDER
+
+    def test_non_dict_input_returned_unchanged(self):
+        assert scrub_nested_secrets(None) is None
+        assert scrub_nested_secrets("a string") == "a string"
+
+    def test_non_string_secret_value_left_untouched(self):
+        # Guard against crashing/mangling if a "password" key ever holds
+        # something other than a string (e.g. None from an optional field).
+        data = {"password": None}
+        result = scrub_nested_secrets(data)
+        assert result["password"] is None
+
+    def test_custom_sensitive_keys_and_placeholder(self):
+        data = {"my_secret_field": "hunter2"}
+        result = scrub_nested_secrets(data, sensitive_keys={"my_secret_field"}, placeholder="***")
+        assert result["my_secret_field"] == "***"
+
+
+class TestWarnIfCredentialFromEnv:
+    """Tests for EE-03: warn_if_credential_from_env warns only when the
+    relevant environment variable is actually set (i.e. env_fallback was
+    used to source a credential for this task)."""
+
+    def _make_module(self):
+        module = MagicMock()
+        return module
+
+    def test_no_warning_when_env_vars_unset(self, monkeypatch):
+        monkeypatch.delenv("OME_USERNAME", raising=False)
+        monkeypatch.delenv("OME_PASSWORD", raising=False)
+        module = self._make_module()
+        warn_if_credential_from_env(module, ["OME_USERNAME", "OME_PASSWORD"])
+        module.warn.assert_not_called()
+
+    def test_warning_when_one_env_var_set(self, monkeypatch):
+        monkeypatch.setenv("OME_PASSWORD", "supersecret")
+        monkeypatch.delenv("OME_USERNAME", raising=False)
+        module = self._make_module()
+        warn_if_credential_from_env(module, ["OME_USERNAME", "OME_PASSWORD"])
+        module.warn.assert_called_once_with(CREDENTIAL_FROM_ENV_WARNING)
+
+    def test_no_warning_for_unrelated_env_vars(self, monkeypatch):
+        monkeypatch.setenv("SOME_UNRELATED_VAR", "value")
+        module = self._make_module()
+        warn_if_credential_from_env(module, ["OME_USERNAME", "OME_PASSWORD"])
+        module.warn.assert_not_called()
+
+
+class TestSecureWriteFile:
+    """Tests for FS-01: secure_write_file writes via a temp file, chmods it to
+    0o600, then atomically renames it into place - regardless of process umask."""
+
+    def test_writes_content_and_sets_restrictive_permissions(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            export_path = os.path.join(tmp_dir, "export.txt")
+            old_umask = os.umask(0o022)
+            try:
+                secure_write_file(export_path, lambda f: f.write("hello world"))
+            finally:
+                os.umask(old_umask)
+            assert os.path.exists(export_path)
+            assert not os.path.exists(export_path + ".tmp")
+            with open(export_path, "r") as f:
+                assert f.read() == "hello world"
+            mode = os.stat(export_path).st_mode & 0o777
+            assert mode == 0o600
+
+    def test_binary_write(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            export_path = os.path.join(tmp_dir, "export.bin")
+            secure_write_file(export_path, lambda f: f.write(b"\x00\x01\x02"), binary=True)
+            with open(export_path, "rb") as f:
+                assert f.read() == b"\x00\x01\x02"
+
+    def test_temp_file_cleaned_up_on_write_failure(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            export_path = os.path.join(tmp_dir, "export.txt")
+
+            def failing_write(f):
+                f.write("partial")
+                raise ValueError("simulated failure")
+
+            with pytest.raises(ValueError):
+                secure_write_file(export_path, failing_write)
+            assert not os.path.exists(export_path)
+            assert not os.path.exists(export_path + ".tmp")
+
+
+class TestOdataFilterEscapeCoverage:
+    """Regression guard for INJ-01: modules that build an OData $filter clause
+    by interpolating a user-supplied value into a single-quoted string literal
+    must escape it via _escape_odata_string(), or a value containing a single
+    quote can widen/manipulate the query. If a new unescaped call site is
+    introduced, this test will fail and flag the gap."""
+
+    FILTER_BUILDING_MODULES = [
+        "ome_groups.py",
+        "ome_device_group.py",
+        "ome_template_network_vlan_info.py",
+        "ome_template_network_vlan.py",
+        "ome_template_identity_pool.py",
+        "ome_configuration_compliance_baseline.py",
+        "ome_device_mgmt_network.py",
+        "ome_devices.py",
+        "ome_alert_policies.py",
+    ]
+
+    def _modules_dir(self):
+        import ansible_collections.dellemc.openmanage.plugins.modules as modules_pkg
+        return os.path.dirname(modules_pkg.__file__)
+
+    @pytest.mark.parametrize("filename", FILTER_BUILDING_MODULES)
+    def test_module_imports_escape_helper(self, filename):
+        module_path = os.path.join(self._modules_dir(), filename)
+        with open(module_path, "r", encoding="utf-8") as f:
+            source = f.read()
+        assert "_escape_odata_string" in source, (
+            "{0} builds an OData $filter clause with a quoted string value but "
+            "does not import/use _escape_odata_string(); a value containing a "
+            "single quote could manipulate the query.".format(filename))

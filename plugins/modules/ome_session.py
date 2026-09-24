@@ -96,6 +96,12 @@ options:
        of just emitting a warning.
     type: bool
     default: false
+  use_proxy:
+    description:
+     - If C(false), no proxy is used, even if one is defined in an environment variable on the
+       target host.
+    type: bool
+    default: true
 requirements:
   - "python >= 3.9.6"
 author:
@@ -437,6 +443,7 @@ def get_argument_spec():
         "enforce_no_log": {"type": "bool", "default": False},
         "cert_fingerprint": {"type": "str", "required": False},
         "enforce_validate_certs": {"type": "bool", "default": False},
+        "use_proxy": {"type": "bool", "default": True},
     }
 
 

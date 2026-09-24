@@ -153,6 +153,7 @@ user_status:
 import json
 from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import scrub_nested_secrets
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -206,8 +207,7 @@ def _get_resource_parameters(module, rest_obj):
 
 
 def password_no_log(attributes):
-    if isinstance(attributes, dict) and 'Password' in attributes:
-        attributes['Password'] = "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
+    scrub_nested_secrets(attributes)
 
 
 def fail_module(module, **failmsg):

@@ -91,7 +91,7 @@ error_info:
   }
 '''
 
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule, _escape_odata_string
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ssl import SSLError
@@ -125,7 +125,7 @@ def get_template_vlan_info(rest_obj, template_id):
 def get_template_id(rest_obj, module):
     """Get template id based on requested template name."""
     template_name = module.params["template_name"]
-    query_param = {"$filter": "Name eq '{0}'".format(template_name)}
+    query_param = {"$filter": "Name eq '{0}'".format(_escape_odata_string(template_name))}
     template_req = rest_obj.invoke_request("GET", TEMPLATE_URI, query_param=query_param)
     for each in template_req.json_data.get('value'):
         if each['Name'] == template_name:

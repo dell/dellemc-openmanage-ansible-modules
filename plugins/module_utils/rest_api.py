@@ -86,6 +86,11 @@ class OpenURLResponse(object):
 
 
 class RestAPI:
+    """Note on redirects: requests use follow_redirects='safe', so redirects are
+    only followed automatically for safe HTTP methods (GET/HEAD); a redirect
+    response to a POST/PUT/DELETE (which would carry credentials/session
+    headers) is not silently re-sent to a new location."""
+
     def __init__(self, root_uri, module_params, req_session=False,
                  protocol="https", basic_headers=None):
         self.hostname = config_ipv6(str(module_params.get("hostname", "")).strip(']['))
@@ -95,6 +100,7 @@ class RestAPI:
         self.validate_certs = module_params.get("validate_certs")
         self.ca_path = module_params.get("ca_path")
         self.timeout = module_params.get("timeout")
+        self.use_proxy = module_params.get("use_proxy", True)
         self.req_session = req_session
         self.session_id = None
         self.protocol = protocol
@@ -123,10 +129,12 @@ class RestAPI:
             "method": method,
             "validate_certs": self.validate_certs,
             "ca_path": self.ca_path or self._get_omam_ca_env(),
-            "use_proxy": True,
+            "use_proxy": self.use_proxy,
             "headers": self._headers,
             "timeout": api_timeout or self.timeout,
-            "follow_redirects": 'all',
+            # See class docstring: 'safe' avoids re-sending unsafe-method
+            # requests (with credentials) to a redirect target.
+            "follow_redirects": 'safe',
         }
 
     def _args_without_session(self, method, api_timeout, headers=None):
