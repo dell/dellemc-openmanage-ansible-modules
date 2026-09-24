@@ -39,4 +39,6 @@ idrac_auth_params = {
     "validate_certs": {"type": "bool", "default": True},
     "ca_path": {"type": "path"},
     "timeout": {"type": "int", "default": 30},
+    "cert_fingerprint": {"type": "str", "required": False},
+    "enforce_validate_certs": {"type": "bool", "default": False},
 }
