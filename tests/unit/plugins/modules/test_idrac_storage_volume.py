@@ -992,6 +992,39 @@ class TestStorageCreate(TestStorageBase):
         data = idr_obj.filter_disk(volume)
         assert data == ['DriveID1']
 
+    @pytest.mark.parametrize("raid_reset_config, expected", [
+        ("false", ["LegacyReady", "NonRAID", "Ready"]),
+        ("true", ["LegacyReady", "NonRAID", "Online", "Ready"]),
+    ])
+    def test_filter_disk_uses_idrac10_raid_status(self, idrac_default_args,
+                                                  idrac_connection_storage_volume_mock,
+                                                  mocker, raid_reset_config, expected):
+        def drive(raid_status=None, health="OK", legacy=False):
+            dell = ({"DellPhysicalDisk": {"RaidStatus": raid_status}} if legacy else
+                    {"RaidStatus": raid_status, "DellPCIeSSD": {"RaidStatus": "Unknown"}})
+            return {"Status": {"Health": health}, "Oem": {"Dell": dell}}
+
+        drives = {
+            "Ready": drive("Ready"),
+            "NonRAID": drive("NonRAID"),
+            "Online": drive("Online"),
+            "LegacyReady": drive("Ready", legacy=True),
+            "Unhealthy": drive("Ready", health="Critical"),
+            "MissingStatus": {"Status": {"Health": "OK"},
+                              "Oem": {"Dell": {"DellPCIeSSD": {"RaidStatus": "Unknown"}}}},
+            "MalformedStatus": {"Status": {"Health": "OK"},
+                                "Oem": {"Dell": {"RaidStatus": {"unexpected": "value"}}}},
+        }
+        idrac_data = {"Controllers": {CONTROLLER_ID_FIRST: {"Drives": drives}}}
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_data)
+        mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="7.20.30")
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_FIRST,
+                                   "raid_reset_config": raid_reset_config})
+        module = self.get_module_mock(params=idrac_default_args)
+        storage = self.module.StorageCreate(idrac_connection_storage_volume_mock, module)
+
+        assert storage.filter_disk({}) == expected
+
     def test_updating_drives_module_input_when_given(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
         mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=TestStorageData.storage_data)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)

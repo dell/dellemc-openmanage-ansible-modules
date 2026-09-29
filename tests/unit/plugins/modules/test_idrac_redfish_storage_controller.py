@@ -488,6 +488,68 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
             self.module.convert_raid_status(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "Unable to locate the physical disk with the ID: Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
 
+    @pytest.mark.parametrize("command, raid_status, check_mode, expected", [
+        ("ConvertToRAID", "NonRAID", False, "post"),
+        ("ConvertToRAID", "NonRAID", True, "changed"),
+        ("ConvertToRAID", "Ready", False, "unchanged"),
+        ("ConvertToNonRAID", "Ready", False, "post"),
+        ("ConvertToNonRAID", "Ready", True, "changed"),
+        ("ConvertToNonRAID", "NonRAID", False, "unchanged"),
+    ])
+    def test_convert_raid_status_with_idrac10_drive(
+            self, redfish_str_controller_conn, redfish_response_mock,
+            command, raid_status, check_mode, expected):
+        drive_id = "Disk.Bay.1:Enclosure.Internal.0-1:RAID.SL.1-1"
+        module = self.get_module_mock(params={"command": command, "target": [drive_id]},
+                                      check_mode=check_mode)
+        redfish_response_mock.json_data = {
+            "Id": drive_id,
+            "Oem": {"Dell": {"RaidStatus": raid_status,
+                             "DellPCIeSSD": {"RaidStatus": "Unknown"}}},
+        }
+        redfish_response_mock.headers = {"Location": "/redfish/v1/TaskService/Tasks/JID_123"}
+
+        if expected == "post":
+            result = self.module.convert_raid_status(module, redfish_str_controller_conn)
+            assert result[2] == "JID_123"
+        else:
+            with pytest.raises(Exception) as ex:
+                self.module.convert_raid_status(module, redfish_str_controller_conn)
+            assert ex.value.args[0] == ("Changes found to be applied." if expected == "changed"
+                                        else "No changes found to be applied.")
+
+        methods = [call.args[0] for call in redfish_str_controller_conn.invoke_request.call_args_list]
+        assert methods == (["GET", "POST"] if expected == "post" else ["GET"])
+
+    @pytest.mark.parametrize("drive", [
+        {"Oem": {"Dell": {"DellPCIeSSD": {"RaidStatus": "Unknown"}}}},
+        {"Oem": {"Dell": {"RaidStatus": {"unexpected": "value"}}}},
+    ])
+    def test_convert_raid_status_rejects_missing_or_malformed_status(
+            self, redfish_str_controller_conn, redfish_response_mock, drive):
+        drive_id = "Disk.Bay.1:Enclosure.Internal.0-1:RAID.SL.1-1"
+        module = self.get_module_mock(params={"command": "ConvertToRAID", "target": [drive_id]})
+        redfish_response_mock.json_data = drive
+
+        with pytest.raises(Exception) as ex:
+            self.module.convert_raid_status(module, redfish_str_controller_conn)
+        assert ex.value.args[0] == "Unable to determine RAID status for physical disk with the ID: " + drive_id
+        assert [call.args[0] for call in redfish_str_controller_conn.invoke_request.call_args_list] == ["GET"]
+
+    def test_convert_raid_status_prefers_direct_dell_status(self, redfish_str_controller_conn,
+                                                            redfish_response_mock):
+        drive_id = "Disk.Bay.1:Enclosure.Internal.0-1:RAID.SL.1-1"
+        module = self.get_module_mock(params={"command": "ConvertToRAID", "target": [drive_id]})
+        redfish_response_mock.json_data = {
+            "Oem": {"Dell": {"RaidStatus": "NonRAID",
+                             "DellPhysicalDisk": {"RaidStatus": "Ready"}}},
+        }
+        redfish_response_mock.headers = {"Location": "/redfish/v1/TaskService/Tasks/JID_123"}
+
+        result = self.module.convert_raid_status(module, redfish_str_controller_conn)
+        assert result[2] == "JID_123"
+        assert [call.args[0] for call in redfish_str_controller_conn.invoke_request.call_args_list] == ["GET", "POST"]
+
     def test_change_pd_status(self, redfish_str_controller_conn, redfish_response_mock):
         param = {"baseuri": "XX.XX.XX.XX", "username": "username", "password": "password",
                  "command": "ChangePDStateToOnline",
@@ -519,6 +581,49 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         with pytest.raises(Exception) as ex:
             self.module.change_pd_status(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "Unable to locate the physical disk with the ID: Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
+
+    @pytest.mark.parametrize("command, raid_status, check_mode, expected", [
+        ("ChangePDStateToOnline", "Ready", False, "post"),
+        ("ChangePDStateToOnline", "Ready", True, "changed"),
+        ("ChangePDStateToOnline", "Online", False, "unchanged"),
+        ("ChangePDStateToOffline", "Online", False, "post"),
+        ("ChangePDStateToOffline", "Offline", False, "unchanged"),
+    ])
+    def test_change_pd_status_with_idrac10_drive(
+            self, redfish_str_controller_conn, redfish_response_mock,
+            command, raid_status, check_mode, expected):
+        drive_id = "Disk.Bay.1:Enclosure.Internal.0-1:RAID.SL.1-1"
+        module = self.get_module_mock(params={"command": command, "target": [drive_id]},
+                                      check_mode=check_mode)
+        redfish_response_mock.json_data = {
+            "Id": drive_id,
+            "Oem": {"Dell": {"RaidStatus": raid_status,
+                             "DellPCIeSSD": {"RaidStatus": "Unknown"}}},
+        }
+        redfish_response_mock.headers = {"Location": "/redfish/v1/TaskService/Tasks/JID_456"}
+
+        if expected == "post":
+            result = self.module.change_pd_status(module, redfish_str_controller_conn)
+            assert result[2] == "JID_456"
+        else:
+            with pytest.raises(Exception) as ex:
+                self.module.change_pd_status(module, redfish_str_controller_conn)
+            assert ex.value.args[0] == ("Changes found to be applied." if expected == "changed"
+                                        else "No changes found to be applied.")
+
+        methods = [call.args[0] for call in redfish_str_controller_conn.invoke_request.call_args_list]
+        assert methods == (["GET", "POST"] if expected == "post" else ["GET"])
+
+    def test_change_pd_status_rejects_missing_status(self, redfish_str_controller_conn,
+                                                     redfish_response_mock):
+        drive_id = "Disk.Bay.1:Enclosure.Internal.0-1:RAID.SL.1-1"
+        module = self.get_module_mock(params={"command": "ChangePDStateToOnline", "target": [drive_id]})
+        redfish_response_mock.json_data = {"Oem": {"Dell": {"DellPCIeSSD": {"RaidStatus": "Unknown"}}}}
+
+        with pytest.raises(Exception) as ex:
+            self.module.change_pd_status(module, redfish_str_controller_conn)
+        assert ex.value.args[0] == "Unable to determine RAID status for physical disk with the ID: " + drive_id
+        assert [call.args[0] for call in redfish_str_controller_conn.invoke_request.call_args_list] == ["GET"]
 
     def test_lock_virtual_disk(self, redfish_str_controller_conn, redfish_response_mock, mocker):
         param = {"baseuri": "XX.XX.XX.XX", "username": "username", "password": "password",
