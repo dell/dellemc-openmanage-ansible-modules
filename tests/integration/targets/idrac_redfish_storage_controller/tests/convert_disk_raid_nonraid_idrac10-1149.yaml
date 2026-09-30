@@ -1,0 +1,223 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+# Regression test for ECS02C-1216 / GitHub issue #1149:
+# ConvertToRAID/ConvertToNonRAID (and ChangePDState) used to raise an
+# unhandled KeyError: 'DellPhysicalDisk' whenever the iDRAC's Redfish drive
+# response reported RaidStatus directly under Oem.Dell (the shape seen on
+# iDRAC10) without a DellPhysicalDisk sub-object. This test only exercises
+# the fix on hardware confirmed to be iDRAC10; it is skipped otherwise.
+#
+# It also guards the related check_mode-safety fix: convert_raid_status()
+# used to fall through to a live POST under check_mode whenever a targeted
+# disk reported a RaidStatus outside the legacy Ready/NonRAID vocabulary
+# (e.g. "Online", seen on BOSS controllers). This test asserts check_mode
+# never creates a new iDRAC job, regardless of the reported RaidStatus.
+
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Check iDRAC firmware version
+  ansible.builtin.include_tasks: _check_firmware_version_supported.yml
+
+- block:
+    - name: Build the base Redfish URL
+      ansible.builtin.set_fact:
+        redfish_base_url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+
+    - name: Build the iDRAC job queue URL
+      ansible.builtin.set_fact:
+        jobs_url: "{{ redfish_base_url }}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs"
+
+    # Discover a physical disk directly from the storage view instead of
+    # using _helper.yml: that helper derives physicaldisks/controller_name
+    # from the "Enclosure" key, which PERC/RAID.* controllers report but
+    # BOSS controllers do not -- and BOSS is exactly the controller type
+    # exhibiting the direct-RaidStatus (no DellPhysicalDisk) shape this
+    # test targets.
+    - name: View all storage controllers and disks
+      dellemc.openmanage.idrac_storage_volume:
+        state: "view"
+      register: result_view
+
+    - name: Pick the first controller that reports at least one physical disk
+      ansible.builtin.set_fact:
+        idrac10_controller_name: "{{ item.key }}"
+        idrac10_target_disk: "{{ item.value.PhysicalDisk[0] }}"
+      loop: "{{ result_view.storage_status.Message.Controller | dict2items }}"
+      when:
+        - idrac10_target_disk is not defined
+        - "'PhysicalDisk' in item.value"
+        - item.value.PhysicalDisk | length > 0
+
+    - name: Skip when no physical disks are found on this iDRAC10 host
+      ansible.builtin.meta: end_play
+      when: idrac10_target_disk is not defined
+
+    - name: Build the target drive URL
+      ansible.builtin.set_fact:
+        drive_url: "{{ redfish_base_url }}/redfish/v1/Systems/System.Embedded.1/Storage/{{ idrac10_controller_name }}/Drives/{{ idrac10_target_disk }}"
+
+    - name: Fetch the raw drive response to confirm the response shape under test
+      ansible.builtin.uri:
+        url: "{{ drive_url }}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        method: GET
+        force_basic_auth: true
+        validate_certs: false
+        return_content: true
+        status_code: 200
+      register: fetched_drive_data
+
+    - name: Get the current iDRAC job queue count
+      ansible.builtin.uri:
+        url: "{{ jobs_url }}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        method: GET
+        force_basic_auth: true
+        validate_certs: false
+        return_content: true
+        status_code: 200
+      register: fetched_jobs_data
+
+    - ansible.builtin.set_fact:
+        job_count_before_check_mode: "{{ fetched_jobs_data.json['Members@odata.count'] }}"
+
+    - name: Convert physical disk to RAID - check mode (must not crash and
+       must not create a job, regardless of the reported RaidStatus)
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "ConvertToRAID"
+        target: "{{ idrac10_target_disk }}"
+      register: cm_result_raid
+      check_mode: true
+
+    - name: Verify check mode call reported a clean status (no unhandled
+       exception / KeyError)
+      ansible.builtin.assert:
+        that:
+          - cm_result_raid.msg in ["Changes found to be applied.",
+           "No changes found to be applied."]
+        fail_msg: "convert_raid_status raised an unexpected error for the
+         iDRAC10 drive response shape: {{ cm_result_raid.msg | default(
+         cm_result_raid) }}"
+
+    - name: Confirm check_mode did not create a live iDRAC job
+      ansible.builtin.uri:
+        url: "{{ jobs_url }}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        method: GET
+        force_basic_auth: true
+        validate_certs: false
+        return_content: true
+        status_code: 200
+      register: fetched_jobs_data
+
+    - ansible.builtin.assert:
+        that:
+          - fetched_jobs_data.json['Members@odata.count'] | int ==
+           job_count_before_check_mode | int
+        fail_msg: "check_mode unexpectedly created a new iDRAC job -- the
+         check_mode safety fix has regressed"
+        success_msg: "check_mode did not create any live iDRAC job"
+
+    - name: Convert physical disk to Non-RAID - check mode (must not crash
+       and must not create a job)
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "ConvertToNonRAID"
+        target: "{{ idrac10_target_disk }}"
+      register: cm_result_non_raid
+      check_mode: true
+
+    - name: Verify check mode call reported a clean status (no unhandled
+       exception / KeyError)
+      ansible.builtin.assert:
+        that:
+          - cm_result_non_raid.msg in ["Changes found to be applied.",
+           "No changes found to be applied."]
+        fail_msg: "convert_raid_status raised an unexpected error for the
+         iDRAC10 drive response shape: {{ cm_result_non_raid.msg | default(
+         cm_result_non_raid) }}"
+
+    - name: Confirm check_mode did not create a live iDRAC job
+      ansible.builtin.uri:
+        url: "{{ jobs_url }}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        method: GET
+        force_basic_auth: true
+        validate_certs: false
+        return_content: true
+        status_code: 200
+      register: fetched_jobs_data
+
+    - ansible.builtin.assert:
+        that:
+          - fetched_jobs_data.json['Members@odata.count'] | int ==
+           job_count_before_check_mode | int
+        fail_msg: "check_mode unexpectedly created a new iDRAC job -- the
+         check_mode safety fix has regressed"
+        success_msg: "check_mode did not create any live iDRAC job"
+
+    - name: Change physical disk state to online - check mode (must not
+       crash and must not create a job)
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "ChangePDStateToOnline"
+        target: "{{ idrac10_target_disk }}"
+      register: cm_result_pd_state
+      check_mode: true
+
+    - name: Verify check mode call reported a clean status (no unhandled
+       exception / KeyError)
+      ansible.builtin.assert:
+        that:
+          - cm_result_pd_state.msg in ["Changes found to be applied.",
+           "No changes found to be applied."]
+        fail_msg: "change_pd_status raised an unexpected error for the
+         iDRAC10 drive response shape: {{ cm_result_pd_state.msg | default(
+         cm_result_pd_state) }}"
+
+    - name: Confirm check_mode did not create a live iDRAC job
+      ansible.builtin.uri:
+        url: "{{ jobs_url }}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        method: GET
+        force_basic_auth: true
+        validate_certs: false
+        return_content: true
+        status_code: 200
+      register: fetched_jobs_data
+
+    - ansible.builtin.assert:
+        that:
+          - fetched_jobs_data.json['Members@odata.count'] | int ==
+           job_count_before_check_mode | int
+        fail_msg: "check_mode unexpectedly created a new iDRAC job -- the
+         check_mode safety fix has regressed"
+        success_msg: "check_mode did not create any live iDRAC job"
+
+  when:
+    - is_idrac_10 | bool
+
+  module_defaults:
+    dellemc.openmanage.idrac_storage_volume:
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.idrac_redfish_storage_controller:
+      baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

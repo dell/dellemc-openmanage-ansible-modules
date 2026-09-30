@@ -550,6 +550,25 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         assert result[2] == "JID_123"
         assert [call.args[0] for call in redfish_str_controller_conn.invoke_request.call_args_list] == ["GET", "POST"]
 
+    @pytest.mark.parametrize("command", ["ConvertToRAID", "ConvertToNonRAID"])
+    def test_convert_raid_status_check_mode_never_posts_for_unrecognized_status(
+            self, redfish_str_controller_conn, redfish_response_mock, command):
+        """Regression test: a RaidStatus outside the legacy Ready/NonRAID
+        vocabulary (e.g. "Online", seen on BOSS controllers) must never cause
+        check_mode to fall through to a live POST. See ECS02C-1216."""
+        drive_id = "Disk.Direct.1-1:BOSS.Slot.3-1"
+        module = self.get_module_mock(params={"command": command, "target": [drive_id]}, check_mode=True)
+        redfish_response_mock.json_data = {
+            "Oem": {"Dell": {"RaidStatus": "Online", "DellPCIeSSD": {"RaidStatus": "Online"}}},
+        }
+
+        with pytest.raises(Exception) as ex:
+            self.module.convert_raid_status(module, redfish_str_controller_conn)
+        assert ex.value.args[0] == "Changes found to be applied."
+
+        methods = [call.args[0] for call in redfish_str_controller_conn.invoke_request.call_args_list]
+        assert methods == ["GET"]
+
     def test_change_pd_status(self, redfish_str_controller_conn, redfish_response_mock):
         param = {"baseuri": "XX.XX.XX.XX", "username": "username", "password": "password",
                  "command": "ChangePDStateToOnline",

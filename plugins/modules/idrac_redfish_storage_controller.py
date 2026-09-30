@@ -834,17 +834,19 @@ def convert_raid_status(module, redfish_obj):
     except HTTPError:
         module.fail_json(msg=PD_ERROR_MSG.format(ctrl))
     else:
-        if (command == "ConvertToRAID" and module.check_mode and 0 < pd_ready_state.count("NonRAID")) or \
-                (command == "ConvertToNonRAID" and module.check_mode and 0 < pd_ready_state.count("Ready")):
+        # "no_change" is only true when every targeted disk already reports the
+        # terminal status for the requested command (Ready for ConvertToRAID,
+        # NonRAID for ConvertToNonRAID). Any other reported status -- including
+        # values outside the legacy Ready/NonRAID vocabulary such as "Online"
+        # (seen on BOSS controllers) -- is treated as "not confirmed unchanged"
+        # so that check_mode never falls through to the live POST below.
+        target_status = "Ready" if command == "ConvertToRAID" else "NonRAID"
+        no_change = len(pd_ready_state) == pd_ready_state.count(target_status)
+        if module.check_mode:
+            if no_change:
+                module.exit_json(msg=NO_CHANGES_FOUND)
             module.exit_json(msg=CHANGES_FOUND, changed=True)
-        elif (command == "ConvertToRAID" and module.check_mode and
-              len(pd_ready_state) == pd_ready_state.count("Ready")) or \
-                (command == "ConvertToRAID" and not module.check_mode and
-                 len(pd_ready_state) == pd_ready_state.count("Ready")) or \
-                (command == "ConvertToNonRAID" and module.check_mode and
-                 len(pd_ready_state) == pd_ready_state.count("NonRAID")) or \
-                (command == "ConvertToNonRAID" and not module.check_mode and
-                 len(pd_ready_state) == pd_ready_state.count("NonRAID")):
+        if no_change:
             module.exit_json(msg=NO_CHANGES_FOUND)
         else:
             resp = redfish_obj.invoke_request("POST", RAID_ACTION_URI.format(system_id=SYSTEM_ID,
