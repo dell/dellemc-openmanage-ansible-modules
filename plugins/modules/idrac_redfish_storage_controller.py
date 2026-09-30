@@ -852,8 +852,8 @@ def convert_raid_status(module, redfish_obj):
         done_status = "Ready" if command == "ConvertToRAID" else "NonRAID"
         drive_states = list(zip(target, pd_ready_state))
         unsupported = [(drive_id, status) for drive_id, status in drive_states
-                      if status not in (source_status, done_status)
-                      and not (command == "ConvertToRAID" and status == "Online")]
+                       if status not in (source_status, done_status)
+                       and not (command == "ConvertToRAID" and status == "Online")]
         if unsupported:
             drive_id, status = unsupported[0]
             module.fail_json(msg=PD_RAID_UNSUPPORTED_STATE_MSG.format(drive_id, status, command))
