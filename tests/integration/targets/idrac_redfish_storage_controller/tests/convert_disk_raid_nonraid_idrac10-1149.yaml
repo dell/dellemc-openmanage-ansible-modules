@@ -16,6 +16,19 @@
 # disk reported a RaidStatus outside the legacy Ready/NonRAID vocabulary
 # (e.g. "Online", seen on BOSS controllers). This test asserts check_mode
 # never creates a new iDRAC job, regardless of the reported RaidStatus.
+#
+# Per the iDRAC's own DellRaidService.ConvertToRAID/ConvertToNonRAID action
+# definitions, only three outcomes are legitimate for a targeted disk:
+#   - "Changes found to be applied."   (disk is in the command's source
+#     state: NonRAID for ConvertToRAID, Ready for ConvertToNonRAID)
+#   - "No changes found to be applied." (disk is already at the terminal
+#     state; for ConvertToRAID this also covers "Online", an active virtual
+#     disk member, which already satisfies "usable for RAID")
+#   - a clean failure naming the disk and its RaidStatus (any other status,
+#     including "Online" for ConvertToNonRAID, which the device does not
+#     define as a valid starting state)
+# This test accepts whichever of these is correct for the disk's actual
+# reported status, and always asserts no live iDRAC job was created.
 
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
@@ -92,20 +105,26 @@
     - ansible.builtin.set_fact:
         job_count_before_check_mode: "{{ fetched_jobs_data.json['Members@odata.count'] }}"
 
-    - name: Convert physical disk to RAID - check mode (must not crash and
-       must not create a job, regardless of the reported RaidStatus)
+    - name: Convert physical disk to RAID - check mode (must not crash with
+       an unhandled exception, and must not create a job, regardless of the
+       reported RaidStatus)
       dellemc.openmanage.idrac_redfish_storage_controller:
         command: "ConvertToRAID"
         target: "{{ idrac10_target_disk }}"
       register: cm_result_raid
       check_mode: true
+      ignore_errors: true
 
-    - name: Verify check mode call reported a clean status (no unhandled
-       exception / KeyError)
+    - name: Verify check mode call reported one of the legitimate outcomes
+       (no unhandled exception / KeyError)
       ansible.builtin.assert:
         that:
-          - cm_result_raid.msg in ["Changes found to be applied.",
-           "No changes found to be applied."]
+          - cm_result_raid.msg is defined
+          - (not cm_result_raid.failed) or
+           ("does not support the 'ConvertToRAID' operation" in
+           cm_result_raid.msg)
+          - cm_result_raid.failed or cm_result_raid.msg in
+           ["Changes found to be applied.", "No changes found to be applied."]
         fail_msg: "convert_raid_status raised an unexpected error for the
          iDRAC10 drive response shape: {{ cm_result_raid.msg | default(
          cm_result_raid) }}"
@@ -131,19 +150,24 @@
         success_msg: "check_mode did not create any live iDRAC job"
 
     - name: Convert physical disk to Non-RAID - check mode (must not crash
-       and must not create a job)
+       with an unhandled exception, and must not create a job)
       dellemc.openmanage.idrac_redfish_storage_controller:
         command: "ConvertToNonRAID"
         target: "{{ idrac10_target_disk }}"
       register: cm_result_non_raid
       check_mode: true
+      ignore_errors: true
 
-    - name: Verify check mode call reported a clean status (no unhandled
-       exception / KeyError)
+    - name: Verify check mode call reported one of the legitimate outcomes
+       (no unhandled exception / KeyError)
       ansible.builtin.assert:
         that:
-          - cm_result_non_raid.msg in ["Changes found to be applied.",
-           "No changes found to be applied."]
+          - cm_result_non_raid.msg is defined
+          - (not cm_result_non_raid.failed) or
+           ("does not support the 'ConvertToNonRAID' operation" in
+           cm_result_non_raid.msg)
+          - cm_result_non_raid.failed or cm_result_non_raid.msg in
+           ["Changes found to be applied.", "No changes found to be applied."]
         fail_msg: "convert_raid_status raised an unexpected error for the
          iDRAC10 drive response shape: {{ cm_result_non_raid.msg | default(
          cm_result_non_raid) }}"

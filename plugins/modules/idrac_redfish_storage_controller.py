@@ -585,6 +585,8 @@ TARGET_ERR_MSG = "The Fully Qualified Device Descriptor (FQDD) of the target {0}
 CNTRL_ERROR_MSG = "Unable to locate the storage controller with the ID: {0}"
 PD_ERROR_MSG = "Unable to locate the physical disk with the ID: {0}"
 PD_RAID_STATUS_ERROR_MSG = "Unable to determine RAID status for physical disk with the ID: {0}"
+PD_RAID_UNSUPPORTED_STATE_MSG = "The physical disk {0} is in the '{1}' RAID status, which does not support " \
+                                "the '{2}' operation."
 VD_ERROR_MSG = "Unable to locate the virtual disk with the ID: {0}"
 ENCRYPT_ERR_MSG = "The storage controller '{0}' does not support encryption."
 PHYSICAL_DISK_ERR = "Volume is not encryption capable."
@@ -834,14 +836,28 @@ def convert_raid_status(module, redfish_obj):
     except HTTPError:
         module.fail_json(msg=PD_ERROR_MSG.format(ctrl))
     else:
-        # "no_change" is only true when every targeted disk already reports the
-        # terminal status for the requested command (Ready for ConvertToRAID,
-        # NonRAID for ConvertToNonRAID). Any other reported status -- including
-        # values outside the legacy Ready/NonRAID vocabulary such as "Online"
-        # (seen on BOSS controllers) -- is treated as "not confirmed unchanged"
-        # so that check_mode never falls through to the live POST below.
-        target_status = "Ready" if command == "ConvertToRAID" else "NonRAID"
-        no_change = len(pd_ready_state) == pd_ready_state.count(target_status)
+        # Per the iDRAC's own DellRaidService action definitions:
+        #   ConvertToRAID is only defined for a disk currently "NonRAID" (result: "Ready").
+        #   ConvertToNonRAID is only defined for a disk currently "Ready" (result: "NonRAID").
+        # A disk already reporting "Online" is an active member of a virtual disk:
+        #   - for ConvertToRAID that already satisfies the goal (the disk is RAID-usable), so
+        #     it is treated the same as an already-"Ready" disk (no change needed).
+        #   - for ConvertToNonRAID it is not a supported starting state (the virtual disk would
+        #     need to be removed first), so it must fail cleanly rather than be sent to the
+        #     device or silently treated as "no change".
+        # Any other reported status (Failed, Foreign, Degraded, Offline, ...) is likewise not a
+        # supported starting state for either command and must fail cleanly. This also ensures
+        # check_mode never falls through to the live POST below regardless of RaidStatus.
+        source_status = "NonRAID" if command == "ConvertToRAID" else "Ready"
+        done_status = "Ready" if command == "ConvertToRAID" else "NonRAID"
+        drive_states = list(zip(target, pd_ready_state))
+        unsupported = [(drive_id, status) for drive_id, status in drive_states
+                      if status not in (source_status, done_status)
+                      and not (command == "ConvertToRAID" and status == "Online")]
+        if unsupported:
+            drive_id, status = unsupported[0]
+            module.fail_json(msg=PD_RAID_UNSUPPORTED_STATE_MSG.format(drive_id, status, command))
+        no_change = source_status not in pd_ready_state
         if module.check_mode:
             if no_change:
                 module.exit_json(msg=NO_CHANGES_FOUND)
