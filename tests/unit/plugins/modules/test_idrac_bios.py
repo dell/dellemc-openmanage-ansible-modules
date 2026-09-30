@@ -354,6 +354,33 @@ class TestConfigBios(FakeAnsibleModule):
             "reset_host": False, "get_pending_attributes": {"AssetTag": 'test'}, "validate_vs_registry": {},
             "check_scheduled_bios_job": ("job1", "Scheduled"), "apply_attributes": (None, True),
             "success": True, 'mparams': {"attributes": {"NumLock": "Off"}}},
+        # iDRAC's Redfish SupportedApplyTimes natively includes Immediate. The BMC does not
+        # reboot the host on its own in that case either, so a manual reboot (and job_wait
+        # tracking) must still happen -- exercised here via the real apply_attributes /
+        # get_redfish_apply_time code path (not mocked).
+        {"json_data": {
+            "Attributes": {"NumLock": "On"},
+            "@Redfish.Settings": {
+                "SupportedApplyTimes": ["Immediate", "OnReset", "AtMaintenanceWindowStart",
+                                        "InMaintenanceWindowOnReset"]}},
+            'message': SUCCESS_COMPLETE,
+            "reset_host": True, "get_pending_attributes": {"AssetTag": 'test'}, "validate_vs_registry": {},
+            "check_scheduled_bios_job": ("job1", "Scheduled"),
+            "idrac_redfish_job_tracking": (False, SUCCESS_COMPLETE, {}, 10),
+            "success": True, 'mparams': {"attributes": {"NumLock": "Off"},
+                                         "apply_time": "Immediate",
+                                         "job_wait": True}},
+        {"json_data": {
+            "Attributes": {"NumLock": "On"},
+            "@Redfish.Settings": {
+                "SupportedApplyTimes": ["Immediate", "OnReset", "AtMaintenanceWindowStart",
+                                        "InMaintenanceWindowOnReset"]}},
+            'message': SCHEDULED_SUCCESS,
+            "reset_host": True, "get_pending_attributes": {"AssetTag": 'test'}, "validate_vs_registry": {},
+            "check_scheduled_bios_job": ("job1", "Scheduled"),
+            "success": True, 'mparams': {"attributes": {"NumLock": "Off"},
+                                         "apply_time": "Immediate",
+                                         "job_wait": False}},
     ])
     def test_idrac_bios_attributes(self, params, idrac_redfish_mock_for_bios, ome_response_mock, idrac_default_args,
                                    mocker):
