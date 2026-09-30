@@ -1,0 +1,109 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+# Regression test for ECS02C-1212 / GitHub issue #1146:
+# job_wait was ignored for apply_time=Immediate whenever the iDRAC's Redfish
+# SupportedApplyTimes natively includes Immediate (the BMC reboots and runs
+# the job itself, so reboot_required stays False and job tracking was
+# skipped). This test only exercises the fix on hardware that natively
+# supports Immediate; it is skipped otherwise.
+
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: idrac_ip, idrac_user
+     and idrac_password."
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- block:
+    - ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
+    - ansible.builtin.include_tasks:
+        file: get_data.yml
+      vars:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
+         /redfish/v1/Systems/System.Embedded.1/Bios
+
+    - ansible.builtin.set_fact:
+        supported_apply_times: "{{ uri_data.json['@Redfish.Settings']\
+         .SupportedApplyTimes | default([]) }}"
+
+    - ansible.builtin.set_fact:
+        current_bootseq_retry: "{{ uri_data.json.Attributes.BootSeqRetry }}"
+
+    - ansible.builtin.set_fact:
+        set_bootseq_retry: "{{'Disabled' if
+         (current_bootseq_retry == 'Enabled') else 'Enabled'}}"
+
+    - name: Skip when the iDRAC does not natively support Immediate apply time
+      ansible.builtin.meta: end_play
+      when: "'Immediate' not in supported_apply_times"
+
+    - name: Record start time before the job_wait Immediate apply call
+      ansible.builtin.set_fact:
+        job_wait_immediate_start: "{{ lookup('pipe', 'date +%s') }}"
+
+    - name: Update attributes with apply_time=Immediate and job_wait=true
+       (native Immediate support)
+      dellemc.openmanage.idrac_bios:
+        attributes:
+          BootSeqRetry: "{{ set_bootseq_retry }}"
+        apply_time: Immediate
+        reset_type: force_restart
+        job_wait: true
+      register: result_job_wait_immediate
+
+    - name: Record end time after the job_wait Immediate apply call returns
+      ansible.builtin.set_fact:
+        job_wait_immediate_end: "{{ lookup('pipe', 'date +%s') }}"
+
+    - name: Verify the module waited for the job instead of returning early
+      ansible.builtin.assert:
+        that:
+          - result_job_wait_immediate.changed
+          - result_job_wait_immediate.status_msg == "Successfully applied
+            the BIOS attributes update."
+          - (job_wait_immediate_end | int) - (job_wait_immediate_start | int)
+            > 5
+
+    - ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
+    - name: Re-read BIOS data to confirm the attribute was actually applied
+      ansible.builtin.include_tasks:
+        file: get_data.yml
+      vars:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
+         /redfish/v1/Systems/System.Embedded.1/Bios
+
+    - name: Verify the applied attribute value took effect on the host
+      ansible.builtin.assert:
+        that:
+          - uri_data.json.Attributes.BootSeqRetry == set_bootseq_retry
+
+    - name: Idempotence check - re-apply the same value with job_wait=true
+      dellemc.openmanage.idrac_bios:
+        attributes:
+          BootSeqRetry: "{{ set_bootseq_retry }}"
+        apply_time: Immediate
+        reset_type: force_restart
+        job_wait: true
+      register: result_job_wait_immediate_idempotence
+
+    - name: Verify idempotence status
+      ansible.builtin.assert:
+        that:
+          - not result_job_wait_immediate_idempotence.changed
+          - result_job_wait_immediate_idempotence.status_msg ==
+            "No changes found to be applied."
+
+  module_defaults:
+    dellemc.openmanage.idrac_bios:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
