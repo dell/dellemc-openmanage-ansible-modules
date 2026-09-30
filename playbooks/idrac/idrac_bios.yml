@@ -117,3 +117,18 @@
       tags:
         - boot_sources_index
       delegate_to: localhost
+
+    - name: Configure attributes with Immediate apply and job_wait
+      dellemc.openmanage.idrac_bios:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        attributes:
+          BootSeqRetry: "Enabled"
+        apply_time: Immediate
+        reset_type: force_restart
+        job_wait: true
+      tags:
+        - immediate_apply_with_job_wait
+      delegate_to: localhost
