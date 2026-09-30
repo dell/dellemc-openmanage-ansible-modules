@@ -665,8 +665,13 @@ def get_redfish_apply_time(module, redfish_obj, aplytm, rf_settings):
                 rf_set['MaintenanceWindowDurationInSeconds'] = m_win.get('duration')
         else:  # assuming OnReset is always
             if aplytm == "Immediate":
+                # A host reboot is always required to actually apply Immediate changes:
+                # the iDRAC schedules the BIOS job either way, but it does not reboot the
+                # host on its own even when Immediate is natively supported by
+                # @Redfish.SettingsApplyTime -- the job stays Scheduled until this module
+                # triggers the reboot itself via reset_host().
+                reboot_req = True
                 if aplytm not in rf_settings:
-                    reboot_req = True
                     aplytm = 'OnReset'
             rf_set['ApplyTime'] = aplytm
     return rf_set, reboot_req
