@@ -290,7 +290,8 @@ from copy import deepcopy
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_dynamic_uri, validate_and_get_first_resource_id_uri, xml_data_conversion, idrac_redfish_job_tracking, remove_key, get_idrac_firmware_version)
+    get_dynamic_uri, validate_and_get_first_resource_id_uri, xml_data_conversion, idrac_redfish_job_tracking, remove_key,
+    get_idrac_firmware_version, get_drive_raid_status)
 
 
 SYSTEMS_URI = "/redfish/v1/Systems"
@@ -664,7 +665,7 @@ class StorageCreate(StorageValidation):
             status = value.get('Status', {}).get('Health', {})
             if status == "OK":
                 healthy_disk.add(key)
-            raid_status = value.get('Oem', {}).get('Dell', {}).get('DellPhysicalDisk', {}).get('RaidStatus', {})
+            raid_status = get_drive_raid_status(value)
             if raid_status in raid_status_list:
                 available_disk.add(key)
         return self.perform_intersection_on_disk(each_volume, healthy_disk, available_disk,

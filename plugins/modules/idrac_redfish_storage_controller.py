@@ -555,7 +555,8 @@ import json
 from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import wait_for_job_completion, strip_substr_dict, \
-    get_dynamic_uri, validate_and_get_first_resource_id_uri, get_idrac_firmware_version, get_scheduled_job_resp
+    get_dynamic_uri, validate_and_get_first_resource_id_uri, get_idrac_firmware_version, get_scheduled_job_resp, \
+    get_drive_raid_status
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -583,6 +584,7 @@ NO_CHANGES_FOUND = "No changes found to be applied."
 TARGET_ERR_MSG = "The Fully Qualified Device Descriptor (FQDD) of the target {0} must be only one."
 CNTRL_ERROR_MSG = "Unable to locate the storage controller with the ID: {0}"
 PD_ERROR_MSG = "Unable to locate the physical disk with the ID: {0}"
+PD_RAID_STATUS_ERROR_MSG = "Unable to determine RAID status for physical disk with the ID: {0}"
 VD_ERROR_MSG = "Unable to locate the virtual disk with the ID: {0}"
 ENCRYPT_ERR_MSG = "The storage controller '{0}' does not support encryption."
 PHYSICAL_DISK_ERR = "Volume is not encryption capable."
@@ -798,10 +800,12 @@ def change_pd_status(module, redfish_obj):
     state = "Online" if command == "ChangePDStateToOnline" else "Offline"
     try:
         pd_resp = redfish_obj.invoke_request("GET", PD_URI.format(controller_id=controller_id, drive_id=drive_id))
-        raid_status = pd_resp.json_data["Oem"]["Dell"]["DellPhysicalDisk"]["RaidStatus"]
     except HTTPError:
         module.fail_json(msg=PD_ERROR_MSG.format(drive_id))
     else:
+        raid_status = get_drive_raid_status(pd_resp.json_data)
+        if raid_status is None:
+            module.fail_json(msg=PD_RAID_STATUS_ERROR_MSG.format(drive_id))
         if module.check_mode and state != raid_status:
             module.exit_json(msg=CHANGES_FOUND, changed=True)
         elif (module.check_mode and state == raid_status) or (not module.check_mode and state == raid_status):
@@ -823,7 +827,9 @@ def convert_raid_status(module, redfish_obj):
         for ctrl in target:
             controller_id = ctrl.split(":")[-1]
             pd_resp = redfish_obj.invoke_request("GET", PD_URI.format(controller_id=controller_id, drive_id=ctrl))
-            raid_status = pd_resp.json_data["Oem"]["Dell"]["DellPhysicalDisk"]["RaidStatus"]
+            raid_status = get_drive_raid_status(pd_resp.json_data)
+            if raid_status is None:
+                module.fail_json(msg=PD_RAID_STATUS_ERROR_MSG.format(ctrl))
             pd_ready_state.append(raid_status)
     except HTTPError:
         module.fail_json(msg=PD_ERROR_MSG.format(ctrl))

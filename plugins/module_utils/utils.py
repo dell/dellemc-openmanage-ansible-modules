@@ -115,6 +115,26 @@ def strip_substr_dict(odata_dict, chkstr='@odata.', case_sensitive=False):
     return odata_dict
 
 
+def get_drive_raid_status(drive):
+    """Return the RAID status from either Dell Redfish drive response shape."""
+    if not isinstance(drive, dict):
+        return None
+    oem = drive.get("Oem")
+    dell = oem.get("Dell") if isinstance(oem, dict) else None
+    if not isinstance(dell, dict):
+        return None
+
+    raid_status = dell.get("RaidStatus")
+    if isinstance(raid_status, str) and raid_status:
+        return raid_status
+    physical_disk = dell.get("DellPhysicalDisk")
+    if isinstance(physical_disk, dict):
+        raid_status = physical_disk.get("RaidStatus")
+        if isinstance(raid_status, str) and raid_status:
+            return raid_status
+    return None
+
+
 def warn_if_cert_validation_disabled(module):
     """Emit a module warning when TLS certificate validation is explicitly disabled.
     When enforce_validate_certs is True, fail instead of just warning."""
