@@ -354,7 +354,6 @@ class TestConfigBios(FakeAnsibleModule):
             "reset_host": False, "get_pending_attributes": {"AssetTag": 'test'}, "validate_vs_registry": {},
             "check_scheduled_bios_job": ("job1", "Scheduled"), "apply_attributes": (None, True),
             "success": True, 'mparams': {"attributes": {"NumLock": "Off"}}},
-        # ECS02C-1212: job_wait must be honored for apply_time=Immediate even when the
         # iDRAC's Redfish SupportedApplyTimes natively includes Immediate. The BMC does not
         # reboot the host on its own in that case either, so a manual reboot (and job_wait
         # tracking) must still happen -- exercised here via the real apply_attributes /

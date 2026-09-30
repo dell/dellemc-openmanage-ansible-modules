@@ -4,7 +4,6 @@
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
-# Regression test for ECS02C-1212 / GitHub issue #1146:
 # job_wait was ignored for apply_time=Immediate whenever the iDRAC's Redfish
 # SupportedApplyTimes natively includes Immediate (the BMC reboots and runs
 # the job itself, so reboot_required stays False and job tracking was
