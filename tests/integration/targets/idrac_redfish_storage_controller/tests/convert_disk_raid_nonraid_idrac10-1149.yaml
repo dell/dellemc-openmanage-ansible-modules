@@ -43,11 +43,14 @@
 - block:
     - name: Build the base Redfish URL
       ansible.builtin.set_fact:
-        redfish_base_url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+        redfish_base_url: >-
+          https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
 
     - name: Build the iDRAC job queue URL
       ansible.builtin.set_fact:
-        jobs_url: "{{ redfish_base_url }}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs"
+        jobs_url: >-
+          {{ redfish_base_url }}/redfish/v1/Managers/iDRAC.Embedded.1/{{
+          'Oem/Dell/Jobs' }}
 
     # Discover a physical disk directly from the storage view instead of
     # using _helper.yml: that helper derives physicaldisks/controller_name
@@ -76,9 +79,12 @@
 
     - name: Build the target drive URL
       ansible.builtin.set_fact:
-        drive_url: "{{ redfish_base_url }}/redfish/v1/Systems/System.Embedded.1/Storage/{{ idrac10_controller_name }}/Drives/{{ idrac10_target_disk }}"
+        drive_url: >-
+          {{ redfish_base_url }}/redfish/v1/Systems/System.Embedded.1/Storage/{{
+          idrac10_controller_name }}/Drives/{{ idrac10_target_disk }}
 
-    - name: Fetch the raw drive response to confirm the response shape under test
+    - name: >-
+        Fetch the raw drive response to confirm the response shape under test
       ansible.builtin.uri:
         url: "{{ drive_url }}"
         user: "{{ idrac_user }}"
@@ -103,7 +109,8 @@
       register: fetched_jobs_data
 
     - ansible.builtin.set_fact:
-        job_count_before_check_mode: "{{ fetched_jobs_data.json['Members@odata.count'] }}"
+        job_count_before_check_mode: >-
+          {{ fetched_jobs_data.json['Members@odata.count'] }}
 
     - name: Convert physical disk to RAID - check mode (must not crash with
        an unhandled exception, and must not create a job, regardless of the
