@@ -550,6 +550,76 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         assert result[2] == "JID_123"
         assert [call.args[0] for call in redfish_str_controller_conn.invoke_request.call_args_list] == ["GET", "POST"]
 
+    @pytest.mark.parametrize("check_mode", [True, False])
+    def test_convert_raid_status_online_disk_convert_to_raid_is_no_change(
+            self, redfish_str_controller_conn, redfish_response_mock, check_mode):
+        """Regression test (ECS02C-1216): a disk already "Online" (an active
+        virtual disk member, e.g. on BOSS controllers) already satisfies
+        ConvertToRAID's goal per the iDRAC's own DellRaidService.ConvertToRAID
+        action definition ("convert ... Non-RAID ... to a state usable for
+        RAID"). It must be treated as no-change, in check_mode and normal
+        mode alike, and must never reach the live POST."""
+        drive_id = "Disk.Direct.1-1:BOSS.Slot.3-1"
+        module = self.get_module_mock(params={"command": "ConvertToRAID", "target": [drive_id]},
+                                      check_mode=check_mode)
+        redfish_response_mock.json_data = {
+            "Oem": {"Dell": {"RaidStatus": "Online", "DellPCIeSSD": {"RaidStatus": "Online"}}},
+        }
+
+        with pytest.raises(Exception) as ex:
+            self.module.convert_raid_status(module, redfish_str_controller_conn)
+        assert ex.value.args[0] == "No changes found to be applied."
+
+        methods = [call.args[0] for call in redfish_str_controller_conn.invoke_request.call_args_list]
+        assert methods == ["GET"]
+
+    @pytest.mark.parametrize("check_mode", [True, False])
+    def test_convert_raid_status_online_disk_convert_to_nonraid_fails_cleanly(
+            self, redfish_str_controller_conn, redfish_response_mock, check_mode):
+        """Regression test (ECS02C-1216): ConvertToNonRAID is only defined by
+        the iDRAC's DellRaidService.ConvertToNonRAID action for a disk
+        currently "Ready". A disk already "Online" (an active virtual disk
+        member) is not a supported starting state -- it must fail cleanly,
+        in check_mode and normal mode alike, and must never reach the live
+        POST."""
+        drive_id = "Disk.Direct.1-1:BOSS.Slot.3-1"
+        module = self.get_module_mock(params={"command": "ConvertToNonRAID", "target": [drive_id]},
+                                      check_mode=check_mode)
+        redfish_response_mock.json_data = {
+            "Oem": {"Dell": {"RaidStatus": "Online", "DellPCIeSSD": {"RaidStatus": "Online"}}},
+        }
+
+        with pytest.raises(Exception) as ex:
+            self.module.convert_raid_status(module, redfish_str_controller_conn)
+        assert ex.value.args[0] == ("The physical disk {0} is in the 'Online' RAID status, which does not "
+                                    "support the 'ConvertToNonRAID' operation.").format(drive_id)
+
+        methods = [call.args[0] for call in redfish_str_controller_conn.invoke_request.call_args_list]
+        assert methods == ["GET"]
+
+    @pytest.mark.parametrize("command", ["ConvertToRAID", "ConvertToNonRAID"])
+    @pytest.mark.parametrize("check_mode", [True, False])
+    def test_convert_raid_status_unexpected_status_fails_cleanly(
+            self, redfish_str_controller_conn, redfish_response_mock, command, check_mode):
+        """Regression test (ECS02C-1216): any RaidStatus that is neither the
+        command's defined source/terminal state nor the ConvertToRAID/Online
+        special case (e.g. "Failed") must fail cleanly instead of being sent
+        to the device, in check_mode and normal mode alike."""
+        drive_id = "Disk.Direct.1-1:BOSS.Slot.3-1"
+        module = self.get_module_mock(params={"command": command, "target": [drive_id]},
+                                      check_mode=check_mode)
+        redfish_response_mock.json_data = {
+            "Oem": {"Dell": {"RaidStatus": "Failed"}},
+        }
+
+        with pytest.raises(Exception) as ex:
+            self.module.convert_raid_status(module, redfish_str_controller_conn)
+        assert ex.value.args[0] == ("The physical disk {0} is in the 'Failed' RAID status, which does not "
+                                    "support the '{1}' operation.").format(drive_id, command)
+
+        methods = [call.args[0] for call in redfish_str_controller_conn.invoke_request.call_args_list]
+        assert methods == ["GET"]
+
     def test_change_pd_status(self, redfish_str_controller_conn, redfish_response_mock):
         param = {"baseuri": "XX.XX.XX.XX", "username": "username", "password": "password",
                  "command": "ChangePDStateToOnline",
