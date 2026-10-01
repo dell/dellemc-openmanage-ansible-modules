@@ -821,9 +821,7 @@ def change_pd_status(module, redfish_obj):
     return resp, job_uri, job_id
 
 
-def convert_raid_status(module, redfish_obj):
-    resp, job_uri, job_id = None, None, None
-    command, target = module.params["command"], module.params.get("target")
+def get_pd_raid_states(module, redfish_obj, target):
     ctrl, pd_ready_state = None, []
     try:
         for ctrl in target:
@@ -835,41 +833,48 @@ def convert_raid_status(module, redfish_obj):
             pd_ready_state.append(raid_status)
     except HTTPError:
         module.fail_json(msg=PD_ERROR_MSG.format(ctrl))
-    else:
-        # Per the iDRAC's own DellRaidService action definitions:
-        #   ConvertToRAID is only defined for a disk currently "NonRAID" (result: "Ready").
-        #   ConvertToNonRAID is only defined for a disk currently "Ready" (result: "NonRAID").
-        # A disk already reporting "Online" is an active member of a virtual disk:
-        #   - for ConvertToRAID that already satisfies the goal (the disk is RAID-usable), so
-        #     it is treated the same as an already-"Ready" disk (no change needed).
-        #   - for ConvertToNonRAID it is not a supported starting state (the virtual disk would
-        #     need to be removed first), so it must fail cleanly rather than be sent to the
-        #     device or silently treated as "no change".
-        # Any other reported status (Failed, Foreign, Degraded, Offline, ...) is likewise not a
-        # supported starting state for either command and must fail cleanly. This also ensures
-        # check_mode never falls through to the live POST below regardless of RaidStatus.
-        source_status = "NonRAID" if command == "ConvertToRAID" else "Ready"
-        done_status = "Ready" if command == "ConvertToRAID" else "NonRAID"
-        drive_states = list(zip(target, pd_ready_state))
-        unsupported = [(drive_id, status) for drive_id, status in drive_states
-                       if status not in (source_status, done_status)
-                       and not (command == "ConvertToRAID" and status == "Online")]
-        if unsupported:
-            drive_id, status = unsupported[0]
-            module.fail_json(msg=PD_RAID_UNSUPPORTED_STATE_MSG.format(drive_id, status, command))
-        no_change = source_status not in pd_ready_state
-        if module.check_mode:
-            if no_change:
-                module.exit_json(msg=NO_CHANGES_FOUND)
-            module.exit_json(msg=CHANGES_FOUND, changed=True)
-        if no_change:
-            module.exit_json(msg=NO_CHANGES_FOUND)
-        else:
-            resp = redfish_obj.invoke_request("POST", RAID_ACTION_URI.format(system_id=SYSTEM_ID,
-                                                                             action=command),
-                                              data={"PDArray": target})
-            job_uri = resp.headers.get("Location")
-            job_id = job_uri.split("/")[-1]
+    return pd_ready_state
+
+
+def validate_raid_conversion_states(module, command, target, pd_ready_state):
+    # Per the iDRAC's own DellRaidService action definitions:
+    #   ConvertToRAID is only defined for a disk currently "NonRAID" (result: "Ready").
+    #   ConvertToNonRAID is only defined for a disk currently "Ready" (result: "NonRAID").
+    # A disk already reporting "Online" is an active member of a virtual disk:
+    #   - for ConvertToRAID that already satisfies the goal (the disk is RAID-usable), so
+    #     it is treated the same as an already-"Ready" disk (no change needed).
+    #   - for ConvertToNonRAID it is not a supported starting state (the virtual disk would
+    #     need to be removed first), so it must fail cleanly rather than be sent to the
+    #     device or silently treated as "no change".
+    # Any other reported status (Failed, Foreign, Degraded, Offline, ...) is likewise not a
+    # supported starting state for either command and must fail cleanly. This also ensures
+    # check_mode never falls through to the live POST below regardless of RaidStatus.
+    source_status = "NonRAID" if command == "ConvertToRAID" else "Ready"
+    done_status = "Ready" if command == "ConvertToRAID" else "NonRAID"
+    drive_states = list(zip(target, pd_ready_state))
+    unsupported = [(drive_id, status) for drive_id, status in drive_states
+                   if status not in (source_status, done_status)
+                   and not (command == "ConvertToRAID" and status == "Online")]
+    if unsupported:
+        drive_id, status = unsupported[0]
+        module.fail_json(msg=PD_RAID_UNSUPPORTED_STATE_MSG.format(drive_id, status, command))
+    return source_status not in pd_ready_state
+
+
+def convert_raid_status(module, redfish_obj):
+    resp, job_uri, job_id = None, None, None
+    command, target = module.params["command"], module.params.get("target")
+    pd_ready_state = get_pd_raid_states(module, redfish_obj, target)
+    no_change = validate_raid_conversion_states(module, command, target, pd_ready_state)
+    if no_change:
+        module.exit_json(msg=NO_CHANGES_FOUND)
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    resp = redfish_obj.invoke_request("POST", RAID_ACTION_URI.format(system_id=SYSTEM_ID,
+                                                                     action=command),
+                                      data={"PDArray": target})
+    job_uri = resp.headers.get("Location")
+    job_id = job_uri.split("/")[-1]
     return resp, job_uri, job_id
 
 
