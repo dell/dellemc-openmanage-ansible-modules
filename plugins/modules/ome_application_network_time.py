@@ -161,10 +161,7 @@ def get_payload(module):
         "secondary_ntp_address1": "SecondaryNTPAddress1",
         "secondary_ntp_address2": "SecondaryNTPAddress2"
     }
-    backup_params = params.copy()
-    remove_keys = ["hostname", "username", "password", "port", "ca_path", "validate_certs", "timeout"]
-    remove_unwanted_keys(remove_keys, backup_params)
-    payload = dict([(proxy_payload_map[key], val) for key, val in backup_params.items() if val is not None])
+    payload = dict([(proxy_payload_map[key], params[key]) for key in proxy_payload_map if params.get(key) is not None])
     return payload
 
 

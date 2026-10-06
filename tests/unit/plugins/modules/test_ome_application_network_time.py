@@ -277,6 +277,31 @@ class TestOmeTemplate(FakeAnsibleModule):
                            "SecondaryNTPAddress2": "10.136.112.222"
                            }
 
+    def test_get_payload_with_security_auth_params(self, ome_default_args):
+        """Regression test for ECS02C-1218 / GitHub #1153:
+        get_payload must not raise KeyError when enforce_validate_certs
+        and cert_fingerprint are present in module.params (added by PR #1144)."""
+        new_param = {
+            "enable_ntp": True,
+            "primary_ntp_address": "10.136.112.220",
+            "secondary_ntp_address1": None,
+            "secondary_ntp_address2": None,
+            "system_time": None,
+            "time_zone": "TZ_ID_66",
+            "validate_certs": True,
+            "port": 443,
+            "timeout": 30,
+            "enforce_validate_certs": False,
+            "cert_fingerprint": None,
+        }
+        ome_default_args.update(new_param)
+        f_module = self.get_module_mock(params=ome_default_args)
+        payload = self.module.get_payload(f_module)
+        assert payload == {"EnableNTP": True, "TimeZone": "TZ_ID_66",
+                           "PrimaryNTPAddress": "10.136.112.220"}
+        assert "enforce_validate_certs" not in payload.values()
+        assert "cert_fingerprint" not in payload.values()
+
     def test_get_updated_payload_success_case(self, ome_default_args, ome_connection_mock_for_application_network_time,
                                               ome_response_mock):
         current_setting = {"@odata.context": "/api/$metadata#Network.TimeConfiguration",

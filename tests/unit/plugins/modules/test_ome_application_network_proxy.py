@@ -179,6 +179,33 @@ class TestOmeTemplate(FakeAnsibleModule):
         assert payload == {"EnableProxy": True, "IpAddress": "YY.YY.YY.YY", "PortNumber": 443, "Username": "username",
                            "Password": "password", "EnableAuthentication": False}
 
+    def test_get_payload_with_security_auth_params(self, ome_default_args):
+        """Regression test for ECS02C-1218 / GitHub #1153:
+        get_payload must not raise KeyError when enforce_validate_certs
+        and cert_fingerprint are present in module.params (added by PR #1144)."""
+        new_param = {
+            "ip_address": "YY.YY.YY.YY",
+            "proxy_port": 443,
+            "enable_proxy": True,
+            "proxy_username": "username",
+            "proxy_password": "password",
+            "enable_authentication": False,
+            "port": 443,
+            "validate_certs": True,
+            "timeout": 30,
+            "update_password": "on_create",
+            "enforce_validate_certs": False,
+            "cert_fingerprint": None,
+        }
+        ome_default_args.update(new_param)
+        f_module = self.get_module_mock(params=ome_default_args)
+        payload = self.module.get_payload(f_module)
+        assert payload == {"EnableProxy": True, "IpAddress": "YY.YY.YY.YY", "PortNumber": 443,
+                           "Username": "username", "Password": "password",
+                           "EnableAuthentication": False}
+        assert "enforce_validate_certs" not in payload.values()
+        assert "cert_fingerprint" not in payload.values()
+
     def test_get_updated_payload_success_case(self, mocker, ome_default_args, ome_connection_mock_for_application_network_proxy,
                                               ome_response_mock):
         current_setting = {"@odata.context": "/api/$metadata#Network.ProxyConfiguration",
