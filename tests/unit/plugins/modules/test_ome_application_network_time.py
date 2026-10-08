@@ -278,9 +278,6 @@ class TestOmeTemplate(FakeAnsibleModule):
                            }
 
     def test_get_payload_with_security_auth_params(self, ome_default_args):
-        """Regression test for ECS02C-1218 / GitHub #1153:
-        get_payload must not raise KeyError when enforce_validate_certs
-        and cert_fingerprint are present in module.params (added by PR #1144)."""
         new_param = {
             "enable_ntp": True,
             "primary_ntp_address": "10.136.112.220",
