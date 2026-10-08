@@ -276,16 +276,9 @@ def get_payload(module):
         "ignore_certificate_validation": "SslCheckDisabled",
         "proxy_exclusion_list": "ProxyExclusionList"
     }
-    backup_params = params.copy()
-    remove_keys = ["hostname", "username", "password", "port", "ca_path", "validate_certs",
-                   "timeout", "update_password"]
-    remove_unwanted_keys(remove_keys, backup_params)
-    payload = dict([(proxy_payload_map[key], val) for key, val in backup_params.items() if val
-                    is not None])
-    if backup_params.get("proxy_exclusion_list") or backup_params.get("proxy_exclusion_list") == []:
-        temp_proxy_exclusion_list = backup_params.get("proxy_exclusion_list")
-        converted_proxy_exclusion_list = ";".join(temp_proxy_exclusion_list)
-        payload["ProxyExclusionList"] = converted_proxy_exclusion_list
+    payload = dict([(proxy_payload_map[key], params[key]) for key in proxy_payload_map if params.get(key) is not None])
+    if params.get("proxy_exclusion_list") is not None:
+        payload["ProxyExclusionList"] = ";".join(params["proxy_exclusion_list"])
     return payload
 
 
