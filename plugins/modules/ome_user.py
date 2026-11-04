@@ -43,14 +43,37 @@ options:
     type: dict
     default: {}
     description:
-      - >-
-        Payload data for the user operations. It can take the following attributes for C(present).
-      - >-
-        UserTypeId, DirectoryServiceId, Description, Name, Password, UserName, RoleId, Locked, Enabled.
-      - >-
-        OME will throw error if required parameter is not provided for operation.
-      - >-
-        Refer OpenManage Enterprise API Reference Guide for more details.
+      - Payload data for the user operations. It can take the following attributes for C(present).
+      - OME will throw error if required parameter is not provided for operation.
+      - Refer OpenManage Enterprise API Reference Guide for more details.
+    suboptions:
+      UserName:
+        description: Unique name of the user to be created or modified.
+        type: str
+      Password:
+        description: Password of the user. This value is masked in the task output and logs.
+        type: str
+      RoleId:
+        description: Unique ID of the role assigned to the user.
+        type: str
+      Enabled:
+        description: Whether the user account is enabled.
+        type: bool
+      Description:
+        description: Description of the user.
+        type: str
+      Name:
+        description: Name of the user.
+        type: str
+      UserTypeId:
+        description: Type of the user.
+        type: int
+      DirectoryServiceId:
+        description: Unique ID of the directory service.
+        type: int
+      Locked:
+        description: Whether the user account is locked.
+        type: bool
 requirements:
     - "python >= 3.9.6"
 author: "Sajna Shetty(@Sajna-Shetty)"
@@ -182,6 +205,11 @@ def get_user_id_from_name(rest_obj, name):
 def _get_resource_parameters(module, rest_obj):
     state = module.params["state"]
     payload = module.params.get("attributes")
+    if isinstance(payload, dict):
+        # attributes is declared with a sub-options spec (for Password no_log support), so
+        # Ansible fills every unspecified sub-key with None. Drop those before building the
+        # request body so a partial update does not null out fields the caller did not set.
+        payload = {key: value for key, value in payload.items() if value is not None}
     if state == "present":
         name = payload.get('UserName')
         user_id = get_user_id_from_name(rest_obj, name)
@@ -210,8 +238,19 @@ def password_no_log(attributes):
         attributes['Password'] = "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
 
 
+def _redact_password_fields(data):
+    """Redact password-bearing fields that OME may echo back in a response/error body."""
+    if isinstance(data, dict):
+        for key in ("Password", "PlainTextPassword"):
+            if data.get(key):
+                data[key] = "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
+    return data
+
+
 def fail_module(module, **failmsg):
     password_no_log(module.params.get("attributes"))
+    if "user_status" in failmsg:
+        failmsg["user_status"] = _redact_password_fields(failmsg["user_status"])
     module.fail_json(**failmsg)
 
 
@@ -222,19 +261,33 @@ def exit_module(module, response, http_method):
                 'DELETE': "Successfully deleted the User"}
     state_msg = msg_dict[http_method]
     if response.status_code != 204:
-        module.exit_json(msg=state_msg, changed=True, user_status=response.json_data)
+        module.exit_json(msg=state_msg, changed=True,
+                         user_status=_redact_password_fields(response.json_data))
     else:
         # For delete operation no response content is returned
         module.exit_json(msg=state_msg, changed=True)
 
 
 def main():
+    attributes_options = {
+        "UserTypeId": {"type": "int"},
+        "DirectoryServiceId": {"type": "int"},
+        "Description": {"type": "str"},
+        "Name": {"type": "str"},
+        "Password": {"type": "str", "no_log": True},
+        "UserName": {"type": "str"},
+        "RoleId": {"type": "str"},
+        "Locked": {"type": "bool"},
+        "Enabled": {"type": "bool"},
+    }
+
     specs = {
         "state": {"required": False, "type": 'str', "default": "present",
                   "choices": ['present', 'absent']},
         "user_id": {"required": False, "type": 'int'},
         "name": {"required": False, "type": 'str'},
-        "attributes": {"required": False, "type": 'dict', "default": {}},
+        "attributes": {"required": False, "type": 'dict', "default": {},
+                       "options": attributes_options},
     }
 
     module = OmeAnsibleModule(
@@ -251,7 +304,11 @@ def main():
             if resp.success:
                 exit_module(module, resp, method)
     except HTTPError as err:
-        fail_module(module, msg=str(err), user_status=json.load(err))
+        try:
+            err_status = json.load(err)
+        except ValueError:
+            err_status = {}
+        fail_module(module, msg=str(err), user_status=err_status)
     except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError, OSError, SSLError) as err:
         fail_module(module, msg=str(err))
 

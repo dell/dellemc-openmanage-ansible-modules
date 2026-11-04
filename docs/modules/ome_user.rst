@@ -50,7 +50,23 @@ Parameters
   attributes (optional, dict, {})
     Payload data for the user operations. It can take the following attributes for \ :literal:`present`\ .
 
-    UserTypeId, DirectoryServiceId, Description, Name, Password, UserName, RoleId, Locked, Enabled.
+    \ :emphasis:`UserName`\ (str) -- Unique name of the user to be created or modified.
+
+    \ :emphasis:`Password`\ (str) -- Password of the user. This value is masked in the task output and logs.
+
+    \ :emphasis:`RoleId`\ (str) -- Unique ID of the role assigned to the user.
+
+    \ :emphasis:`Enabled`\ (bool) -- Whether the user account is enabled.
+
+    \ :emphasis:`Description`\ (str) -- Description of the user.
+
+    \ :emphasis:`Name`\ (str) -- Name of the user.
+
+    \ :emphasis:`UserTypeId`\ (int) -- Type of the user.
+
+    \ :emphasis:`DirectoryServiceId`\ (int) -- Unique ID of the directory service.
+
+    \ :emphasis:`Locked`\ (bool) -- Whether the user account is locked.
 
     OME will throw error if required parameter is not provided for operation.
 

@@ -176,6 +176,69 @@ class TestOmeUser(FakeAnsibleModule):
         assert 'msg' in result
         assert result['failed'] is True
 
+    def test_main_user_http_error_redacts_echoed_password(self, mocker, ome_default_args,
+                                                           ome_connection_for_user, ome_response_mock):
+        """A plaintext password echoed back by OME in an HTTPError body must not be
+        disclosed in the module's fail_json output."""
+        ome_default_args.update({"state": "present",
+                                 "attributes": {"UserName": "user1", "Password": "UserPassword",
+                                                "RoleId": "10", "Enabled": True}})
+        mocker.patch(MODULE_PATH + 'ome_user._validate_inputs')
+        mocker.patch(MODULE_PATH + 'ome_user._get_resource_parameters',
+                     return_value=("method", "path", "payload"))
+        err_body = to_text(json.dumps({"UserName": "user1", "Password": "UserPassword"}))
+        ome_connection_for_user.invoke_request.side_effect = HTTPError(
+            'https://testhost.com', 400, 'http error message',
+            {"accept-type": "application/json"}, StringIO(err_body))
+        result = self._run_module_with_fail_json(ome_default_args)
+        assert result['failed'] is True
+        assert result['user_status']['Password'] == "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
+
+    def test_main_user_http_error_non_json_body_does_not_crash(self, mocker, ome_default_args,
+                                                                ome_connection_for_user, ome_response_mock):
+        """A non-JSON HTTPError body must not propagate uncaught out of the handler and
+        skip password masking (sibling except does not catch exceptions raised inside
+        this except block)."""
+        ome_default_args.update({"state": "present",
+                                 "attributes": {"UserName": "user1", "Password": "UserPassword",
+                                                "RoleId": "10", "Enabled": True}})
+        mocker.patch(MODULE_PATH + 'ome_user._validate_inputs')
+        mocker.patch(MODULE_PATH + 'ome_user._get_resource_parameters',
+                     return_value=("method", "path", "payload"))
+        ome_connection_for_user.invoke_request.side_effect = HTTPError(
+            'https://testhost.com', 400, 'http error message',
+            {"accept-type": "text/plain"}, StringIO("not json"))
+        result = self._run_module_with_fail_json(ome_default_args)
+        assert result['failed'] is True
+        assert result['user_status'] == {}
+
+    def test__get_resource_parameters_drops_none_valued_attributes(self, ome_response_mock,
+                                                                    ome_connection_for_user, mocker):
+        """attributes is declared with a sub-options spec (for Password no_log), so Ansible
+        fills every unspecified sub-key with None; those must be dropped from the outgoing
+        payload so a partial update does not null out fields the caller did not set."""
+        ome_response_mock.status_code = 200
+        ome_response_mock.success = True
+        f_module = self.get_module_mock(params={
+            "state": "present", "user_id": None,
+            "attributes": {"UserName": "user1", "Password": "UserPassword", "RoleId": "10",
+                           "Enabled": True, "Description": None, "DirectoryServiceId": None,
+                           "Name": None, "Locked": None, "UserTypeId": None}})
+        mocker.patch(MODULE_PATH + 'ome_user.get_user_id_from_name', return_value=None)
+        method, path, payload = self.module._get_resource_parameters(f_module, ome_response_mock)
+        assert payload == {"UserName": "user1", "Password": "UserPassword", "RoleId": "10", "Enabled": True}
+
+    def test_redact_password_fields(self):
+        data = {"UserName": "user1", "Password": "secret", "PlainTextPassword": "secret"}
+        redacted = self.module._redact_password_fields(data)
+        assert redacted["Password"] == "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
+        assert redacted["PlainTextPassword"] == "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
+        assert redacted["UserName"] == "user1"
+
+    def test_redact_password_fields_non_dict_passthrough(self):
+        assert self.module._redact_password_fields(None) is None
+        assert self.module._redact_password_fields("not-a-dict") == "not-a-dict"
+
     @pytest.mark.parametrize("http_method, status_code", [('POST', 200), ('PUT', 200), ('DELETE', 204)])
     def test_exit_module_user_success_case(self, http_method, status_code, ome_response_mock):
         ome_response_mock.status_code = status_code
