@@ -68,6 +68,12 @@ Parameters
 
     \ :emphasis:`Locked`\ (bool) -- Whether the user account is locked.
 
+    \ :emphasis:`EmailId`\ (str) -- Email address of the user.
+
+    \ :emphasis:`GenerateAndNotify`\ (bool) -- Whether to generate a random password and notify the user by email.
+
+    \ :emphasis:`MultiFactorAuthenticationEnabled`\ (bool) -- Whether multi-factor authentication is enabled for the user.
+
     OME will throw error if required parameter is not provided for operation.
 
     Refer OpenManage Enterprise API Reference Guide for more details.

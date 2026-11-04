@@ -74,6 +74,15 @@ options:
       Locked:
         description: Whether the user account is locked.
         type: bool
+      EmailId:
+        description: Email address of the user.
+        type: str
+      GenerateAndNotify:
+        description: Whether to generate a random password and notify the user by email.
+        type: bool
+      MultiFactorAuthenticationEnabled:
+        description: Whether multi-factor authentication is enabled for the user.
+        type: bool
 requirements:
     - "python >= 3.9.6"
 author: "Sajna Shetty(@Sajna-Shetty)"
@@ -279,6 +288,9 @@ def main():
         "RoleId": {"type": "str"},
         "Locked": {"type": "bool"},
         "Enabled": {"type": "bool"},
+        "EmailId": {"type": "str"},
+        "GenerateAndNotify": {"type": "bool"},
+        "MultiFactorAuthenticationEnabled": {"type": "bool"},
     }
 
     specs = {

@@ -228,6 +228,27 @@ class TestOmeUser(FakeAnsibleModule):
         method, path, payload = self.module._get_resource_parameters(f_module, ome_response_mock)
         assert payload == {"UserName": "user1", "Password": "UserPassword", "RoleId": "10", "Enabled": True}
 
+    def test_main_user_accepts_documented_ome_account_attributes(self, mocker, ome_default_args,
+                                                                  ome_connection_for_user, ome_response_mock):
+        """The attributes sub-options allowlist must stay in sync with the OME Account API
+        fields the module previously passed through unchecked (as a bare dict); EmailId,
+        GenerateAndNotify and MultiFactorAuthenticationEnabled are real, settable fields on
+        OME 4.6/4.7/4.8 accounts and must not be rejected as unsupported parameters."""
+        ome_default_args.update({"state": "present",
+                                 "attributes": {"UserName": "user1", "Password": "UserPassword",
+                                                "RoleId": "10", "Enabled": True,
+                                                "EmailId": "user1@example.com",
+                                                "GenerateAndNotify": False,
+                                                "MultiFactorAuthenticationEnabled": False}})
+        mocker.patch(MODULE_PATH + 'ome_user._validate_inputs')
+        mocker.patch(MODULE_PATH + 'ome_user._get_resource_parameters',
+                     return_value=("POST", "path", "payload"))
+        ome_response_mock.success = True
+        ome_response_mock.status_code = 200
+        ome_response_mock.json_data = {"Id": "1"}
+        result = self._run_module(ome_default_args)
+        assert result['changed'] is True
+
     def test_redact_password_fields(self):
         data = {"UserName": "user1", "Password": "secret", "PlainTextPassword": "secret"}
         redacted = self.module._redact_password_fields(data)
