@@ -58,6 +58,8 @@ Parameters
   catalog_file_name (optional, str, Catalog.xml)
     Catalog file name relative to the \ :emphasis:`share\_name`\ .
 
+    Supported file extensions extensions are \ :literal:`.xml`\  and \ :literal:`.xml.gz`\  (case-insensitive).
+
 
   ignore_cert_warning (optional, bool, True)
     Specifies if certificate warnings are ignored when HTTPS share is used. If \ :literal:`true`\  option is set, then the certificate warnings are ignored.
