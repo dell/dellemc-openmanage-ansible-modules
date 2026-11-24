@@ -138,11 +138,37 @@ class TestidracFirmware(FakeAnsibleModule):
             self.module._validate_catalog_file("")
         assert exc.value.args[0] == 'catalog_file_name should be a non-empty string.'
 
-    def test__validate_catalog_file_case02(self, idrac_default_args):
-        idrac_default_args.update({"catalog_file_name": "Catalog.json"})
+    @pytest.mark.parametrize("catalog_file_name", [
+        "Catalog.xml", "catalog-latest.xml.gz", "CATALOG.XML.GZ",
+    ])
+    def test_validate_catalog_file_supported_suffixes(self, catalog_file_name):
+        self.module._validate_catalog_file(catalog_file_name)
+
+    @pytest.mark.parametrize("catalog_file_name", [
+        "Catalog.json", "catalog.gz", ".gz", "catalog.xml.gzip", "catalog.xmlfoo", "xml",
+    ])
+    def test__validate_catalog_file_case02(self, idrac_default_args, catalog_file_name):
+        idrac_default_args.update({"catalog_file_name": catalog_file_name})
         with pytest.raises(ValueError) as exc:
-            self.module._validate_catalog_file("Catalog.json")
-        assert exc.value.args[0] == 'catalog_file_name should be an XML file.'
+            self.module._validate_catalog_file(catalog_file_name)
+        assert exc.value.args[0] == 'catalog_file_name should end with .xml or .xml.gz.'
+
+    @pytest.mark.parametrize("catalog_file_name", [
+        "Catalog.xml", "catalog-latest.xml.gz", "CATALOG.XML.GZ",
+    ])
+    def test_catalog_file_name_passed_unchanged(self, catalog_file_name, mocker, idrac_default_args,
+                                                idrac_connection_firmware_redfish_mock):
+        idrac_default_args.update({
+            "share_name": DELL_SHARE, "catalog_file_name": catalog_file_name,
+            "share_user": None, "share_password": None, "reboot": False,
+            "job_wait": False, "ignore_cert_warning": True, "apply_update": False,
+        })
+        f_module = self.get_module_mock(params=idrac_default_args)
+        update_mock = mocker.patch(MODULE_PATH + UPDATE_URL,
+                                   return_value=({"JobStatus": "OK", "job_details": {"PackageList": []}}, None))
+        mocker.patch(MODULE_PATH + CONVERT_XML_JSON, return_value=([], False, False))
+        self.module.update_firmware_redfish(idrac_connection_firmware_redfish_mock, f_module, {})
+        assert update_mock.call_args.args[6]["CatalogFile"] == catalog_file_name
 
     def test_convert_xmltojson(self, mocker, idrac_default_args, idrac_connection_firmware_redfish_mock):
         idrac_default_args.update({"share_name": "sharename", "catalog_file_name": CATALOG,

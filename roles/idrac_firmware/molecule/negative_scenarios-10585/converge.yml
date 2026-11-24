@@ -102,7 +102,7 @@
     - name: "Verifying Updating firmware with catalog file without extension"
       ansible.builtin.assert:
         that:
-          - idrac_firmware_out.msg == "catalog_file_name should be an XML file."
+          - idrac_firmware_out.msg == "catalog_file_name should end with .xml or .xml.gz."
 
     - name: Update firmware from repository on HTTPS Share with invalid share_user
       ansible.builtin.import_role:

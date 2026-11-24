@@ -125,7 +125,7 @@ dellemc.openmanage
     <td>Catalog.xml</td>
     <td></td>
     <td>str</td>
-    <td>- Catalog file name relative to the I(share_name</td>
+    <td>- Catalog file name relative to the I(share_name). Supported file extensions are .xml and .xml.gz (case-insensitive).</td>
   </tr>
     <tr>
     <td>ignore_cert_warning</td>

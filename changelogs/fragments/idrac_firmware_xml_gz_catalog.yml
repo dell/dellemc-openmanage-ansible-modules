@@ -1,0 +1,5 @@
+---
+minor_changes:
+  - >
+    idrac_firmware - Allow gzip-compressed .xml.gz catalog files in
+    catalog_file_name alongside .xml files (case-insensitive).

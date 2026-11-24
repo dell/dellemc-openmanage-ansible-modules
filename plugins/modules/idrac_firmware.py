@@ -48,7 +48,9 @@ options:
         type: bool
         default: true
     catalog_file_name:
-        description: Catalog file name relative to the I(share_name).
+        description:
+          - Catalog file name relative to the I(share_name).
+          - Supported file extensions are C(.xml) and C(.xml.gz) (case-insensitive).
         type: str
         default: 'Catalog.xml'
     ignore_cert_warning:
@@ -322,8 +324,8 @@ def _validate_catalog_file(catalog_file_name):
     normilized_file_name = catalog_file_name.lower()
     if not normilized_file_name:
         raise ValueError('catalog_file_name should be a non-empty string.')
-    elif not normilized_file_name.endswith("xml"):
-        raise ValueError('catalog_file_name should be an XML file.')
+    elif not normilized_file_name.endswith(("xml", "xml.gz")):
+        raise ValueError('catalog_file_name should end with .xml or .xml.gz.')
 
 
 def get_check_mode_status(status, module):

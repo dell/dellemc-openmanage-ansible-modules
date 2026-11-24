@@ -47,7 +47,9 @@ argument_specs:
         description: Network share user password. This option is mandatory for CIFS Network Share.
         type: str
       catalog_file_name:
-        description: Catalog file name relative to the I(share_name).
+        description:
+          - Catalog file name relative to the I(share_name).
+          - Supported file extensions are C(.xml) and C(.xml.gz) (case-insensitive).
         type: str
         default: "Catalog.xml"
       ignore_cert_warning:
